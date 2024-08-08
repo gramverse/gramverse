@@ -18,4 +18,13 @@ export class UserRepository {
         const usersSchema = new mongoose.Schema(usersSchemaObject);
         this.users = dataHandler.model("users", usersSchema);
     }
+    getUserByUserName = async (userName : string) => {
+        this.users.find({userName : userName})
+    }
+    getUserByEmail = async (email : string) =>{
+        const user = await (this.users.find({email : email}));
+        return user;
+
+        }
+    
 }
