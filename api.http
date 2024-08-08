@@ -1,9 +1,0 @@
-### Sign Up User
-POST http://localhost:3000/api/users/signup
-Content-Type: application/json
-
-{
-    "userName": "johndoe123",
-    "email": "johndoe@example.com",
-    "password": "assword123"
-}
