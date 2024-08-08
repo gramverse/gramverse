@@ -2,6 +2,8 @@ import { LoginRequest } from "/home/ali/FINALFINALPROJECT/collegegram-back-end/b
 import {UserRepository} from "../repository/user.repository";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { jwtSecret } from "../config";
+import { LoginResponse } from "../models/login-response";
 export interface IUserRepository {
     // add: (registerRequest: RegisterRequest) => Promise<User>;
     // checkEmailExistance: (email: string) => Promise<boolean>;
@@ -33,7 +35,17 @@ export class UserService {
         if (!user){
             return undefined;
         } else if (bcrypt.compare(userPassword, user.password)){
-            return 
+            let token : string | undefined; 
+            const tokenPayload = `${user.userName}_${user._id}`;
+            if (loginRequest.rememberMe === true) {
+                token = jwt.sign({ data: tokenPayload }, jwtSecret, { expiresIn: '168h' });
+            } else {
+                token = jwt.sign({ data: tokenPayload }, jwtSecret, { expiresIn: '72h' });
+            }
+            
+            const loginResponse : LoginResponse = {user, token}
+            return loginResponse;
+            
         }
 
     }
