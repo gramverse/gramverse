@@ -19,10 +19,12 @@ export class UserRepository {
         this.users = dataHandler.model("users", usersSchema);
     }
     getUserByUserName = async (userName : string) => {
-        this.users.find({userName : userName})
+        const user = await (this.users.find({userName : userName}));
+        return user;     
     }
     getUserByEmail = async (email : string) =>{
         const user = await (this.users.find({email : email}));
+        
         return user;
 
         }
