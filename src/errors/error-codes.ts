@@ -1,0 +1,6 @@
+export enum ErrorCode {
+    USER_NOT_FOUND = 1001,
+    USER_ALREADY_EXISTS = 1002,
+    VALIDATION_ERROR = 1003,
+    INTERNAL_SERVER_ERROR = 1004   
+}
