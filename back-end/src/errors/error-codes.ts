@@ -6,4 +6,5 @@ export enum ErrorCode {
     EMAIL_EXISTS = 1005,
     USERNAME_EXISTS = 1006,
     UNSUCCESSFUL_SIGNUP = 1007,
+    UNKNOWN_ERROR = 1008,
 }

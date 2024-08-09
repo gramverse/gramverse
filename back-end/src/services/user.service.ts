@@ -1,19 +1,20 @@
-import { LoginRequest } from "../models/login-request";
-import {UserRepository} from "../repository/user.repository";
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { jwtSecret } from "../config";
-import { LoginResponse, UserToValidate } from "../models/login-response";
-import {User} from "../models/login-response";
-import { RegisterRequest } from "../models/register-request";
-import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
+import { HttpError } from "../errors/http-error";
+import {AuthorizedUser} from "../models/authorized-user";
+import { LoginRequest } from "../models/login-request";
+import { LoginResponse, User, UserToValidate } from "../models/login-response";
+import {ProfileDto} from "../models/profile-dto";
+import { RegisterRequest } from "../models/register-request";
+import {UserRepository} from "../repository/user.repository";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
     checkEmailExistance: (email: string) => Promise<boolean>;
     checkUserNameExistance: (userName: string) => Promise<boolean>;
-    validateInfo: (user: Partial<UserToValidate>) => void;
+    validateInfo: (user: Partial<UserToValidate>, isForSignup: boolean) => void;
     login: (loginRequest: LoginRequest) => Promise<LoginResponse|undefined>;
     getUser: (userNameOrPassword: string) => Promise<User|undefined>;
     // ... reset password functions
@@ -24,7 +25,7 @@ export class UserService implements IUserService {
     constructor(private userRepository: UserRepository) {}
 
     getUser = async (userNameOrEmail : string) =>{
-        const isEmail = userNameOrEmail.includes('@');
+        const isEmail = userNameOrEmail.includes("@");
         let user ;
         if (isEmail) {
             user = await this.userRepository.getUserByEmail(userNameOrEmail);
@@ -44,7 +45,11 @@ export class UserService implements IUserService {
         if (!passwordMatch){
             return undefined;
         }
-        const tokenPayload = `${user.userName}_${user._id}`;
+        const tokenPayload: AuthorizedUser = {
+            _id: user._id||"",
+            userName: user.userName,
+            email: user.email
+        };
         let token : string;
         if (loginRequest.rememberMe) {
             token = await jwt.sign({ data: tokenPayload }, jwtSecret, { expiresIn: "168h" });
@@ -56,7 +61,7 @@ export class UserService implements IUserService {
         return loginResponse;
     }
 
-    validateInfo = (user: Partial<UserToValidate>) => {
+    validateInfo = (user: Partial<UserToValidate>, hasNewPassword: boolean) => {
         const userNamePattern = /^(?!.{33})[a-zA-Z0-9_.]{8,}$/;
         if (!user.userName || !userNamePattern.test(user.userName)) {
             throw new HttpError(400, ErrorCode.INVALID_USERNAME, "Invalid username");
@@ -65,7 +70,7 @@ export class UserService implements IUserService {
         if (!user.email || !emailPattern.test(user.email)) {
             throw new HttpError(400, ErrorCode.INVALID_EMAIL, "Invalid email");
         }
-        if (!user.password || user.password.length < 8 || user.password.length > 32) {
+        if (hasNewPassword && (!user.password || user.password.length < 8 || user.password.length > 32)) {
             throw new HttpError(400, ErrorCode.INVALID_PASSWORD, "Invalid password");
         }
     }
@@ -84,7 +89,7 @@ export class UserService implements IUserService {
             email: registerRequest.email,
             password: registerRequest.password
         };
-        this.validateInfo(userToValidate);
+        this.validateInfo(userToValidate, true);
         const emailExists = await this.checkEmailExistance(registerRequest.email);
         if (emailExists) {
             throw new HttpError(400, ErrorCode.EMAIL_EXISTS, "Email Exists");
@@ -115,5 +120,37 @@ export class UserService implements IUserService {
         }
         const loginResponse = await this.login(loginRequest);
         return loginResponse;
+    }
+
+    getProfile = async (userName: string) => {
+        const profile = await this.getUser(userName);
+        return profile;
+    }
+
+    editProfile = async (profileDto: ProfileDto, user: AuthorizedUser) => {
+        const passwordIsUpdated = !!profileDto.password;
+        this.validateInfo(profileDto, passwordIsUpdated);
+        if (profileDto.userName != user.userName) {
+            if (await this.checkUserNameExistance(profileDto.userName)) {
+                throw new HttpError(400, ErrorCode.USERNAME_EXISTS, "Username exists");
+            }
+        }
+        if (profileDto.email != user.email) {
+            if (await this.checkEmailExistance(profileDto.email)) {
+                throw new HttpError(400, ErrorCode.EMAIL_EXISTS, "Email exists");
+            }
+        }
+        const oldUser = await this.userRepository.getUserByEmail(user.email);
+        if (!oldUser) {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "An error occurred reading database.");
+        }
+        const passwordHash = passwordIsUpdated ? await bcrypt.hash(profileDto.password, 10) : oldUser.passwordHash;
+        const userToBeUpdated: User = {
+            _id: user._id,
+            ... profileDto,
+            passwordHash,
+        };
+        const updatedUser = await this.userRepository.update(userToBeUpdated);
+        return updatedUser;
     }
 }

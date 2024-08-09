@@ -27,6 +27,14 @@ export class UserRepository implements IUserRepository {
         return newUser;
     }
 
+    update = async (user: User) => {
+        const updatedDocument = await this.users.updateOne({_id: user._id}, user);
+        if (!updatedDocument.acknowledged) {
+            return undefined;
+        }
+        return user;
+    }
+
     getUserByUserName = async (userName : string) => {
         const user: User|undefined = await this.users.findOne({userName})||undefined;
         return user;     
