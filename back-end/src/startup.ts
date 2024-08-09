@@ -1,6 +1,7 @@
 import express, { ErrorRequestHandler } from "express";
 import {ZodError} from "zod";
 import {HttpError} from "./errors/http-error";
+import {userRouter} from "./routes/user.route";
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     if (err instanceof ZodError) {
@@ -19,6 +20,8 @@ export const buildApp = () => {
     app.use(express.json());
 
     app.use(errorHandler);
+    
+    app.use("/users", userRouter);
 
     app.use((req, res, next) => {
         res.status(404).send({messge: "Not found"});
