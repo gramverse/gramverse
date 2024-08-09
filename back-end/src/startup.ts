@@ -1,4 +1,5 @@
 import express, { ErrorRequestHandler } from "express";
+import cookieParser from "cookie-parser";
 import {ZodError} from "zod";
 import {HttpError} from "./errors/http-error";
 import {userRouter} from "./routes/user.route";
@@ -18,8 +19,9 @@ export const buildApp = () => {
     const app = express();
 
     app.use(express.json());
+    app.use(cookieParser());
 
-    app.use(errorHandler);
+    // app.use(errorHandler);
     
     app.use("/users", userRouter);
 
