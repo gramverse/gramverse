@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const tagSchema = new mongoose.Schema({
+export const tagSchema = new mongoose.Schema({
     postId: {type: String, required: true},
     tag: {type: String, required: true},
     isDeleted: {type: Boolean, required: true,default: false}
