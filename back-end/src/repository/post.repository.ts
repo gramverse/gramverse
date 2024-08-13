@@ -5,7 +5,7 @@ import {IPost, Post} from "../models/post-response";
 export class PostRepository {
     private posts: Model<IPost>;
     constructor(private dataHandler: typeof import("mongoose")) {
-        this.posts = dataHandler.model("posts", postSchema);
+        this.posts = dataHandler.model<IPost>("posts", postSchema);
     }
 
     add = async (post: Post) => {
