@@ -50,8 +50,7 @@ fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const fields = JSON.parse(req.body["profileFields"]);
-        const profileDto = zodProfileDto.parse(fields);
-        profileDto.profilePicture = imageUrl;
+        const profileDto = zodProfileDto.parse({...fields, profileImage: imageUrl, userName: req.user.userName});
         const updatedProfile = await userService.editProfile(profileDto, req.user);
         res.status(200).send(updatedProfile);
     } catch (err) {

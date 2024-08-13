@@ -4,7 +4,7 @@ import cors from "cors";
 import {ZodError} from "zod";
 import {HttpError} from "./errors/http-error";
 import {userRouter} from "./routes/user.route";
-import {fileRouter} from "./routes/file.router";
+import {fileRouter} from "./routes/file.route";
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     if (err instanceof ZodError) {

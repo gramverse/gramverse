@@ -8,7 +8,7 @@ export interface IUser extends Document {
     userName: string;
     firstName: string;
     lastName: string;
-    profilePicture: string;
+    profileImage: string;
     email: string;
     passwordHash: string;
     isPrivate: boolean;
@@ -20,7 +20,7 @@ export type User = {
     userName: string,
     firstName: string,
     lastName: string,
-    profilePicture: string,
+    profileImage: string,
     email: string,
     passwordHash: string,
     isPrivate: boolean,
@@ -32,7 +32,7 @@ export type UserToValidate = {
     userName: string,
     firstName: string,
     lastName: string,
-    profilePicture: string,
+    profileImage: string,
     email: string,
     password: string,
     isPrivate: boolean,
