@@ -1,5 +1,6 @@
 import { Model } from "mongoose";
 import {postSchema} from "../models/post-schema";
+import {IPost, Post} from "../models/post-response";
 
 export class PostRepository {
     private posts: Model<IPost>;
