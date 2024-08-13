@@ -5,6 +5,6 @@ export const postSchema = new mongoose.Schema({
     photos: {type: [String],required: true},
     caption: {type:String, default: ""},
     mentioned: {type: [String], required: true},
-  // }, { 
-    // timestamps: { createdAt: "created_time", updatedAt: "updated_time" }
+  }, { 
+    timestamps: { createdAt: "created_time", updatedAt: "updated_time" }
 });
