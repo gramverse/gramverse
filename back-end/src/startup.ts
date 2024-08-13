@@ -4,6 +4,7 @@ import cors from "cors";
 import {ZodError} from "zod";
 import {HttpError} from "./errors/http-error";
 import {userRouter} from "./routes/user.route";
+import {fileRouter} from "./routes/file.router";
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     if (err instanceof ZodError) {
@@ -20,8 +21,9 @@ export const buildApp = () => {
     const app = express();
 
     app.use(cors());
-    app.use(express.json());
     app.use(cookieParser());
+    app.use("/files", fileRouter);
+    app.use(express.json());
 
     // app.use(errorHandler);
     
