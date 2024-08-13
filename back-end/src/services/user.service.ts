@@ -105,7 +105,7 @@ export class UserService implements IUserService {
             lastName: "",
             email: registerRequest.email,
             passwordHash,
-            profilePicture: "",
+            profileImage: "",
             isPrivate: false,
             bio: "",
         }
