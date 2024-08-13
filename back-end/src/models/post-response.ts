@@ -4,7 +4,6 @@ export interface IPost extends Document {
     photos: string[];
     caption: string;
     mentioned: string[];
-    
 }
 
 export interface Post {

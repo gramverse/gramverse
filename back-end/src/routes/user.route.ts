@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import jwtDecode from "jwt-decode";
 import {jwtSecret, userService} from "../config"
-import e, {Router, Request, Response, NextFunction} from "express";
+import {Router, Request, Response, NextFunction} from "express";
 import { zodLoginRequest } from "../models/login-request";
 import {zodRegisterRequest} from "../models/register-request";
 import { HttpError } from "../errors/http-error";
@@ -9,6 +9,7 @@ import { ErrorCode } from "../errors/error-codes";
 import { LoginResponse } from "../models/login-response";
 import { AuthorizedUser } from "../models/authorized-user";
 import { zodProfileDto } from "../models/profile-dto";
+// import {authorize} from "../middlewares/authorization";
 
 declare module "express" {
     interface Request {
