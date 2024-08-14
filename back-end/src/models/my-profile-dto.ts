@@ -1,11 +1,11 @@
-export type ProfileDto = {
+export type MyProfileDto = {
     userName: string,
+    email: string,
     firstName: string,
     lastName: string,
     isPrivate: boolean,
     profileImage: string,
     bio: string,
-    isFollowed: boolean,
     followerCount: number,
     followingCount: number,
     postCount: number,

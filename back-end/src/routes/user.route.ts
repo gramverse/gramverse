@@ -8,7 +8,7 @@ import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
 import { LoginResponse } from "../models/login-response";
 import { AuthorizedUser } from "../models/authorized-user";
-import { zodProfileDto } from "../models/profile-dto";
+import { zodProfileDto } from "../models/edit-profile-dto";
 // import {authorize} from "../middlewares/authorization";
 
 declare module "express" {
@@ -76,12 +76,29 @@ userRouter.use((req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-userRouter.get("/profile", async (req: Request, res) => {
+userRouter.get("/profile/:userName", async (req: Request, res) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const profile = await userService.getProfile(req.user.userName);
+        const profile = await userService.getProfile(req.params.userName, req.user.userName);
+        res.status(200).send(JSON.stringify(profile));
+    } catch (err) {
+        if (err instanceof HttpError) {
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        console.error(err);
+        res.status(500).send();
+    }
+});
+
+userRouter.get("/myProfile", async (req: Request, res) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const profile = await userService.getMyProfile(req.user.userName);
         res.status(200).send(JSON.stringify(profile));
     } catch (err) {
         if (err instanceof HttpError) {
