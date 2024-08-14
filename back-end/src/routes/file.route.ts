@@ -69,7 +69,7 @@ fileRouter.get("/:fileName", (req, res) => {
     try {
         const filePath = path.join(__dirname, "uploads", req.params.fileName);
 
-        res.download(filePath);
+        res.status(200).download(filePath);
     } catch (err) {
         console.error(err);
         res.status(500).send();
