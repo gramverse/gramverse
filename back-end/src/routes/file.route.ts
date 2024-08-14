@@ -1,5 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import jwtDecode from "jwt-decode";
+import path from "path";
 import {jwtSecret, userService} from "../config"
 import{Router, Request, Response, NextFunction} from "express";
 import multer from "multer";
@@ -60,6 +61,17 @@ fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request
             return;
         }
         console.log(err);
+        res.status(500).send();
+    }
+});
+
+fileRouter.get("/:fileName", (req, res) => {
+    try {
+        const filePath = path.join(__dirname, "uploads", req.params.fileName);
+
+        res.download(filePath);
+    } catch (err) {
+        console.error(err);
         res.status(500).send();
     }
 });
