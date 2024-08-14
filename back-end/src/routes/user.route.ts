@@ -82,32 +82,13 @@ userRouter.get("/profile", async (req: Request, res) => {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const profile = await userService.getProfile(req.user.userName);
-        res.status(200).send(profile);
+        res.status(200).send(JSON.stringify(profile));
     } catch (err) {
         if (err instanceof HttpError) {
             res.status(err.statusCode).send(err);
             return;
         }
         console.error(err);
-        res.status(500).send();
-    }
-});
-
-userRouter.post("/profile", async (req: Request, res) => {
-    try {
-        if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
-        }
-        const profileDto = zodProfileDto.parse(req.body);
-        const updatedProfile = await userService.editProfile(profileDto, req.user);
-        res.status(200).send(updatedProfile);
-    } catch (err) {
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
         res.status(500).send();
     }
 });
