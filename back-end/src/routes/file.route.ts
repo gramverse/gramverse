@@ -7,7 +7,7 @@ import multer from "multer";
 import {HttpError} from "../errors/http-error";
 import {AuthorizedUser} from "../models/authorized-user";
 import {ErrorCode} from "../errors/error-codes";
-import { zodProfileDto } from "../models/profile-dto";
+import { zodProfileDto } from "../models/edit-profile-dto";
 
 declare module "express" {
     interface Request {
