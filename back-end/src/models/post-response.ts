@@ -1,5 +1,5 @@
 export interface IPost extends Document {
-    _id?: string;
+    _id: string;
     userName: string;
     photos: string[];
     caption: string;
@@ -7,7 +7,7 @@ export interface IPost extends Document {
 }
 
 export interface Post {
-    _id?: string;
+    _id: string;
     userName: string;
     photos: string[];
     caption: string;
