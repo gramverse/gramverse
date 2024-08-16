@@ -9,6 +9,7 @@ import { Token } from "../models/token";
 import { User } from "../models/login-response";
 import { ResetPasswordRequest } from "../models/resetpassword-request";
 import { EmailService } from "../utilities/nodemailer"; 
+import { UserService } from "./user.service";
 
 export interface ITokenService {
     generateResetPasswordToken: (email: string) => Promise<void>;
@@ -20,11 +21,12 @@ export class TokenService implements ITokenService {
     constructor(
         private tokenRepository: ITokenRepository,
         private userRepository: IUserRepository,
+        private userService: UserService,
         private emailService: EmailService
     ) {}
 
-    generateResetPasswordToken = async (email: string) => {
-        const user = await this.userRepository.getUserByEmail(email);
+    generateResetPasswordToken = async (userName: string) => {
+        const user = await this.userService.getUser(userName);
         if (!user) {
             throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
         }

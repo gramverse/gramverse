@@ -161,7 +161,7 @@ export class UserService implements IUserService {
             return undefined;
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const isFollowed = !(await this.followRepository.getFollow(myUserName, userName))?.isDeleted;
+        const isFollowed = await this.followRepository.followExists(myUserName, userName);
         const followerCount = await this.followRepository.getFollowerCount(user.userName);
         const followingCount = await this.followRepository.getFollowingCount(user.userName);
         const postCount = await this.postRepository.getPostCount(user.userName);
