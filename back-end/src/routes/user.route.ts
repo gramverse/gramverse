@@ -41,7 +41,7 @@ userRouter.post("/login", async (req, res) => {
         const loginRequest = zodLoginRequest.parse(req.body);
         const loginResponse = await userService.login(loginRequest);
         if (!loginResponse) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Username or password incorrect");
+            throw new HttpError(401, ErrorCode.INVALID_USERNAME_OR_PASSWORD, "Username or password incorrect");
         }
         res.cookie("bearer", loginResponse.token).status(201).send(loginResponse.user);
     } catch(err) {

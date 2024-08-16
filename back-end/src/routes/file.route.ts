@@ -104,18 +104,11 @@ fileRouter.post("/addPost", upload.array("postImages"), async (req : Request, re
         res.status(500).send();
         
     }
-
-
-
 })
-
-
-
-
 
 fileRouter.get("/:fileName", (req, res) => {
     try {
-        const filePath = path.join(__dirname, "uploads", req.params.fileName);
+        const filePath = path.join("../../uploads", req.params.fileName);
 
         res.status(200).download(filePath);
     } catch (err) {
