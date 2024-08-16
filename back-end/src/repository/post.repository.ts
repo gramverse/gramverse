@@ -23,7 +23,9 @@ export class PostRepository {
 
     }
 
-
+    getPostCount = async (userName: string) => {
+        return await this.posts.countDocuments({userName});
+    }
 
 
 }
