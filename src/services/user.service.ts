@@ -71,7 +71,7 @@ export class UserService implements IUserService {
     }
 
     validateInfo = (user: Partial<UserToValidate>, hasNewPassword: boolean) => {
-        const userNamePattern = /^(?!.{33})[a-zA-Z0-9_.]{8,}$/;
+        const userNamePattern = /^(?!.{33})[a-zA-Z0-9_.]{6,}$/;
         if (!user.userName || !userNamePattern.test(user.userName)) {
             throw new HttpError(400, ErrorCode.INVALID_USERNAME, "Invalid username");
         }
@@ -161,7 +161,7 @@ export class UserService implements IUserService {
             return undefined;
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const isFollowed = await this.followRepository.followExists(myUserName, userName);
+        const isFollowed = !(await this.followRepository.getFollow(myUserName, userName))?.isDeleted;
         const followerCount = await this.followRepository.getFollowerCount(user.userName);
         const followingCount = await this.followRepository.getFollowingCount(user.userName);
         const postCount = await this.postRepository.getPostCount(user.userName);
@@ -241,6 +241,6 @@ export class UserService implements IUserService {
         if (!(await this.followRepository.deleteFollow(followerUserName, followingUserName))) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
-        return false;
+        return true;
     }
 }
