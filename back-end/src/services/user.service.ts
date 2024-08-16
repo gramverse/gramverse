@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { jwtSecret, postRepository } from "../config";
+import { jwtSecret } from "../config";
 import { ErrorCode } from "../errors/error-codes";
 import { HttpError } from "../errors/http-error";
 import {AuthorizedUser} from "../models/authorized-user";
@@ -28,7 +28,7 @@ export interface IUserService {
 }
 
 export class UserService implements IUserService {
-    constructor(private userRepository: UserRepository, private postRepository: PostRepository, private followRepository: FollowRepository) {}
+    constructor(private userRepository: UserRepository, private followRepository: FollowRepository) {}
 
     getUser = async (userNameOrEmail : string) =>{
         const isEmail = userNameOrEmail.includes("@");
@@ -128,52 +128,8 @@ export class UserService implements IUserService {
         return loginResponse;
     }
 
-    getMyProfile = async (userName: string) => {
-        const user = await this.getUser(userName);
-        if (!user) {
-            return undefined;
-        }
-        const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const followerCount = await this.followRepository.getFollowerCount(user.userName);
-        const followingCount = await this.followRepository.getFollowingCount(user.userName);
-        const postCount = await this.postRepository.getPostCount(user.userName);
-        const profile: MyProfileDto = {
-            userName: user.userName,
-            email,
-            firstName,
-            lastName,
-            profileImage,
-            isPrivate,
-            bio,
-            followerCount,
-            followingCount,
-            postCount
-        };
-        return profile;
-    }
-
-    getProfile = async (userName: string, myUserName: string) => {
-        const user = await this.getUser(userName);
-        if (!user) {
-            return undefined;
-        }
-        const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const isFollowed = await this.followRepository.followExists(myUserName, userName);
-        const followerCount = await this.followRepository.getFollowerCount(user.userName);
-        const followingCount = await this.followRepository.getFollowingCount(user.userName);
-        const postCount = await this.postRepository.getPostCount(user.userName);
-        const profile: ProfileDto = {
-            userName: user.userName,
-            firstName,
-            lastName,
-            profileImage,
-            isPrivate,
-            bio,
-            isFollowed,
-            followerCount,
-            followingCount,
-            postCount
-        };
+    getProfile = async (userName: string) => {
+        const profile = await this.getUser(userName);
         return profile;
     }
 

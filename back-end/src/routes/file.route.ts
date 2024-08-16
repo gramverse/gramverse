@@ -8,6 +8,9 @@ import {HttpError} from "../errors/http-error";
 import {AuthorizedUser} from "../models/authorized-user";
 import {ErrorCode} from "../errors/error-codes";
 import { zodProfileDto } from "../models/edit-profile-dto";
+import { zodPostRequest } from "../models/post-request";
+import { string } from "zod";
+import { postService } from "../config";
 
 declare module "express" {
     interface Request {
@@ -64,6 +67,51 @@ fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request
         res.status(500).send();
     }
 });
+
+fileRouter.post("/addPost", upload.array("postImages"), async (req : Request, res) => {
+    try{
+        if (!req.user){
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const files = req.files as Express.Multer.File[]
+        
+        const photos : string[] = [];
+        if (!req.files){
+            res.status(500).send();
+            return;
+        } 
+        files.forEach( f => {
+            photos.push(`/files/${f.filename}`)
+        })
+        const fields = JSON.parse(req.body["postFields"]);
+        const postRequest = zodPostRequest.parse({...fields, userName : req.user.userName, photos})
+        const newPost = await postService.addPost(postRequest);
+        
+        if (!newPost) {
+            res.status(500).send()
+        }
+        return newPost;
+
+    } catch(err){
+        
+        if (err instanceof HttpError) {
+            console.error(err);
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        
+        console.log(err);
+        res.status(500).send();
+        
+    }
+
+
+
+})
+
+
+
+
 
 fileRouter.get("/:fileName", (req, res) => {
     try {

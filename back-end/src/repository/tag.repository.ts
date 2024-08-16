@@ -5,7 +5,7 @@ import {ITag,Tag} from "../models/tag-response"
 export class TagRepository {
     private tags: Model<ITag>;
     constructor(private dataHandler: typeof import("mongoose")) {
-        this.tags = dataHandler.model("tags", tagSchema);
+        this.tags = dataHandler.model<ITag>("tags", tagSchema);
     }
 
     add = async (tag: Tag) => {

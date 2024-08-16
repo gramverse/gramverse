@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import jwtDecode from "jwt-decode";
-import {jwtSecret, userService} from "../config"
-import {Router, Request, Response, NextFunction} from "express";
+import {jwtSecret, postService, userService} from "../config"
+import e, {Router, Request, Response, NextFunction} from "express";
 import { zodLoginRequest } from "../models/login-request";
 import {zodRegisterRequest} from "../models/register-request";
 import { HttpError } from "../errors/http-error";
@@ -76,13 +76,13 @@ userRouter.use((req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-userRouter.get("/profile/:userName", async (req: Request, res) => {
+userRouter.get("/profile", async (req: Request, res) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const profile = await userService.getProfile(req.params.userName, req.user.userName);
-        res.status(200).send(JSON.stringify(profile));
+        const profile = await userService.getProfile(req.user.userName);
+        res.status(200).send(profile);
     } catch (err) {
         if (err instanceof HttpError) {
             res.status(err.statusCode).send(err);
@@ -93,19 +93,21 @@ userRouter.get("/profile/:userName", async (req: Request, res) => {
     }
 });
 
-userRouter.get("/myProfile", async (req: Request, res) => {
+userRouter.post("/profile", async (req: Request, res) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const profile = await userService.getMyProfile(req.user.userName);
-        res.status(200).send(JSON.stringify(profile));
+        const profileDto = zodProfileDto.parse(req.body);
+        const updatedProfile = await userService.editProfile(profileDto, req.user);
+        res.status(200).send(updatedProfile);
     } catch (err) {
         if (err instanceof HttpError) {
+            console.error(err);
             res.status(err.statusCode).send(err);
             return;
         }
-        console.error(err);
+        console.log(err);
         res.status(500).send();
     }
 });
@@ -158,4 +160,31 @@ userRouter.post("/unfollow", async (req: Request, res) => {
         console.error(err);
         res.status(500).send();
     }
-})
+});
+
+userRouter.get("/posts", async (req : Request, res) => {
+    try{
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const userName = req.user.userName;
+        const postDtos = await postService.getPost(userName);
+        res.send(postDtos);
+
+
+
+    } catch(err){
+        if (err instanceof HttpError) {
+            console.error(err);
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        console.log(err);
+        res.status(500).send();
+    }
+    
+
+
+
+
+});
