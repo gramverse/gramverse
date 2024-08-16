@@ -9,8 +9,11 @@ import { LoginResponse, User, UserToValidate } from "../models/login-response";
 import {EditProfileDto} from "../models/edit-profile-dto";
 import { RegisterRequest } from "../models/register-request";
 import {UserRepository} from "../repository/user.repository";
-import { PostRepository } from "../repository/post.repository";
+import {TokenRepository} from "../repository/token.repository";
+import {Token} from "../models/token";
+import {generateResetToken} from "../utilities/generate-reset-token";
 import { FollowRepository } from "../repository/follow.repository";
+import { PostRepository } from "../repository/post.repository";
 import {MyProfileDto} from "../models/my-profile-dto";
 import {ProfileDto} from "../models/profile-dto";
 import { FollowRequest } from "../models/follow-request";
@@ -28,7 +31,7 @@ export interface IUserService {
 }
 
 export class UserService implements IUserService {
-    constructor(private userRepository: UserRepository, private followRepository: FollowRepository) {}
+    constructor(private userRepository: UserRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository) {}
 
     getUser = async (userNameOrEmail : string) =>{
         const isEmail = userNameOrEmail.includes("@");

@@ -4,6 +4,7 @@ import cors from "cors";
 import {ZodError} from "zod";
 import {HttpError} from "./errors/http-error";
 import {userRouter} from "./routes/user.route";
+import {tokenRouter} from "./routes/token.route";
 import {fileRouter} from "./routes/file.route";
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
@@ -28,6 +29,7 @@ export const buildApp = () => {
     // app.use(errorHandler);
     
     app.use("/users", userRouter);
+    app.use("/reset", tokenRouter);
 
     app.use((req, res, next) => {
         res.status(404).send({messge: "Not found"});
