@@ -17,7 +17,7 @@ export const userRepository = new UserRepository(mongoose);
 export const tokenRepository = new TokenRepository(mongoose);
 export const emailService = new EmailService();
 
-export const userService = new UserService(userRepository, tokenRepository, followRepository);
+export const userService = new UserService(userRepository, postRepository, tokenRepository, followRepository);
 export const tokenService = new TokenService(tokenRepository,userRepository,emailService);
 
 export const jwtSecret = process.env.JWT_SECRET||"FDaI22";
