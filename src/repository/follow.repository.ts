@@ -38,7 +38,7 @@ export class FollowRepository {
     }
 
     getFollowingCount = async (userName: string): Promise<number> => {
-        return await this.follows.countDocuments({followerUserName: userName});
+        return await this.follows.countDocuments({followerUserName: userName, isDeleted: false});
     }
 
     followExists= async (followerUserName: string, followingUserName: string) => {
