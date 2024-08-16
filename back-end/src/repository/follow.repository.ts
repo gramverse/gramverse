@@ -9,12 +9,28 @@ export class FollowRepository {
     }
 
     add = async (follow: Follow) => {
-        const createdFollow = await this.follows.create(follow);
+        const createdFollow = (await this.follows.create(follow));
         if (!createdFollow) {
             return undefined;
         }
         const newFollow: Follow = createdFollow;
         return newFollow;
+    }
+
+    undeleteFollow = async (followerUserName: string, followingUserName: string) => {
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true})
+        if (!updateResult.acknowledged) {
+            return false;
+        }
+        return true;
+    }
+
+    deleteFollow = async (followerUserName: string, followingUserName: string) => {
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false})
+        if (!updateResult.acknowledged) {
+            return false;
+        }
+        return true;
     }
 
     getFollowerCount = async (userName: string): Promise<number> => {
@@ -28,5 +44,10 @@ export class FollowRepository {
     followExists= async (followerUserName: string, followingUserName: string) => {
         const follow = await this.follows.findOne({followerUserName, followingUserName});
         return !!follow;
+    }
+
+    getFollow = async (followerUserName: string, followingUserName: string) => {
+        const follow: Follow|undefined = await this.follows.findOne({followerUserName, followingUserName})||undefined;
+        return follow;
     }
 }
