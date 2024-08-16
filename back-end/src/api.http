@@ -1,0 +1,48 @@
+### Signup
+POST http://localhost:3000/users/signup
+Content-Type: application/json
+
+{
+  "userName": "hawmidak",
+  "email": "hawmidak@gmail.com",
+  "password": "hamid1568"
+}
+
+
+
+### Login
+POST http://localhost:3000/users/login
+Content-Type: application/json
+
+{
+  "userName": "hawmidak@gmail.com",
+  "password": "Hamid553306",
+  "rememberMe": true
+}
+
+
+### 
+POST http://localhost:3000/reset/request-reset-password
+Content-Type: application/json
+
+{
+  "email": "hawmidak@gmail.com"
+}
+###
+POST http://localhost:3000/reset/validate-reset-token
+Content-Type: application/json
+
+{
+    "token": "2cfc0309-55f8-4bbc-9708-938e5f92e2fe"
+}
+
+
+### 
+POST http://localhost:3000/reset/reset-password
+Content-Type: application/json
+
+{
+  "token": "2cfc0309-55f8-4bbc-9708-938e5f92e2fe",
+  "newPassword": "Hamid553306"
+}
+

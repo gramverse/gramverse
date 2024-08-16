@@ -21,7 +21,6 @@ export const userRouter = Router();
 
 userRouter.post("/signup", async (req, res) => {
     try {
-        console.log(req.body);
         const registerRequest = zodRegisterRequest.parse(req.body);
         const loginResponse = await userService.signup(registerRequest);
         if (!loginResponse) {
@@ -33,7 +32,6 @@ userRouter.post("/signup", async (req, res) => {
             res.status(err.statusCode).send(err);
             return;
         }
-        console.error(err);
         res.status(500).send();
     }
 });
@@ -51,7 +49,6 @@ userRouter.post("/login", async (req, res) => {
             res.status(err.statusCode).send(err);
             return;
         }
-        console.error(err);
         res.status(500).send();
     }
 });
@@ -67,11 +64,9 @@ userRouter.use((req: Request, res: Response, next: NextFunction) => {
         next();
     } catch (err) {
         if (err instanceof HttpError) {
-            console.error("Not authorized");
             res.status(err.statusCode).send(err);
             return;
         }
-        console.error(err);
         res.status(500).send();
     }
 });
@@ -88,7 +83,6 @@ userRouter.get("/profile", async (req: Request, res) => {
             res.status(err.statusCode).send(err);
             return;
         }
-        console.error(err);
         res.status(500).send();
     }
 });
@@ -103,11 +97,9 @@ userRouter.post("/profile", async (req: Request, res) => {
         res.status(200).send(updatedProfile);
     } catch (err) {
         if (err instanceof HttpError) {
-            console.error(err);
             res.status(err.statusCode).send(err);
             return;
         }
-        console.log(err);
         res.status(500).send();
     }
 });

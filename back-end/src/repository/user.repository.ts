@@ -1,10 +1,13 @@
 import mongoose, { Model } from "mongoose";
 import {usersSchemaObject} from "../models/users-schema";
 import { User, IUser } from "../models/login-response";
+import { object } from "zod";
 
 
 export interface IUserRepository {
     add: (user: User) => Promise<User|undefined>;
+    update: (user: User) => Promise<User|undefined>;
+    updatePassword: (user: User) => Promise<User|undefined>;
     checkEmailExistance: (email: string) => Promise<boolean>;
     checkUserNameExistance: (userName: string) => Promise<boolean>;
     getUserByEmail: (email: string) => Promise<User|undefined>;
@@ -34,6 +37,25 @@ export class UserRepository implements IUserRepository {
         }
         return user;
     }
+    updatePassword = async (myuser: User) => {
+
+        
+        const MUser = await this.users.findOne({userName: myuser.userName}) || undefined;
+
+        if (!MUser) {
+            throw new Error(`User with username ${myuser.userName} not found`);
+        }
+        
+        MUser.passwordHash = myuser.passwordHash;
+    
+        const updatedDocument = await this.users.updateOne({_id: myuser._id}, MUser);
+    
+        if (!updatedDocument.acknowledged) {
+            return undefined;
+        }
+    
+        return myuser;
+    }
 
     getUserByUserName = async (userName : string) => {
         const user: User|undefined = await this.users.findOne({userName})||undefined;
@@ -41,7 +63,8 @@ export class UserRepository implements IUserRepository {
     }
 
     getUserByEmail = async (email : string) =>{
-        const user: User|undefined = await this.users.findOne({email})||undefined;
+        const user = await this.users.findOne({email})||undefined;
+
         return user;
     }
 
