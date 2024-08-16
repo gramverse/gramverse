@@ -18,7 +18,7 @@ export class FollowRepository {
     }
 
     undeleteFollow = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true})
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false})
         if (!updateResult.acknowledged) {
             return false;
         }
@@ -26,7 +26,7 @@ export class FollowRepository {
     }
 
     deleteFollow = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false})
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true})
         if (!updateResult.acknowledged) {
             return false;
         }
@@ -43,7 +43,7 @@ export class FollowRepository {
 
     followExists= async (followerUserName: string, followingUserName: string) => {
         const follow = await this.follows.findOne({followerUserName, followingUserName});
-        return !!follow;
+        return follow != null && !follow.isDeleted;
     }
 
     getFollow = async (followerUserName: string, followingUserName: string) => {
