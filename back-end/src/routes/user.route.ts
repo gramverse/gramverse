@@ -9,7 +9,7 @@ import { ErrorCode } from "../errors/error-codes";
 import { LoginResponse } from "../models/login-response";
 import { AuthorizedUser } from "../models/authorized-user";
 import { zodProfileDto } from "../models/edit-profile-dto";
-// import {authorize} from "../middlewares/authorization";
+import {FollowRequest, zodFollowRequest} from "../models/follow-request";
 
 declare module "express" {
     interface Request {
@@ -109,3 +109,53 @@ userRouter.get("/myProfile", async (req: Request, res) => {
         res.status(500).send();
     }
 });
+
+userRouter.post("/follow", async (req: Request, res) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {followingUserName} = req.body;
+        if (!followingUserName) {
+            throw new HttpError(400, ErrorCode.MISSING_FOLLOWING_USERNAME, "Missing following username");
+        }
+        const followRequest: FollowRequest = {followerUserName: req.user.userName, followingUserName};
+        const success = await userService.follow(followRequest);
+        if (!success) {
+            res.status(500).send();
+        }
+        res.status(200).send();
+    } catch (err) {
+        if (err instanceof HttpError) {
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        console.error(err);
+        res.status(500).send();
+    }
+})
+
+userRouter.post("/unfollow", async (req: Request, res) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {followingUserName} = req.body;
+        if (!followingUserName) {
+            throw new HttpError(400, ErrorCode.MISSING_FOLLOWING_USERNAME, "Missing following username");
+        }
+        const followRequest: FollowRequest = {followerUserName: req.user.userName, followingUserName};
+        const success = await userService.unfollow(followRequest);
+        if (!success) {
+            res.status(500).send();
+        }
+        res.status(200).send();
+    } catch (err) {
+        if (err instanceof HttpError) {
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        console.error(err);
+        res.status(500).send();
+    }
+})

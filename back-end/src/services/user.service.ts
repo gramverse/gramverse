@@ -13,6 +13,8 @@ import { PostRepository } from "../repository/post.repository";
 import { FollowRepository } from "../repository/follow.repository";
 import {MyProfileDto} from "../models/my-profile-dto";
 import {ProfileDto} from "../models/profile-dto";
+import { FollowRequest } from "../models/follow-request";
+import { Follow } from "../models/follow-response";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
@@ -200,5 +202,42 @@ export class UserService implements IUserService {
         };
         const updatedUser = await this.userRepository.update(userToBeUpdated);
         return updatedUser;
+    }
+
+    follow = async (followRequest: FollowRequest) => {
+        const {followerUserName, followingUserName} = followRequest;
+        const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
+        if (existingFollow) {
+            if (!existingFollow.isDeleted) {
+                return true;
+            }
+            if (await this.followRepository.undeleteFollow(followerUserName, followingUserName)) {
+                return true;
+            }
+            return false;
+        }
+        const newFollow: Follow = {
+            followerUserName,
+            followingUserName,
+            isDeleted: false,
+            created_time: new Date(),
+            updated_time: new Date()
+        };
+        if (!(await this.followRepository.add(newFollow)))  {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unkown problem occurred");
+        }
+        return true;
+    }
+
+    unfollow = async (followRequest: FollowRequest) => {
+        const {followerUserName, followingUserName} = followRequest;
+        const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
+        if (!existingFollow || existingFollow.isDeleted) {
+            return true;
+        }
+        if (!(await this.followRepository.deleteFollow(followerUserName, followingUserName))) {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+        }
+        return false;
     }
 }
