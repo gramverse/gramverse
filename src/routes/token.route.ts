@@ -17,7 +17,7 @@ tokenRouter.post("/request-reset-password", async (req: Request, res: Response) 
         await tokenService.generateResetPasswordToken(email);
         
         
-        res.status(200).send("Password reset link has been sent to your email");
+        res.status(200).send();
     } catch (err) {
         if (err instanceof HttpError) {
             res.status(err.statusCode).send(err);
