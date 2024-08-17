@@ -11,7 +11,7 @@ Content-Type: application/json
 
 
 ### Login
-POST http://localhost:3000/users/login
+POST http://5.34.193.118:3000/users/login
 Content-Type: application/json
 
 {
@@ -33,7 +33,7 @@ POST http://localhost:3000/reset/validate-reset-token
 Content-Type: application/json
 
 {
-    "token": "2cfc0309-55f8-4bbc-9708-938e5f92e2fe"
+    "token": "44f98ec2-1d9a-4ff5-89ab-dd19b50cbdcc"
 }
 
 
@@ -42,7 +42,7 @@ POST http://localhost:3000/reset/reset-password
 Content-Type: application/json
 
 {
-  "token": "2cfc0309-55f8-4bbc-9708-938e5f92e2fe",
+  "token": "44f98ec2-1d9a-4ff5-89ab-dd19b50cbdcc",
   "newPassword": "Hamid553306"
 }
 

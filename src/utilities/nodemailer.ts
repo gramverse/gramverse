@@ -5,7 +5,7 @@ export class EmailService {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            service: "gmail",
+            host:"smtp.gmail.com",
             auth: {
                 user: "blindsidesmh@gmail.com",
                 pass: "ckei cbbh hzcl fvqj",
@@ -25,3 +25,13 @@ export class EmailService {
         await this.transporter.sendMail(mailOptions);
     }
 }
+
+// verify connection configuration
+// transporter.verify(function (error, success) {
+//     if (error) {
+//       console.log(error);
+//     } else {
+//       console.log("Server is ready to take our messages");
+//     }
+//   });
+  
