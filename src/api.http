@@ -11,12 +11,12 @@ Content-Type: application/json
 
 
 ### Login
-POST http://5.34.193.118:3000/users/login
+POST http://localhost:3000/users/login
 Content-Type: application/json
 
 {
   "userName": "hawmidak@gmail.com",
-  "password": "Hamid553306",
+  "password": "Hamid1568",
   "rememberMe": true
 }
 
@@ -33,7 +33,7 @@ POST http://localhost:3000/reset/validate-reset-token
 Content-Type: application/json
 
 {
-    "token": "44f98ec2-1d9a-4ff5-89ab-dd19b50cbdcc"
+    "token": "254ea4c5-566a-472e-8d37-7fe703de16b4"
 }
 
 
@@ -42,7 +42,7 @@ POST http://localhost:3000/reset/reset-password
 Content-Type: application/json
 
 {
-  "token": "44f98ec2-1d9a-4ff5-89ab-dd19b50cbdcc",
-  "newPassword": "Hamid553306"
+  "token": "254ea4c5-566a-472e-8d37-7fe703de16b4",
+  "newPassword": "Hamid1568"
 }
 

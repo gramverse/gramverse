@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
-import {tagSchema} from "../models/tag-schema";
-import {ITag,Tag} from "../models/tag-response"
+import {tagSchema} from "../models/tag/tag-schema";
+import {ITag,Tag} from "../models/tag/tag"
 
 export class TagRepository {
     private tags: Model<ITag>;

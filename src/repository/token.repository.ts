@@ -1,6 +1,6 @@
 import mongoose, { Model } from "mongoose";
-import { tokenSchema } from "../models/token-schema";
-import { IToken, Token } from "../models/token";
+import { tokenSchema } from "../models/reset-password/token-schema";
+import { IToken, Token } from "../models/reset-password/token";
 
 export interface ITokenRepository {
     addToken: (token: Token) => Promise<Token | undefined>;

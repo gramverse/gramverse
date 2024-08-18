@@ -2,12 +2,12 @@ import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { ITokenRepository } from "../repository/token.repository";
 import { IUserRepository } from "../repository/user.repository";
-import { IToken } from "../models/token";
+import { IToken } from "../models/reset-password/token";
 import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
-import { Token } from "../models/token";
-import { User } from "../models/login-response";
-import { ResetPasswordRequest } from "../models/resetpassword-request";
+import { Token } from "../models/reset-password/token";
+import { User } from "../models/login/login-response";
+import { ResetPasswordRequest } from "../models/reset-password/resetpassword-request";
 import { EmailService } from "../utilities/nodemailer"; 
 import { UserService } from "./user.service";
 

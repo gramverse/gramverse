@@ -1,6 +1,6 @@
 import mongoose, { Model } from "mongoose";
-import {usersSchemaObject} from "../models/users-schema";
-import { User, IUser } from "../models/login-response";
+import {usersSchemaObject} from "../models/profile/users-schema";
+import { User, IUser } from "../models/login/login-response";
 import { object } from "zod";
 
 
