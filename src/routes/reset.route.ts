@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { tokenService } from "../config";  
-import { zodResetPasswordRequest } from "../models/resetpassword-request";
+import { zodResetPasswordRequest } from "../models/reset-password/resetpassword-request";
 import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
 

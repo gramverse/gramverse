@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
-import {followSchema} from "../models/follow-schema";
-import {IFollow,Follow} from "../models/follow-response"
+import {followSchema} from "../models/follow/follow-schema";
+import {IFollow,Follow} from "../models/follow/follow"
 
 export class FollowRepository {
     private follows: Model<IFollow>;

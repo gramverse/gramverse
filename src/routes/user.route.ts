@@ -2,14 +2,14 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import jwtDecode from "jwt-decode";
 import {jwtSecret, postService, userService} from "../config"
 import e, {Router, Request, Response, NextFunction} from "express";
-import { zodLoginRequest } from "../models/login-request";
-import {zodRegisterRequest} from "../models/register-request";
+import { zodLoginRequest } from "../models/login/login-request";
+import {zodRegisterRequest} from "../models/register/register-request";
 import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
-import { LoginResponse } from "../models/login-response";
-import { AuthorizedUser } from "../models/authorized-user";
-import { zodProfileDto } from "../models/edit-profile-dto";
-import {FollowRequest, zodFollowRequest} from "../models/follow-request";
+import { LoginResponse } from "../models/login/login-response";
+import { AuthorizedUser } from "../models/profile/authorized-user";
+import { zodProfileDto } from "../models/profile/edit-profile-dto";
+import {FollowRequest, zodFollowRequest} from "../models/follow/follow-request";
 
 declare module "express" {
     interface Request {

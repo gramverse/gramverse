@@ -5,10 +5,10 @@ import {jwtSecret, userService} from "../config"
 import{Router, Request, Response, NextFunction} from "express";
 import multer from "multer";
 import {HttpError} from "../errors/http-error";
-import {AuthorizedUser} from "../models/authorized-user";
+import {AuthorizedUser} from "../models/profile/authorized-user";
 import {ErrorCode} from "../errors/error-codes";
-import { zodProfileDto } from "../models/edit-profile-dto";
-import { zodPostRequest } from "../models/post-request";
+import { zodProfileDto } from "../models/profile/edit-profile-dto";
+import { zodPostRequest } from "../models/post/post-request";
 import { string } from "zod";
 import { postService } from "../config";
 

@@ -4,7 +4,7 @@ import cors from "cors";
 import {ZodError} from "zod";
 import {HttpError} from "./errors/http-error";
 import {userRouter} from "./routes/user.route";
-import {tokenRouter} from "./routes/token.route";
+import {tokenRouter} from "./routes/reset.route";
 import {fileRouter} from "./routes/file.route";
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {

@@ -1,9 +1,9 @@
-import { PostRequest } from '../models/post-request'
+import { PostRequest } from '../models/post/post-request'
 import { PostRepository } from '../repository/post.repository';
-import { Post } from '../models/post-response';
+import { Post } from '../models/post/post';
 import { TagRepository } from '../repository/tag.repository'
-import { Tag } from '../models/tag-response';
-import { PostDto } from '../models/post-dto'
+import { Tag } from '../models/tag/tag';
+import { PostDto } from '../models/post/post-dto'
 
 
 export interface IPostService{

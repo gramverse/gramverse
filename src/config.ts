@@ -4,7 +4,7 @@ import {PostService} from "./services/post.service"
 import {UserRepository} from "./repository/user.repository";
 import {TokenRepository} from "./repository/token.repository";
 import {UserService} from "./services/user.service";
-import { TokenService } from "./services/token.service";
+import { TokenService } from "./services/reset.service";
 import { EmailService } from "./utilities/nodemailer";
 import {PostRepository} from "./repository/post.repository";
 import { FollowRepository } from "./repository/follow.repository";
