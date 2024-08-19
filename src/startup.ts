@@ -23,7 +23,7 @@ export const buildApp = () => {
 
     app.use(cors());
     app.use(cookieParser());
-    app.use("/files", fileRouter);
+    app.use("/api/files", fileRouter);
     app.use(express.json());
 
     // app.use(errorHandler);
