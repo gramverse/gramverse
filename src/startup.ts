@@ -28,8 +28,8 @@ export const buildApp = () => {
 
     // app.use(errorHandler);
     
-    app.use("/users", userRouter);
-    app.use("/reset", tokenRouter);
+    app.use("/api/users", userRouter);
+    app.use("/api/reset", tokenRouter);
 
     app.use((req, res, next) => {
         res.status(404).send({messge: "Not found"});
