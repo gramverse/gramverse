@@ -74,24 +74,58 @@ fileRouter.post("/addPost", upload.array("postImages"), async (req : Request, re
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const files = req.files as Express.Multer.File[]
-        
-        const photos : string[] = [];
+        const photoUrls: string[] = [];
         if (!req.files){
             res.status(500).send();
             return;
         } 
         files.forEach( f => {
-            photos.push(`/files/${f.filename}`)
+            photoUrls.push(`/api/files/${f.filename}`)
         })
+        
         const fields = JSON.parse(req.body["postFields"]);
-        const postRequest = zodPostRequest.parse({...fields, userName : req.user.userName, photos})
+        const postRequest = zodPostRequest.parse({...fields, photoUrls, userName : req.user.userName})
         const newPost = await postService.addPost(postRequest);
         
         if (!newPost) {
             res.status(500).send()
         }
         return newPost;
+    } catch(err){
+        
+        if (err instanceof HttpError) {
+            console.error(err);
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        
+        console.log(err);
+        res.status(500).send();
+    }
+})
 
+fileRouter.post("/editPost", upload.array("postImages"), async (req : Request, res) => {
+    try{
+        if (!req.user){
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const files = req.files as Express.Multer.File[]
+        
+        const fields = JSON.parse(req.body["postFields"]);
+        const postRequest = zodPostRequest.parse({...fields, userName : req.user.userName})
+        if (!req.files){
+            res.status(500).send();
+            return;
+        } 
+        files.forEach( f => {
+            postRequest.photos.push(`/api/files/${f.filename}`)
+        })
+        const newPost = await postService.addPost(postRequest);
+        
+        if (!newPost) {
+            res.status(500).send()
+        }
+        return newPost;
     } catch(err){
         
         if (err instanceof HttpError) {

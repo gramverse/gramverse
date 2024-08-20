@@ -3,7 +3,8 @@ export interface IPost extends Document {
     userName: string;
     photos: string[];
     caption: string;
-    mentioned: string[];
+    mentions: string[];
+    creationDate: Date,
 }
 
 export interface Post {
@@ -11,7 +12,8 @@ export interface Post {
     userName: string;
     photos: string[];
     caption: string;
-    mentioned: string[];
+    mentions: string[];
+    creationDate: Date,
 }
 
 
@@ -20,8 +22,8 @@ import z, { string } from 'zod'
 export const zodPostDto = z.object({
     userName : z.string().nonempty(),
     photos : z.array(z.string()).nonempty(),
-    caption : z.string().nonempty(),
-    mentioned : z.string().nonempty()
+    caption : z.string(),
+    mention: z.string().nonempty()
 });
 
 export type PostDto = z.infer<typeof zodPostDto>  

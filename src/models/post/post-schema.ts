@@ -4,7 +4,7 @@ export const postSchema = new mongoose.Schema({
     userName: {type: String, required: true},
     photos: {type: [String],required: true},
     caption: {type:String, default: ""},
-    mentioned: {type: [String], required: true},
+    mentions: {type: [String], required: true},
   }, { 
-    timestamps: { createdAt: "created_time", updatedAt: "updated_time" }
+    timestamps: { createdAt: "creationDate", updatedAt: "updateDate" }
 });

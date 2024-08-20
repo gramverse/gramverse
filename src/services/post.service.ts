@@ -52,25 +52,9 @@ export class PostService implements IPostService{
             const postDto : PostDto = {
                 ...p,
                 tags : await this.extractHashtags(p.caption) 
-                
             }
             postDtos.push(postDto)
         })
         return postDtos;
-
     }
-
-
-    
-    
-
-    
-
-
-
 }
-        
-
-
-
-
