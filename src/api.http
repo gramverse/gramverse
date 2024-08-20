@@ -11,11 +11,11 @@ Content-Type: application/json
 
 
 ### Login
-POST http://localhost:3000/users/login
+POST http://5.34.193.118:3000/api/users/login
 Content-Type: application/json
 
 {
-  "userName": "hawmidak@gmail.com",
+  "userName": "21eich",
   "password": "Hamid1568",
   "rememberMe": true
 }
@@ -29,7 +29,7 @@ Content-Type: application/json
   "email": "hawmidak@gmail.com"
 }
 ###
-POST http://localhost:3000/reset/validate-reset-token
+POST http://5.34.193.118:3000/api/reset/validate-reset-token
 Content-Type: application/json
 
 {
