@@ -3,8 +3,8 @@ export type PostDto = {
     userName : String,
     photos : String[],
     caption : String,
-    mentioned : String[],
+    mentions: String[],
     tags : String[]
-
+    creationDate: Date,
 
 }
