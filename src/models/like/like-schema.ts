@@ -5,5 +5,5 @@ export const likeSchema = new mongoose.Schema({
     postId: {type: String, required: true},
     isDeleted: {type: Boolean, default: false, required: true}
 }, { 
-    timestamps: { createdAt: "creationDate"}
+    timestamps: { createdAt: "creationDate", updatedAt: "updateDate"}
   })

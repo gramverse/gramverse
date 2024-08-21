@@ -7,5 +7,5 @@ export const commentSchema = new mongoose.Schema({
     parentCommentId: { type: String, required: false},
     isDeleted: {type: Boolean, required: true, default: false},
     }, {
-    timestamps: { createdAt: "creationDate"}
+    timestamps: { createdAt: "creationDate", updatedAt: "updateDate"}
 })

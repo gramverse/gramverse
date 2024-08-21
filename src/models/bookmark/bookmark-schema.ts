@@ -4,5 +4,5 @@ export const bookmarkSchema = new mongoose.Schema ({
     userName: { type: String, required: true},
     postId: { type: String, required: true},
 }, {
-    timestamps: {createdAt: "creationDate"}
+    timestamps: {createdAt: "creationDate", updatedAt: "updateDate"}
 })
