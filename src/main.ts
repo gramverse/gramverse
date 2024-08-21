@@ -1,28 +1,48 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { buildApp } from "./startup";
-import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import {SwaggerOptions} from "swagger-ui-express";
+
 
 dotenv.config();
 
 export const app = buildApp();
 const port = process.env.port || 3000;
-
-const swaggerOptions = {
+const swaggerOptions: SwaggerOptions = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'My API',
-      version: '1.0.0',
-      description: 'API documentation',
+      title: "My API",
+      version: "1.0.0",
+      description: "API documentation",
     },
+    servers: [
+      {
+        url: "http://localhost:3000",
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
-  apis: ['./routes/*.ts'], 
+   apis: ["./src/routes/reset.route.ts"],
 };
+    
 
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+export const swaggerDocs = swaggerJsdoc(swaggerOptions);
+
 
 const connectionString = process.env.DB_CONNECTION_STRING;
 if (!connectionString) {
