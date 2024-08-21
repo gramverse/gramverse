@@ -7,7 +7,7 @@ import {userRouter} from "./routes/user.route";
 import {tokenRouter} from "./routes/reset.route";
 import {fileRouter} from "./routes/file.route";
 import swaggerUi from "swagger-ui-express";
-import { swaggerDocs } from "./main";
+import { swaggerDocs } from "./swagger";
 import swaggerJSDoc from "swagger-jsdoc";
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
