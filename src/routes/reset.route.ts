@@ -61,7 +61,7 @@ tokenRouter.post("/validate-reset-token", async (req: Request, res: Response) =>
             throw new HttpError(400,ErrorCode.INVALID_OR_EXPIRED_TOKEN,"invalid token")
         }
         await tokenService.validateResetPasswordToken(token);
-        res.status(200).send("Token is valid");
+        res.status(200)
     } catch (err) {
         if (err instanceof HttpError) {
             res.status(err.statusCode).send(err);
@@ -76,7 +76,7 @@ tokenRouter.post("/reset-password", async (req: Request, res: Response) => {
     try {
         const resetPasswordRequest = zodResetPasswordRequest.parse(req.body);
         await tokenService.resetPassword(resetPasswordRequest);
-        res.status(200).send("Password has been reset successfully");
+        res.status(200);
     } catch (err) {
         if (err instanceof HttpError) {
             res.status(err.statusCode).send(err);
