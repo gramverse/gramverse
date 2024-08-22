@@ -1,6 +1,7 @@
 import { Model } from "mongoose";
 import { likeSchema } from "../models/like/like-schema";
 import { ILike,Like } from "../models/like/like";
+import { LikeDto } from "../models/like/like-request";
 
 export class LikesRepository {
     private likes: Model<ILike>;
@@ -8,12 +9,36 @@ export class LikesRepository {
         this.likes = datahandler.model<ILike>("likes", likeSchema);
     }
     
-    add = async (like: Like) => {
-        const createdLike = (await this.likes.create(like));
+    add = async (likeDto: LikeDto) => {
+        const createdLike = (await this.likes.create(likeDto));
         if (!createdLike) {
             return undefined;
         }
         const newLike: Like = createdLike;
         return newLike;
     }
+
+    getLike = async (userName: string, postId: string) => { 
+        const like: Like|undefined = await this.likes.findOne({userName, postId})||undefined
+        return like;
+    }
+
+    undeleteLike = async (userName: string, postId: string) => {
+        const updateResult = await this.likes.updateOne({userName, postId}, {isDeleted: false});
+        if (!updateResult.acknowledged) { 
+            return false;
+        }
+        return true;
+    }
+    deleteLike = async (userName: string, postId: string) => {
+        const updateResult = await this.likes.updateOne({userName, postId}, {isDeleted: true});
+        if (!updateResult.acknowledged) { 
+            return false;
+        }
+        return true;
+    }
+
+    
+
+
 }
