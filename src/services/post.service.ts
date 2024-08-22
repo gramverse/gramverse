@@ -122,6 +122,7 @@ export class PostService implements IPostService{
         if (!(await this.likesRepository.add(likeDto))){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occured")
         }
+        return true;
 
     }
 
