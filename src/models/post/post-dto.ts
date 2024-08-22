@@ -1,10 +1,9 @@
 export type PostDto = {
-    _id : String,
-    userName : String,
-    photoUrls: String[],
-    caption : String,
-    mentions: String[],
-    tags : String[]
+    _id : string,
+    userName : string,
+    photoUrls: string[],
+    caption: string,
+    mentions: string[],
+    tags: string[]
     creationDate: Date,
-
 }

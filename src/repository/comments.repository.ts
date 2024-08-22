@@ -15,4 +15,12 @@ export class CommentsRepository {
         const newComment: Comment = createdComment;
         return newComment;
     }
+
+    getByPostId = async (postId: string): Promise<Comment[]> => {
+        return (await this.comments.find({postId}));
+    }
+
+    getCountByPostId = async (postId: string) => {
+        return await this.comments.countDocuments({postId});
+    }
 }

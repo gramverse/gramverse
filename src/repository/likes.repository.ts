@@ -16,4 +16,8 @@ export class LikesRepository {
         const newLike: Like = createdLike;
         return newLike;
     }
+
+    getCountByPostId = async (postId: string) => {
+        return await this.likes.countDocuments({postId});
+    }
 }

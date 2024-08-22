@@ -3,7 +3,8 @@ import { PostRepository } from '../repository/post.repository';
 import { Post } from '../models/post/post';
 import { TagRepository } from '../repository/tag.repository'
 import { Tag } from '../models/tag/tag';
-import { PostDto } from '../models/post/post-dto'
+import { PostDto } from '../models/post/post-dto';
+import {PostDetailDto} from "../models/post/post-detail-dto";
 import { HttpError } from '../errors/http-error';
 import { ErrorCode } from '../errors/error-codes';
 import {EditPostRequest} from "../models/post/edit-post-request";
@@ -12,7 +13,7 @@ import {TagRequest} from "../models/tag/tag-request";
 export interface IPostService{
     extractHashtags : (text : string) => Array<String>;
     addPost : (postRequest : PostRequest) => Promise<Post | undefined>
-    getPost : (userName : string) => Promise<PostDto[]> 
+    getPosts: (userName : string) => Promise<PostDto[]> 
 }
 
 export class PostService implements IPostService{
@@ -92,13 +93,13 @@ export class PostService implements IPostService{
         return postDto;
     }
 
-    getPost = async (userName : string) => {
+    getPosts = async (userName : string) => {
         const postDtos : PostDto[] = [];
         const posts = await this.postRepository.getPostsByUserName(userName);
         posts.forEach(async p => {
             const postDto : PostDto = {
                 ...p,
-                tags : await this.extractHashtags(p.caption) 
+                tags: await this.extractHashtags(p.caption)
             }
             postDtos.push(postDto)
         })

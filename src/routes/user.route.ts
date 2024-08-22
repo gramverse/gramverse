@@ -178,11 +178,8 @@ userRouter.get("/posts", async (req : Request, res) => {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const userName = req.user.userName;
-        const postDtos = await postService.getPost(userName);
+        const postDtos = await postService.getPosts(userName);
         res.send(postDtos);
-
-
-
     } catch(err){
         if (err instanceof HttpError) {
             console.error(err);
@@ -192,9 +189,4 @@ userRouter.get("/posts", async (req : Request, res) => {
         console.log(err);
         res.status(500).send();
     }
-    
-
-
-
-
 });
