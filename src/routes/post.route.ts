@@ -52,6 +52,7 @@ postRouter.post("/like", async (req: Request, res) => {
         }
         if (!success){
             res.status(500).send();
+            console.log(success);
         }
         res.status(200).send();
         
