@@ -39,11 +39,7 @@ postRouter.post("/like", async (req: Request, res) => {
         if (!req.user){
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const likeeUserName = req.body.userName;
         const likeePostId = req.body.postId;
-        if (!likeeUserName){
-            throw new HttpError(400, ErrorCode.MISSING_LIKEE_USERNAME, "Missing likee username")
-        }
         if (!likeePostId){
             throw new HttpError(400, ErrorCode.MISSING_LIKEE_POSTID, "Missing likee postId")
         }
