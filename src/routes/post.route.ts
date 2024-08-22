@@ -1,10 +1,11 @@
 import {AuthorizedUser} from "../models/profile/authorized-user";
-import {Router, Request} from "express";
+import e, {Router, Request, Response, NextFunction} from "express";
 import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
+import jwt, { JwtPayload } from "jsonwebtoken";
+
 import { zodLikeRequest, LikeRequest } from '../models/like/like-request';
-import { PostService } from '../services/post.service';
-import { postService } from "../config";
+import { jwtSecret, postService } from "../config";
 
 declare module "express" {
     interface Request {
@@ -14,6 +15,23 @@ declare module "express" {
 
 export const postRouter = Router();
 
+postRouter.use((req: Request, res: Response, next: NextFunction) => {
+    try {
+        const token = req.cookies["bearer"];
+        if (!token) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const authorizedUser = jwt.verify(token, jwtSecret) as JwtPayload;
+        req.user = authorizedUser["data"] as AuthorizedUser;
+        next();
+    } catch (err) {
+        if (err instanceof HttpError) {
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        res.status(500).send();
+    }
+});
 postRouter.post("/like", async (req: Request, res) => {
     try{
         let success;
