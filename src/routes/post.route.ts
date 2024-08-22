@@ -12,9 +12,9 @@ declare module "express" {
     }
 }
 
-export const userRouter = Router();
+export const postRouter = Router();
 
-userRouter.post("/like", async (req: Request, res) => {
+postRouter.post("/like", async (req: Request, res) => {
     try{
         let success;
         
