@@ -15,4 +15,8 @@ export  class BookmarksRepository {
         const newBookmark: Bookmark = createdBookmark;
         return newBookmark;
     }
+
+    getCountByPostId = async (postId: string) => {
+         return await this.bookmarks.countDocuments({postId});
+    }
 }

@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
 import {postSchema} from "../models/post/post-schema";
-import {IPost, Post} from "../models/post/post";
+import {IPost, Post, PostDto} from "../models/post/post";
 import { PostRequest } from "../models/post/post-request";
 import { EditPostRequest } from "../models/post/edit-post-request";
 
@@ -18,10 +18,10 @@ export class PostRepository {
         const newPost: Post = createdPost;
         return newPost;
     }
-    getPostsByUserName = async (userName : string) => {
-        const posts = await this.posts.find({userName});
-        return posts.map(p => p.toObject());
 
+    getPostsByUserName = async (userName: string): Promise<Post[]> => {
+        const posts: Post[] = (await this.posts.find({userName})).map(p => p.toObject());
+        return posts;
     }
 
     getPostCount = async (userName: string) => {
