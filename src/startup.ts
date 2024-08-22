@@ -5,6 +5,7 @@ import {ZodError} from "zod";
 import {HttpError} from "./errors/http-error";
 import {userRouter} from "./routes/user.route";
 import {tokenRouter} from "./routes/reset.route";
+import {postRouter} from "./routes/post.route"
 import {fileRouter} from "./routes/file.route";
 import swaggerUi from "swagger-ui-express";
 import { swaggerDocs } from "./swagger";
@@ -34,6 +35,7 @@ export const buildApp = () => {
     // app.use(errorHandler);
     
     app.use("/api/users",userRouter);
+    app.use("/api/posts",postRouter)
     app.use("/api/reset", tokenRouter);
     app.use("/api/api-docs",swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 
