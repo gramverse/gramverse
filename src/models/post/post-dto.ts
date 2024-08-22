@@ -1,7 +1,7 @@
 export type PostDto = {
     _id : String,
     userName : String,
-    photos : String[],
+    photoUrls: String[],
     caption : String,
     mentions: String[],
     tags : String[]

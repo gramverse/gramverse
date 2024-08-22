@@ -2,6 +2,7 @@ import { Model } from "mongoose";
 import {postSchema} from "../models/post/post-schema";
 import {IPost, Post} from "../models/post/post";
 import { PostRequest } from "../models/post/post-request";
+import { EditPostRequest } from "../models/post/edit-post-request";
 
 export class PostRepository {
     private posts: Model<IPost>;
@@ -27,5 +28,12 @@ export class PostRepository {
         return await this.posts.countDocuments({userName});
     }
 
+    update = async (editPostRequest: EditPostRequest) => {
+        const result = await this.posts.updateOne({_id: editPostRequest._id}, editPostRequest);
+        return result.acknowledged;
+    }
 
+    getPostById = async (_id: string): Promise<Post|undefined> => {
+        return await this.posts.findById(_id)||undefined;
+    }
 }

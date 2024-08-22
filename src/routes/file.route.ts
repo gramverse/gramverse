@@ -2,7 +2,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import jwtDecode from "jwt-decode";
 import path from "path";
 import {jwtSecret, userService} from "../config"
-import{Router, Request, Response, NextFunction} from "express";
+import{Router, ErrorRequestHandler, Request, Response, NextFunction} from "express";
 import multer from "multer";
 import {HttpError} from "../errors/http-error";
 import {AuthorizedUser} from "../models/profile/authorized-user";
@@ -11,6 +11,7 @@ import { zodProfileDto } from "../models/profile/edit-profile-dto";
 import { zodPostRequest } from "../models/post/post-request";
 import { string } from "zod";
 import { postService } from "../config";
+import { zodEditPostRequest } from "../models/post/edit-post-request";
 
 declare module "express" {
     interface Request {
@@ -20,7 +21,19 @@ declare module "express" {
 
 export const fileRouter = Router();
 
-const upload = multer({dest: "uploads/"});
+const upload = multer({
+    dest: "uploads/",
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith("image/")) {
+            cb(null, true);
+        } else {
+            cb(null, false);
+        }
+    },
+    limits:  {
+        fileSize: 1024*1024*4,
+    }
+});
 
 fileRouter.use((req: Request, res: Response, next: NextFunction) => {
     try {
@@ -68,7 +81,7 @@ fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request
     }
 });
 
-fileRouter.post("/addPost", upload.array("postImages"), async (req : Request, res) => {
+fileRouter.post("/addPost", upload.array("photoFiles", 10), async (req : Request, res) => {
     try{
         if (!req.user){
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -90,7 +103,7 @@ fileRouter.post("/addPost", upload.array("postImages"), async (req : Request, re
         if (!newPost) {
             res.status(500).send()
         }
-        return newPost;
+        res.status(200).send(newPost);
     } catch(err){
         
         if (err instanceof HttpError) {
@@ -104,41 +117,39 @@ fileRouter.post("/addPost", upload.array("postImages"), async (req : Request, re
     }
 })
 
-// fileRouter.post("/editPost", upload.array("postImages"), async (req : Request, res) => {
-//     try{
-//         if (!req.user){
-//             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
-//         }
-//         const files = req.files as Express.Multer.File[]
+fileRouter.post("/editPost", upload.array("photoFiles", 10), async (req : Request, res) => {
+    try{
+        if (!req.user){
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const files = req.files as Express.Multer.File[]
         
-//         const fields = JSON.parse(req.body["postFields"]);
-//         const postRequest = zodPostRequest.parse({...fields, userName : req.user.userName})
-//         if (!req.files){
-//             res.status(500).send();
-//             return;
-//         } 
-//         files.forEach( f => {
-//             postRequest.photos.push(`/api/files/${f.filename}`)
-//         })
-//         const newPost = await postService.addPost(postRequest);
+        const fields = JSON.parse(req.body["postFields"]);
+        const postRequest = zodEditPostRequest.parse({...fields, userName : req.user.userName});
+        if (req.files){
+            files.forEach( f => {
+                postRequest.photoUrls.push(`/api/files/${f.filename}`);
+            })
+        } 
+        const edittedPost = await postService.editPost(postRequest);
         
-//         if (!newPost) {
-//             res.status(500).send()
-//         }
-//         return newPost;
-//     } catch(err){
+        if (!edittedPost) {
+            res.status(500).send()
+        }
+        res.status(200).send(edittedPost);
+    } catch(err){
         
-//         if (err instanceof HttpError) {
-//             console.error(err);
-//             res.status(err.statusCode).send(err);
-//             return;
-//         }
+        if (err instanceof HttpError) {
+            console.error(err);
+            res.status(err.statusCode).send(err);
+            return;
+        }
         
-//         console.log(err);
-//         res.status(500).send();
+        console.log(err);
+        res.status(500).send();
         
-//     }
-// })
+    }
+})
 
 fileRouter.get("/:fileName", (req, res) => {
     try {
@@ -148,6 +159,18 @@ fileRouter.get("/:fileName", (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send();
+    }
+});
+
+fileRouter.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
+    if (err instanceof multer.MulterError) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+            res.status(400).send(new HttpError(400, ErrorCode.FILE_TOO_LARGE, "Max file size = 4 MB"));
+            return;
+        } else {
+            res.status(400).send(new HttpError(400, ErrorCode.FILE_UPLOAD_ERROR, "an error occurred uploading file"));
+            return;
+        }
     }
 });
 
