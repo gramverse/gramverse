@@ -16,7 +16,7 @@ export interface IPostService{
 }
 
 export class PostService implements IPostService{
-    constructor(private postRepository : PostRepository, private tagRepository : TagRepository, private likesRepository: LikesRepository) {}
+    constructor(private postRepository : PostRepository, private tagRepository : TagRepository) {}
     
 
     extractHashtags =  (text : string) => {
@@ -104,35 +104,4 @@ export class PostService implements IPostService{
         })
         return postDtos;
     }
-
-    likePost = async (likeRequest : LikeRequest) => {
-        const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId)
-        if  (existingLike){
-            if (!existingLike.isDeleted){
-                return true;
-            }
-            if (await this.likesRepository.undeleteLike(likeRequest.userName, likeRequest.postId)){
-                return true;
-            }
-            return false;
-        }
-        const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: false}
-        if (!(await this.likesRepository.add(likeDto))){
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occured")
-        }
-
-    }
-
-    unlikePost = async (likeRequest : LikeRequest) => {
-        const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: true}
-        const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId)
-        if (!existingLike || existingLike.isDeleted) {
-            return true;
-        }
-        if (!(await this.likesRepository.deleteLike(likeRequest.userName, likeRequest.postId))){
-            return false;
-        }
-        return true;
-    }
-
 }
