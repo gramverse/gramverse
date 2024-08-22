@@ -109,19 +109,22 @@ export class PostService implements IPostService{
     }
     likePost = async (likeRequest : LikeRequest) => {
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId)
+        console.log("existingLike in like = ", existingLike);
         if  (existingLike){
             if (!existingLike.isDeleted){
                 return true;
             }
             const undeleteResult = await this.likesRepository.undeleteLike(likeRequest.userName, likeRequest.postId)
-            console.log(undeleteResult);
+            console.log("undeleResult in like = ", undeleteResult);
             if (undeleteResult){
                 return true;
             }
             return false;
         }
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: false}
-        if (!(await this.likesRepository.add(likeDto))){
+        const insertDto = (await this.likesRepository.add(likeDto))
+        console.log("insertDto in like is =", insertDto);
+        if (!insertDto){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occurred")
         }
         return true;
@@ -130,12 +133,13 @@ export class PostService implements IPostService{
 
     unlikePost = async (likeRequest : LikeRequest) => {
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: true}
-        const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId)
+        const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId);
+        console.log("existingLike in unlike = ", existingLike);
         if (!existingLike || existingLike.isDeleted) {
             return true;
         }
         const deleteResult = (await this.likesRepository.deleteLike(likeRequest.userName, likeRequest.postId))
-        console.log(deleteResult);
+        console.log("deleteResult in unlike = ", deleteResult);
         if (!deleteResult){
             return false;
         }
