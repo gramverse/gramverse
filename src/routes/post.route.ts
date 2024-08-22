@@ -45,10 +45,10 @@ postRouter.post("/like", async (req: Request, res) => {
         }
         const likeRequest : LikeRequest = zodLikeRequest.parse({...req.body, userName: req.user.userName})
         if (likeRequest.isLike){
-            const success = postService.likePost(likeRequest);
+            const success = await postService.likePost(likeRequest);
         }
         if (!likeRequest.isLike){
-            const success = postService.unlikePost(likeRequest);
+            const success = await postService.unlikePost(likeRequest);
         }
         if (!success){
             res.status(500).send();
