@@ -10,8 +10,18 @@ const swaggerOptions = {
       description: 'API documentation',
     },
   },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+  },
   apis: ['./src/routes/*.ts'], 
 };
+
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
