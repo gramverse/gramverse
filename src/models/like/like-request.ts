@@ -6,4 +6,10 @@ export const zodLikeRequest = z.object({
     isLike: z.boolean()
 })
 
-export type LikeRequest = z.infer<typeof zodLikeRequest>
+export type LikeRequest = z.infer<typeof zodLikeRequest>    
+
+export type LikeDto = {
+    userName: string,
+    postId: string,
+    isDeleted: boolean,
+}
