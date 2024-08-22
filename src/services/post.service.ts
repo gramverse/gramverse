@@ -113,14 +113,16 @@ export class PostService implements IPostService{
             if (!existingLike.isDeleted){
                 return true;
             }
-            if (await this.likesRepository.undeleteLike(likeRequest.userName, likeRequest.postId)){
+            const undeleteResult = await this.likesRepository.undeleteLike(likeRequest.userName, likeRequest.postId)
+            console.log(undeleteResult);
+            if (undeleteResult){
                 return true;
             }
             return false;
         }
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: false}
         if (!(await this.likesRepository.add(likeDto))){
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occured")
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occurred")
         }
         return true;
 
@@ -132,7 +134,9 @@ export class PostService implements IPostService{
         if (!existingLike || existingLike.isDeleted) {
             return true;
         }
-        if (!(await this.likesRepository.deleteLike(likeRequest.userName, likeRequest.postId))){
+        const deleteResult = (await this.likesRepository.deleteLike(likeRequest.userName, likeRequest.postId))
+        console.log(deleteResult);
+        if (!deleteResult){
             return false;
         }
         return true;
