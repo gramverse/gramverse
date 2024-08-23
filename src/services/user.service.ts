@@ -197,7 +197,7 @@ export class UserService implements IUserService {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "An error occurred reading database.");
         }
         const passwordHash = passwordIsUpdated ? await bcrypt.hash(profileDto.password, 10) : oldUser.passwordHash;
-        const userToBeUpdated: User = {
+        const userToBeUpdated = {
             _id: user._id,
             ... profileDto,
             passwordHash,

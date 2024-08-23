@@ -7,7 +7,7 @@ export const zodProfileDto = z.object({
     firstName: z.string(),
     lastName: z.string(),
     isPrivate: z.boolean(),
-    profileImage: z.string(),
+    profileImage: z.string().optional(),
     bio: z.string(),
 });
 
