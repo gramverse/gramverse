@@ -16,7 +16,7 @@ export const unflattener = (comments: CommentDto[]) => {
     }
   });
   comments.forEach(c => {
-    c.childComments = holder.find(h => h.parentId === c._id)?.childComments||[];
+    c.childComments = holder.find(h => h.parentId === c._id.toString())?.childComments||[];
   });
   return comments.filter(c => c.parentCommentId === "");
 }
