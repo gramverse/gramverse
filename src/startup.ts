@@ -35,7 +35,7 @@ export const buildApp = () => {
     // app.use(errorHandler);
     
     app.use("/api/users",userRouter);
-    app.use("/api/posts",postRouter)
+    app.use("/api/posts", postRouter);
     app.use("/api/reset", tokenRouter);
     app.use("/api/api-docs",swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 

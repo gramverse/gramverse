@@ -8,6 +8,7 @@ export class CommentslikeRepository {
     constructor(private datahandler: typeof import ("mongoose")) {
         this.commentslikes = datahandler.model<ICommentslike>("commentslikes", commentsLikeSchema);
     }   
+
     add = async (commentsLikeDto: CommentsLikeDto) => {
         const createdCommentslike = (await this.commentslikes.create(commentsLikeDto));
         if (!createdCommentslike) {
@@ -15,6 +16,15 @@ export class CommentslikeRepository {
         }
         const newCommentslike: Commentslike = createdCommentslike;
         return newCommentslike;
+    }
+
+    getCountByCommentId = async (commentId: string) => {
+        return await this.commentslikes.countDocuments({commentId});
+    }
+
+    commentslikeExists = async (userName: string, commentId: string) => {
+        const commentslike = await this.commentslikes.findOne({userName, commentId, isDeleted: false});
+        return !!commentslike;
     }
 
     getCommentsLike = async (userName: string, commentId: string) => {

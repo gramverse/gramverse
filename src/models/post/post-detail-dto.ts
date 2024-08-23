@@ -1,3 +1,5 @@
+import {CommentDto} from "../comment/comment-dto";
+
 export type PostDetailDto = {
     _id : String,
     userName : String,

@@ -1,5 +1,5 @@
 
-export type Comment = {
+export type CommentDto = {
     _id: string,
     userName: string,
     postId: string,
@@ -7,4 +7,7 @@ export type Comment = {
     parentCommentId: string,
     creationDate: Date,
     isDeleted: boolean,
+    likesCount: number,
+    isLiked: boolean,
+    childComments: CommentDto[],
 }

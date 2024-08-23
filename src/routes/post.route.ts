@@ -1,10 +1,10 @@
+import jwt, {JwtPayload}  from "jsonwebtoken";
 import {AuthorizedUser} from "../models/profile/authorized-user";
-import e, {Router, Request, Response, NextFunction} from "express";
+import {Router, Request, Response, NextFunction} from "express";
 import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { zodLikeRequest, LikeRequest } from '../models/like/like-request';
 import { jwtSecret, postService } from "../config";
+import { zodLikeRequest, LikeRequest } from '../models/like/like-request';
 import { CommentsLikeRequest, zodCommentslikeRequest } from "../models/commentslike/commentslike-request";
 
 declare module "express" {
@@ -26,12 +26,15 @@ postRouter.use((req: Request, res: Response, next: NextFunction) => {
         next();
     } catch (err) {
         if (err instanceof HttpError) {
+            console.error("Not authorized");
             res.status(err.statusCode).send(err);
             return;
         }
+        console.error(err);
         res.status(500).send();
     }
 });
+
 postRouter.post("/like", async (req: Request, res) => {
     try{
         let success;
@@ -41,7 +44,7 @@ postRouter.post("/like", async (req: Request, res) => {
         }
         const likeePostId = req.body.postId;
         if (!likeePostId){
-            throw new HttpError(400, ErrorCode.MISSING_LIKEE_POSTID, "Missing likee postId")
+            throw new HttpError(400, ErrorCode.MISSING_LIKE_POSTID, "Missing likee postId")
         }
         const likeRequest : LikeRequest = zodLikeRequest.parse({...req.body, userName: req.user.userName})
         if (likeRequest.isLike){
@@ -74,11 +77,11 @@ postRouter.post("/likeComment", async (req: Request, res) =>{
         }
         const likeeCommentId = req.body.commentId;
         if (!likeeCommentId){
-            throw new HttpError(400, ErrorCode.MISSING_LIKEE_COMMENTID, "Missing likee commentId");
+            throw new HttpError(400, ErrorCode.MISSING_LIKE_COMMENTID, "Missing likee commentId");
         }
         const commentsLikeRequest: CommentsLikeRequest = zodCommentslikeRequest.parse({...req.body, userName: req.user.userName});
         if (commentsLikeRequest.isLike){
-            success = postService.likeComment(commentsLikeRequest);
+            success = await postService.likeComment(commentsLikeRequest);
         }
         if (!commentsLikeRequest.isLike){
             success = postService.unlikeComment(commentsLikeRequest);
@@ -97,4 +100,20 @@ postRouter.post("/likeComment", async (req: Request, res) =>{
         res.status(500).send();
     }
 
+
+})
+
+postRouter.get("/:postId", async (req: Request, res) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const postDetailDto = await postService.getPostById(req.params.postId, req.user.userName);
+        if (!postDetailDto) {
+            throw new HttpError(404, ErrorCode.POST_NOT_FOUND, "Post not found");
+        }
+        res.status(200).send(postDetailDto);
+    } catch (err) {
+
+    }
 })

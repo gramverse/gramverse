@@ -17,7 +17,7 @@ export class CommentsRepository {
     }
 
     getByPostId = async (postId: string): Promise<Comment[]> => {
-        return (await this.comments.find({postId}));
+        return await this.comments.find({postId});
     }
 
     getCountByPostId = async (postId: string) => {
