@@ -7,3 +7,8 @@ export const zodCommentslikeRequest = z.object({
 })
 
 export type CommentsLikeRequest = z.infer<typeof zodCommentslikeRequest>
+export type CommentsLikeDto = {
+    userName: string,
+    commentId: string,
+    isDeleted: boolean,
+}

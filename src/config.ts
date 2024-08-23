@@ -9,12 +9,14 @@ import { EmailService } from "./utilities/nodemailer";
 import {PostRepository} from "./repository/post.repository";
 import { FollowRepository } from "./repository/follow.repository";
 import { LikesRepository } from "./repository/likes.repository";
+import { CommentslikeRepository } from "./repository/commentslike.repository"; 
 
 export const followRepository = new FollowRepository(mongoose);
 export const tagRepository = new TagRepository(mongoose);
 export const postRepository = new PostRepository(mongoose);
 export const likesRepository = new LikesRepository(mongoose)
-export const postService = new PostService(postRepository, tagRepository, likesRepository);
+export const commentslikeRepository = new CommentslikeRepository(mongoose);
+export const postService = new PostService(postRepository, tagRepository, likesRepository, commentslikeRepository);
 export const userRepository = new UserRepository(mongoose);
 export const tokenRepository = new TokenRepository(mongoose);
 export const emailService = new EmailService();
