@@ -3,9 +3,9 @@ import e, {Router, Request, Response, NextFunction} from "express";
 import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
 import jwt, { JwtPayload } from "jsonwebtoken";
-
 import { zodLikeRequest, LikeRequest } from '../models/like/like-request';
 import { jwtSecret, postService } from "../config";
+import { CommentsLikeRequest, zodCommentslikeRequest } from "../models/commentslike/commentslike-request";
 
 declare module "express" {
     interface Request {
@@ -57,14 +57,44 @@ postRouter.post("/like", async (req: Request, res) => {
         res.status(200).send();
         
     } catch(err){
-        if (err instanceof HttpError) {
+        if (err instanceof HttpError){
             res.status(err.statusCode).send(err);
             return;
         }
         console.error(err);
         res.status(500).send();
-
     }
+})
 
+postRouter.post("/likeComment", async (req: Request, res) =>{
+    try{
+        let success;
+        if (!req.user){
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const likeeCommentId = req.body.commentId;
+        if (!likeeCommentId){
+            throw new HttpError(400, ErrorCode.MISSING_LIKEE_COMMENTID, "Missing likee commentId");
+        }
+        const commentsLikeRequest: CommentsLikeRequest = zodCommentslikeRequest.parse({...req.body, userName: req.user.userName});
+        if (commentsLikeRequest.isLike){
+            success = postService.likeComment(commentsLikeRequest);
+        }
+        if (!commentsLikeRequest.isLike){
+            success = postService.unlikeComment(commentsLikeRequest);
+        }
+        if (!success){
+            res.status(500).send();
+            console.log(success);
+        }
+        res.status(200).send();
+
+    } catch(err){
+        if (err instanceof HttpError){
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        res.status(500).send();
+    }
 
 })
