@@ -57,6 +57,7 @@ postRouter.post("/like", async (req: Request, res) => {
         if (!success){
             res.status(500).send();
             console.log(success);
+            return;
         }
         res.status(200).send();
         
@@ -85,11 +86,12 @@ postRouter.post("/likeComment", async (req: Request, res) =>{
             success = await postService.likeComment(commentsLikeRequest);
         }
         if (!commentsLikeRequest.isLike){
-            success = postService.unlikeComment(commentsLikeRequest);
+            success = await postService.unlikeComment(commentsLikeRequest);
         }
         if (!success){
             res.status(500).send();
             console.log(success);
+            return;
         }
         res.status(200).send();
 
@@ -118,11 +120,12 @@ postRouter.post("/bookmark", async (req: Request, res) =>{
             success = await postService.bookmark(bookmarkRequest)
         }
         if (!bookmarkRequest.isBookmark){
-            success = postService.unbookmark(bookmarkRequest)
+            success = await postService.unbookmark(bookmarkRequest)
         }
         if (!success){
             res.status(500).send();
             console.log(success);
+            return;
         }
         res.status(200).send();
     } catch(err){
