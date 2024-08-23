@@ -18,6 +18,7 @@ import {Comment} from "../models/comment/comment";
 import {unflattener} from "../utilities/unflattener";
 import { LikeDto, LikeRequest } from '../models/like/like-request'
 import { CommentsLikeRequest, zodCommentslikeRequest, CommentsLikeDto } from '../models/commentslike/commentslike-request';
+import { CommentRequest } from '../models/comment/comment-request';
 import { BookmarkDto, BookmarkRequest } from '../models/bookmark/bookmark-request';
 
 export interface IPostService{
@@ -231,6 +232,13 @@ export class PostService implements IPostService{
         return true;
     }
 
+    addComment = async (commentRequest: CommentRequest) => {
+        if (commentRequest.parentCommentId != "" && !(await this.commentsRepository.getById(commentRequest.parentCommentId))) {
+            throw new HttpError(400, ErrorCode.COMMENT_INVALID_PARRENT_ID, "Parent comment doesn't exist");
+        }
+        const createdComment = await this.commentsRepository.add(commentRequest);
+        return createdComment||undefined;
+    }
     bookmark = async (bookmarkRequest: BookmarkRequest) =>{
         const existingBookmark = await this.bookmarksRepository.getBookmark(bookmarkRequest.userName, bookmarkRequest.postId);
         if (existingBookmark){

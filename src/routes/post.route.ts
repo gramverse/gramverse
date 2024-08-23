@@ -6,6 +6,7 @@ import { ErrorCode } from "../errors/error-codes";
 import { jwtSecret, postService } from "../config";
 import { zodLikeRequest, LikeRequest } from '../models/like/like-request';
 import { CommentsLikeRequest, zodCommentslikeRequest } from "../models/commentslike/commentslike-request";
+import {zodCommentRequest } from "../models/comment/comment-request";
 import { BookmarkRequest, zodBookmarkRequest } from "../models/bookmark/bookmark-request";
 declare module "express" {
     interface Request {
@@ -136,7 +137,7 @@ postRouter.post("/bookmark", async (req: Request, res) =>{
 )
 
 
-postRouter.get("/:postId", async (req: Request, res) => {
+postRouter.get("/post/:postId", async (req: Request, res) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -147,7 +148,13 @@ postRouter.get("/:postId", async (req: Request, res) => {
         }
         res.status(200).send(postDetailDto);
     } catch (err) {
-
+        if (err instanceof HttpError) {
+            console.error(err);
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        console.log(err);
+        res.status(500).send();
     }
 })
 
@@ -171,7 +178,7 @@ postRouter.get("/myPosts", async (req : Request, res) => {
 });
 
 
-postRouter.get("/:userName", async (req : Request, res) => {
+postRouter.get("/userName/:userName", async (req : Request, res) => {
     try{
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -189,3 +196,26 @@ postRouter.get("/:userName", async (req : Request, res) => {
         res.status(500).send();
     }
 });
+
+postRouter.post("/addComment", async (req: Request, res) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const commentRequest = zodCommentRequest.parse({...req.body, userName: req.user.userName});
+        const createdComment = await postService.addComment(commentRequest);
+        if (!createdComment) {
+            res.status(500).send();
+            return;
+        }
+        res.status(200).send(createdComment);
+    } catch (err) {
+        if (err instanceof HttpError) {
+            console.error(err);
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        console.log(err);
+        res.status(500).send();
+    }
+})
