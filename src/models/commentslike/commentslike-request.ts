@@ -6,4 +6,4 @@ export const zodCommentslikeRequest = z.object({
     isLike: z.boolean(),
 })
 
-export type CommentslikeRequest = z.infer<typeof zodCommentslikeRequest>
+export type CommentsLikeRequest = z.infer<typeof zodCommentslikeRequest>
