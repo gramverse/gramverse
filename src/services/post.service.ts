@@ -11,6 +11,8 @@ import {EditPostRequest} from "../models/post/edit-post-request";
 import {TagRequest} from "../models/tag/tag-request";
 import { LikeDto, LikeRequest } from '../models/like/like-request'
 import { LikesRepository } from '../repository/likes.repository' 
+import { CommentsLikeRequest, zodCommentslikeRequest, CommentsLikeDto } from '../models/commentslike/commentslike-request';
+import { CommentslikeRepository } from '../repository/commentslike.repository'; 
 
 export interface IPostService{
     extractHashtags : (text : string) => Array<String>;
@@ -19,7 +21,7 @@ export interface IPostService{
 }
 
 export class PostService implements IPostService{
-    constructor(private postRepository : PostRepository, private tagRepository : TagRepository, private likesRepository : LikesRepository) {}
+    constructor(private postRepository : PostRepository, private tagRepository : TagRepository, private likesRepository : LikesRepository, private commentslikeRepository: CommentslikeRepository) {}
     
 
     extractHashtags =  (text : string) => {
@@ -145,5 +147,37 @@ export class PostService implements IPostService{
         }
         return true;
     }
+    
+    likeComment = async (commentslikeRequest: CommentsLikeRequest) => {
+        const existingCommentsLike = await this.commentslikeRepository.getCommentsLike(commentslikeRequest.userName, commentslikeRequest.commentId)
+        if (existingCommentsLike){
+            if (!existingCommentsLike.isDeleted){
+                return true;
+            }
+            const undeleteResult = await this.commentslikeRepository.undeleteCommentsLike(commentslikeRequest.userName, commentslikeRequest.commentId);
+            if (undeleteResult){
+                return true;
+            }
+            return false;
+        }
+        const commentsLikeDto: CommentsLikeDto = {userName: commentslikeRequest.userName, commentId: commentslikeRequest.commentId, isDeleted: false}
+        const insertDto = await this.commentslikeRepository.add(commentsLikeDto);
+        if (!insertDto){
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occurred");
+        }
+        return true;
+    }
 
+    unlikeComment = async (commentslikeRequest: CommentsLikeRequest) => {
+        const commentsLikeDto: CommentsLikeDto = {userName: commentslikeRequest.userName, commentId: commentslikeRequest.commentId, isDeleted: true}
+        const existingCommentsLike = await this.commentslikeRepository.getCommentsLike(commentslikeRequest.userName, commentslikeRequest.commentId);
+        if (!existingCommentsLike || existingCommentsLike.isDeleted) {
+            return true;
+        }
+        const deleteResult = await this.commentslikeRepository.deleteCommentsLike(commentslikeRequest.userName, commentslikeRequest.commentId);
+        if (!deleteResult){
+            return false;
+        }
+        return true;
+    }
 }
