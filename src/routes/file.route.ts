@@ -61,7 +61,7 @@ fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request
         if (!req.file) {
             imageUrl = "";
         } else {
-            imageUrl = `/files/${req.file.filename}`;
+            imageUrl = `/api/files/${req.file.filename}`;
         }
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");

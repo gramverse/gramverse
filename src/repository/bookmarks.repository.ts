@@ -19,4 +19,9 @@ export  class BookmarksRepository {
     getCountByPostId = async (postId: string) => {
          return await this.bookmarks.countDocuments({postId});
     }
+
+    bookmarkExists = async (userName: string, postId: string) => {
+        const bookmark = await this.bookmarks.findOne({userName, postId, isDeleted: false});
+        return !!bookmark;
+    }
 }

@@ -2,6 +2,10 @@ import { PostRequest } from '../models/post/post-request'
 import { PostRepository } from '../repository/post.repository';
 import { Post } from '../models/post/post';
 import { TagRepository } from '../repository/tag.repository'
+import {CommentsRepository} from "../repository/comments.repository";
+import {BookmarksRepository} from "../repository/bookmarks.repository";
+import {LikesRepository} from "../repository/likes.repository";
+import { CommentslikeRepository} from "../repository/commentslike.repository";
 import { Tag } from '../models/tag/tag';
 import { PostDto } from '../models/post/post-dto';
 import {PostDetailDto} from "../models/post/post-detail-dto";
@@ -9,10 +13,11 @@ import { HttpError } from '../errors/http-error';
 import { ErrorCode } from '../errors/error-codes';
 import {EditPostRequest} from "../models/post/edit-post-request";
 import {TagRequest} from "../models/tag/tag-request";
+import {CommentDto} from "../models/comment/comment-dto";
+import {Comment} from "../models/comment/comment";
+import {unflattener} from "../utilities/unflattener";
 import { LikeDto, LikeRequest } from '../models/like/like-request'
-import { LikesRepository } from '../repository/likes.repository' 
 import { CommentsLikeRequest, zodCommentslikeRequest, CommentsLikeDto } from '../models/commentslike/commentslike-request';
-import { CommentslikeRepository } from '../repository/commentslike.repository'; 
 
 export interface IPostService{
     extractHashtags : (text : string) => Array<String>;
@@ -21,8 +26,7 @@ export interface IPostService{
 }
 
 export class PostService implements IPostService{
-    constructor(private postRepository : PostRepository, private tagRepository : TagRepository, private likesRepository : LikesRepository, private commentslikeRepository: CommentslikeRepository) {}
-    
+    constructor(private postRepository : PostRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository) {}
 
     extractHashtags =  (text : string) => {
         const regex = /#[\w]+/g;
@@ -109,15 +113,63 @@ export class PostService implements IPostService{
         })
         return postDtos;
     }
+
+    getCommentDto = async (userName: string, comment: Comment) => {
+        const commentDto: CommentDto = {
+            ...comment,
+            isLiked: await this.commentslikeRepository.commentslikeExists(userName, comment._id),
+            likesCount: await this.commentslikeRepository.getCountByCommentId(comment._id),
+            childComments: []
+        };
+        return commentDto;
+    }
+
+    getComments = async (userName: string, postId: string) => {
+        const allComments = await this.commentsRepository.getByPostId(postId);
+        const allDtos: CommentDto[] = [];
+        const promises = allComments.map(async c => {
+            const dto: CommentDto = await this.getCommentDto(userName, c);
+            allDtos.push(dto);
+        });
+        await Promise.all(promises);
+        const unflattenedComments = unflattener(allDtos);
+        return unflattenedComments;
+    }
+
+    getPostById = async (_id: string, userName: string) => {
+        const post = await this.postRepository.getPostById(_id);
+        if (!post) {
+            return;
+        }
+        const tags = (await this.tagRepository.findPostTags(_id))
+            .filter(t => !t.isDeleted)
+            .map(t => t.tag);
+        const comments: CommentDto[] = await this.getComments(userName, _id);
+        const commentsCount = await this.commentsRepository.getCountByPostId(_id);
+        const likesCount = await this.likesRepository.getCountByPostId(_id);
+        const bookmarksCount = await this.bookmarksRepository.getCountByPostId(_id);
+        const isLiked = await this.likesRepository.likeExists(userName, _id);
+        const isBookmarked = await this.bookmarksRepository.bookmarkExists(userName, _id);
+        const postDetailDto: PostDetailDto = {
+            ... post,
+            tags,
+            comments,
+            commentsCount,
+            likesCount,
+            bookmarksCount,
+            isLiked,
+            isBookmarked,
+        };
+        return postDetailDto;
+    }
+
     likePost = async (likeRequest : LikeRequest) => {
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId)
-        console.log("existingLike in like = ", existingLike);
         if  (existingLike){
             if (!existingLike.isDeleted){
                 return true;
             }
             const undeleteResult = await this.likesRepository.undeleteLike(likeRequest.userName, likeRequest.postId)
-            console.log("undeleResult in like = ", undeleteResult);
             if (undeleteResult){
                 return true;
             }
@@ -125,7 +177,6 @@ export class PostService implements IPostService{
         }
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: false}
         const insertDto = (await this.likesRepository.add(likeDto))
-        console.log("insertDto in like is =", insertDto);
         if (!insertDto){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occurred")
         }
@@ -136,12 +187,10 @@ export class PostService implements IPostService{
     unlikePost = async (likeRequest : LikeRequest) => {
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: true}
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId);
-        console.log("existingLike in unlike = ", existingLike);
         if (!existingLike || existingLike.isDeleted) {
             return true;
         }
         const deleteResult = (await this.likesRepository.deleteLike(likeRequest.userName, likeRequest.postId))
-        console.log("deleteResult in unlike = ", deleteResult);
         if (!deleteResult){
             return false;
         }

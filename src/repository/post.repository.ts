@@ -34,6 +34,10 @@ export class PostRepository {
     }
 
     getPostById = async (_id: string): Promise<Post|undefined> => {
-        return await this.posts.findById(_id)||undefined;
+        const post = await this.posts.findById(_id);
+        if (!post) {
+            return;
+        }
+        return post.toObject();
     }
 }
