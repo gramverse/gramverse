@@ -18,6 +18,7 @@ import {Comment} from "../models/comment/comment";
 import {unflattener} from "../utilities/unflattener";
 import { LikeDto, LikeRequest } from '../models/like/like-request'
 import { CommentsLikeRequest, zodCommentslikeRequest, CommentsLikeDto } from '../models/commentslike/commentslike-request';
+import { BookmarkDto, BookmarkRequest } from '../models/bookmark/bookmark-request';
 
 export interface IPostService{
     extractHashtags : (text : string) => Array<String>;
@@ -26,7 +27,7 @@ export interface IPostService{
 }
 
 export class PostService implements IPostService{
-    constructor(private postRepository : PostRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository) {}
+    constructor(private postRepository : PostRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository) {}
 
     extractHashtags =  (text : string) => {
         const regex = /#[\w]+/g;
@@ -224,6 +225,39 @@ export class PostService implements IPostService{
             return true;
         }
         const deleteResult = await this.commentslikeRepository.deleteCommentsLike(commentslikeRequest.userName, commentslikeRequest.commentId);
+        if (!deleteResult){
+            return false;
+        }
+        return true;
+    }
+
+    bookmark = async (bookmarkRequest: BookmarkRequest) =>{
+        const existingBookmark = await this.bookmarksRepository.getBookmark(bookmarkRequest.userName, bookmarkRequest.postId);
+        if (existingBookmark){
+            if (!existingBookmark.isDeleted){
+                return true;
+            }
+            const undeleteResult = await this.bookmarksRepository.undeleteBookmark(bookmarkRequest.userName, bookmarkRequest.postId);
+            if (undeleteResult){
+                return true;
+            }
+            return false
+        }
+        const bookmarkDto: BookmarkDto = {userName: bookmarkRequest.userName, postId: bookmarkRequest.postId, isDeleted: false};
+        const insertDto = await this.bookmarksRepository.add(bookmarkDto);
+        if (!insertDto){
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occurred")
+        }
+        return true;
+    }
+
+    unbookmark = async (bookmarkRequest: BookmarkRequest) => {
+        const bookmarkDto: BookmarkDto = {userName: bookmarkRequest.userName, postId: bookmarkRequest.postId, isDeleted: true}
+        const existingBookmark = await this.bookmarksRepository.getBookmark(bookmarkRequest.userName, bookmarkRequest.postId);
+        if (!existingBookmark || existingBookmark.isDeleted) {
+            return true;
+        }
+        const deleteResult = await this.bookmarksRepository.deleteBookmark(bookmarkRequest.userName, bookmarkRequest.postId);
         if (!deleteResult){
             return false;
         }

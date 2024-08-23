@@ -21,7 +21,8 @@ export const commentslikeRepository = new CommentslikeRepository(mongoose);
 export const commentsRepository = new CommentsRepository(mongoose);
 export const bookmarksRepository = new BookmarksRepository(mongoose);
 export const userRepository = new UserRepository(mongoose);
-export const postService = new PostService(postRepository, tagRepository, commentsRepository, bookmarksRepository, likesRepository, commentslikeRepository);
+export const bookmarkRepository = new BookmarksRepository(mongoose);
+export const postService = new PostService(postRepository, tagRepository, commentsRepository, bookmarksRepository, likesRepository, commentslikeRepository, bookmarkRepository);
 export const tokenRepository = new TokenRepository(mongoose);
 export const emailService = new EmailService();
 
