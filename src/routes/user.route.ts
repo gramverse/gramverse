@@ -373,22 +373,3 @@ userRouter.post("/unfollow", async (req: Request, res) => {
         res.status(500).send();
     }
 });
-
-userRouter.get("/posts", async (req : Request, res) => {
-    try{
-        if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
-        }
-        const userName = req.user.userName;
-        const postDtos = await postService.getPosts(userName);
-        res.send(postDtos);
-    } catch(err){
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
-        res.status(500).send();
-    }
-});

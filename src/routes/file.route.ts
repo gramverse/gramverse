@@ -12,6 +12,7 @@ import { zodPostRequest } from "../models/post/post-request";
 import { string } from "zod";
 import { postService } from "../config";
 import { zodEditPostRequest } from "../models/post/edit-post-request";
+import {EditProfileDto} from "../models/profile/edit-profile-dto";
 
 declare module "express" {
     interface Request {
@@ -57,17 +58,17 @@ fileRouter.use((req: Request, res: Response, next: NextFunction) => {
 
 fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request, res) => {
     try {
-        let imageUrl: string;
-        if (!req.file) {
-            imageUrl = "";
-        } else {
-            imageUrl = `/api/files/${req.file.filename}`;
-        }
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const fields = JSON.parse(req.body["profileFields"]);
-        const profileDto = zodProfileDto.parse({...fields, profileImage: imageUrl, userName: req.user.userName});
+        let profileDto: EditProfileDto;
+        if (!req.file) {
+            profileDto = zodProfileDto.parse({...fields, userName: req.user.userName});
+        } else {
+            const imageUrl = `/api/files/${req.file.filename}`;
+            profileDto = zodProfileDto.parse({...fields, profileImage: imageUrl, userName: req.user.userName});
+        }
         const updatedProfile = await userService.editProfile(profileDto, req.user);
         res.status(200).send(updatedProfile);
     } catch (err) {
