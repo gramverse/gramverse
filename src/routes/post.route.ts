@@ -6,7 +6,7 @@ import { ErrorCode } from "../errors/error-codes";
 import { jwtSecret, postService } from "../config";
 import { zodLikeRequest, LikeRequest } from '../models/like/like-request';
 import { CommentsLikeRequest, zodCommentslikeRequest } from "../models/commentslike/commentslike-request";
-
+import { BookmarkRequest, zodBookmarkRequest } from "../models/bookmark/bookmark-request";
 declare module "express" {
     interface Request {
         user?: AuthorizedUser;
@@ -102,6 +102,39 @@ postRouter.post("/likeComment", async (req: Request, res) =>{
 
 
 })
+postRouter.post("/bookmark", async (req: Request, res) =>{
+    try{
+        let success;
+        if (!req.user){
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const bookmarkPostId = req.body.postId;
+        if (!bookmarkPostId){
+            throw new HttpError(400, ErrorCode.MISSING_BOOKMARK_POSTID, "Missing bookmark postId");
+        }
+        const bookmarkRequest: BookmarkRequest = zodBookmarkRequest.parse({...req.body, userName: req.user.userName});
+        if (bookmarkRequest.isBookmark){
+            success = await postService.bookmark(bookmarkRequest)
+        }
+        if (!bookmarkRequest.isBookmark){
+            success = postService.unbookmark(bookmarkRequest)
+        }
+        if (!success){
+            res.status(500).send();
+            console.log(success);
+        }
+        res.status(200).send();
+    } catch(err){
+        if (err instanceof HttpError){
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        console.log(err);
+        res.status(500).send();
+    }
+}
+)
+
 
 postRouter.get("/:postId", async (req: Request, res) => {
     try {

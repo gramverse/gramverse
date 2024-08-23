@@ -7,3 +7,8 @@ export const zodBookmarkRequest = z.object({
 })
 
 export type BookmarkRequest = z.infer<typeof zodBookmarkRequest>
+export type BookmarkDto ={
+    userName: string,
+    postId: string,
+    isDeleted: boolean,
+}
