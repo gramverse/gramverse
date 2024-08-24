@@ -10,6 +10,8 @@ import { LoginResponse } from "../models/login/login-response";
 import { AuthorizedUser } from "../models/profile/authorized-user";
 import { zodProfileDto } from "../models/profile/edit-profile-dto";
 import {FollowRequest, zodFollowRequest} from "../models/follow/follow-request";
+import {FollowingersRequest, zodFollowingersRequest} from "../models/follow/followingers-request";
+import {Followinger} from "../models/follow/followinger";
 
 declare module "express" {
     interface Request {
@@ -373,3 +375,27 @@ userRouter.post("/unfollow", async (req: Request, res) => {
         res.status(500).send();
     }
 });
+
+userRouter.post("/followingers", async (req: Request, res) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(400, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const followingersRequest = zodFollowingersRequest.parse(req.body);
+        let followingers: Followinger[];
+        if (followingersRequest.isFollowing) {
+            followingers = await userService.getFollowings(followingersRequest.userName);
+        } else {
+            followingers = await userService.getFollowers(followingersRequest.userName);
+        }
+        res.status(200).send(followingers);
+    }catch (err) {
+        if (err instanceof HttpError) {
+            console.error(err);
+            res.status(err.statusCode).send(err);
+            return;
+        }
+        console.log(err);
+        res.status(500).send();
+    }
+})

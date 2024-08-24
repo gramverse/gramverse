@@ -50,4 +50,12 @@ export class FollowRepository {
         const follow: Follow|undefined = await this.follows.findOne({followerUserName, followingUserName})||undefined;
         return follow;
     }
+
+    getFollowers = async (followingUserName: string) => {
+        return (await this.follows.find({followingUserName, isDeleted: false})).map(f => f.toObject());
+    }
+
+    getFollowings = async (followerUserName: string) => {
+        return (await this.follows.find({followerUserName, isDeleted: false})).map(f => f.toObject());
+    }
 }

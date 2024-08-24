@@ -8,6 +8,7 @@ import { zodLikeRequest, LikeRequest } from '../models/like/like-request';
 import { CommentsLikeRequest, zodCommentslikeRequest } from "../models/commentslike/commentslike-request";
 import {zodCommentRequest } from "../models/comment/comment-request";
 import { BookmarkRequest, zodBookmarkRequest } from "../models/bookmark/bookmark-request";
+
 declare module "express" {
     interface Request {
         user?: AuthorizedUser;
@@ -186,7 +187,7 @@ postRouter.get("/userName/:userName", async (req : Request, res) => {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const userName = req.body.userName;
+        const userName = req.params.userName;
         const postDtos = await postService.getPosts(userName);
         res.send(postDtos);
     } catch(err){
