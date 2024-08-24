@@ -17,6 +17,8 @@ import {MyProfileDto} from "../models/profile/my-profile-dto";
 import {ProfileDto} from "../models/profile/profile-dto";
 import { FollowRequest } from "../models/follow/follow-request";
 import { Follow } from "../models/follow/follow";
+import { FollowingersRequest } from '../models/follow/followingers-request';
+import {Followinger} from "../models/follow/followinger";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
@@ -241,5 +243,43 @@ export class UserService implements IUserService {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         return true;
+    }
+
+    getFollowers = async (userName: string) => {
+        const followers = await this.followRepository.getFollowers(userName);
+        const followingers: Followinger[] = [];
+        const processes = followers.map(async f => {
+            const user = await this.userRepository.getUserByUserName(f.followerUserName);
+            if (!user) {
+                throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Database integrity error");
+            }
+            const followinger: Followinger = {
+                userName: user.userName,
+                profileImage: user.profileImage,
+                followerCount: await this.followRepository.getFollowerCount(user.userName)
+            };
+            followingers.push(followinger);
+        });
+        await Promise.all(processes);
+        return followingers;
+    }
+
+    getFollowings = async (userName: string) => {
+        const followings = await this.followRepository.getFollowings(userName);
+        const followingers: Followinger[] = [];
+        const processes = followings.map(async f => {
+            const user = await this.userRepository.getUserByUserName(f.followingUserName);
+            if (!user) {
+                throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Database integrity error");
+            }
+            const followinger: Followinger = {
+                userName: user.userName,
+                profileImage: user.profileImage,
+                followerCount: await this.followRepository.getFollowerCount(user.userName)
+            };
+            followingers.push(followinger);
+        });
+        await Promise.all(processes);
+        return followingers;
     }
 }
