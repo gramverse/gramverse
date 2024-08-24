@@ -19,7 +19,7 @@ export class CommentslikeRepository {
     }
 
     getCountByCommentId = async (commentId: string) => {
-        return await this.commentslikes.countDocuments({commentId});
+        return await this.commentslikes.countDocuments({commentId, isDeleted: false});
     }
 
     commentslikeExists = async (userName: string, commentId: string) => {

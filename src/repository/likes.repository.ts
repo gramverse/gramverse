@@ -41,7 +41,7 @@ export class LikesRepository {
     }
 
     getCountByPostId = async (postId: string) => {
-        return await this.likes.countDocuments({postId});
+        return await this.likes.countDocuments({postId, isDeleted: false});
     }
 
     likeExists = async (userName: string, postId: string) => {
