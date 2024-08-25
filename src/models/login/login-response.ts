@@ -1,6 +1,7 @@
 export type LoginResponse = {
     user : User,
     token : string,
+    expireTime: number,
 } ;
 
 export interface IUser extends Document {

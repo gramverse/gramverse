@@ -230,7 +230,7 @@ userRouter.post("/signup", async (req, res, next) => {
         if (!loginResponse) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        res.status(200).cookie("bearer", loginResponse.token).send(loginResponse.user);
+        res.status(200).cookie("bearer", loginResponse.token, {maxAge: loginResponse.expireTime}).send(loginResponse.user);
     } catch(err) {
         next(err);
     }
@@ -243,7 +243,7 @@ userRouter.post("/login", async (req, res, next) => {
         if (!loginResponse) {
             throw new HttpError(401, ErrorCode.INVALID_USERNAME_OR_PASSWORD, "Username or password incorrect");
         }
-        res.cookie("bearer", loginResponse.token).status(201).send(loginResponse.user);
+        res.cookie("bearer", loginResponse.token, {maxAge: loginResponse.expireTime}).status(201).send(loginResponse.user);
     } catch(err) {
         next(err);
     }
