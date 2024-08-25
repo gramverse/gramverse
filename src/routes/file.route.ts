@@ -46,17 +46,11 @@ fileRouter.use((req: Request, res: Response, next: NextFunction) => {
         req.user = authorizedUser["data"] as AuthorizedUser;
         next();
     } catch (err) {
-        if (err instanceof HttpError) {
-            console.error("Not authorized");
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request, res) => {
+fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -72,17 +66,11 @@ fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request
         const updatedProfile = await userService.editProfile(profileDto, req.user);
         res.status(200).send(updatedProfile);
     } catch (err) {
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-fileRouter.post("/addPost", upload.array("photoFiles", 10), async (req : Request, res) => {
+fileRouter.post("/addPost", upload.array("photoFiles", 10), async (req : Request, res, next) => {
     try{
         if (!req.user){
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -106,19 +94,11 @@ fileRouter.post("/addPost", upload.array("photoFiles", 10), async (req : Request
         }
         res.status(200).send(newPost);
     } catch(err){
-        
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        
-        console.log(err);
-        res.status(500).send();
+        next(err);
     }
 })
 
-fileRouter.post("/editPost", upload.array("photoFiles", 10), async (req : Request, res) => {
+fileRouter.post("/editPost", upload.array("photoFiles", 10), async (req : Request, res, next) => {
     try{
         if (!req.user){
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -139,42 +119,16 @@ fileRouter.post("/editPost", upload.array("photoFiles", 10), async (req : Reques
         }
         res.status(200).send(edittedPost);
     } catch(err){
-        
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        
-        console.log(err);
-        res.status(500).send();
-        
+        next(err);
     }
 })
 
-fileRouter.get("/:fileName", (req, res) => {
+fileRouter.get("/:fileName", (req, res, next) => {
     try {
         const filePath = path.join(__dirname, "..", "..", "uploads", req.params.fileName);
 
         res.status(200).download(filePath);
     } catch (err) {
-        console.error(err);
-        res.status(500).send();
+        next();
     }
 });
-
-fileRouter.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
-    if (err instanceof multer.MulterError) {
-        if (err.code === "LIMIT_FILE_SIZE") {
-            res.status(400).send(new HttpError(400, ErrorCode.FILE_TOO_LARGE, "Max file size = 4 MB"));
-            return;
-        } else {
-            res.status(400).send(new HttpError(400, ErrorCode.FILE_UPLOAD_ERROR, "an error occurred uploading file"));
-            return;
-        }
-    }
-});
-
-fileRouter.use((req, res, next) => {
-    res.status(404).send({message: "Not found"});
-})

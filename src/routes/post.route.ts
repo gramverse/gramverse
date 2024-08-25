@@ -27,17 +27,11 @@ postRouter.use((req: Request, res: Response, next: NextFunction) => {
         req.user = authorizedUser["data"] as AuthorizedUser;
         next();
     } catch (err) {
-        if (err instanceof HttpError) {
-            console.error("Not authorized");
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-postRouter.post("/like", async (req: Request, res) => {
+postRouter.post("/like", async (req: Request, res, next) => {
     try{
         let success;
         
@@ -56,23 +50,15 @@ postRouter.post("/like", async (req: Request, res) => {
             success = await postService.unlikePost(likeRequest);
         }
         if (!success){
-            res.status(500).send();
-            console.log(success);
-            return;
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         res.status(200).send();
-        
     } catch(err){
-        if (err instanceof HttpError){
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 })
 
-postRouter.post("/likeComment", async (req: Request, res) =>{
+postRouter.post("/likeComment", async (req: Request, res, next) =>{
     try{
         let success;
         if (!req.user){
@@ -90,23 +76,17 @@ postRouter.post("/likeComment", async (req: Request, res) =>{
             success = await postService.unlikeComment(commentsLikeRequest);
         }
         if (!success){
-            res.status(500).send();
-            console.log(success);
-            return;
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         res.status(200).send();
-
     } catch(err){
-        if (err instanceof HttpError){
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        res.status(500).send();
+        next(err);
     }
 
 
 })
-postRouter.post("/bookmark", async (req: Request, res) =>{
+
+postRouter.post("/bookmark", async (req: Request, res, next) =>{
     try{
         let success;
         if (!req.user){
@@ -124,24 +104,16 @@ postRouter.post("/bookmark", async (req: Request, res) =>{
             success = await postService.unbookmark(bookmarkRequest)
         }
         if (!success){
-            res.status(500).send();
-            console.log(success);
-            return;
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         res.status(200).send();
     } catch(err){
-        if (err instanceof HttpError){
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
-        res.status(500).send();
+        next(err);
     }
-}
-)
+})
 
 
-postRouter.get("/post/:postId", async (req: Request, res) => {
+postRouter.get("/post/:postId", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -152,17 +124,11 @@ postRouter.get("/post/:postId", async (req: Request, res) => {
         }
         res.status(200).send(postDetailDto);
     } catch (err) {
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
-        res.status(500).send();
+        next(err);
     }
 })
 
-postRouter.get("/myPosts", async (req : Request, res) => {
+postRouter.get("/myPosts", async (req : Request, res, next) => {
     try{
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -171,18 +137,12 @@ postRouter.get("/myPosts", async (req : Request, res) => {
         const postDtos = await postService.getPosts(userName);
         res.send(postDtos);
     } catch(err){
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
 
-postRouter.get("/userName/:userName", async (req : Request, res) => {
+postRouter.get("/userName/:userName", async (req : Request, res, next) => {
     try{
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -191,17 +151,11 @@ postRouter.get("/userName/:userName", async (req : Request, res) => {
         const postDtos = await postService.getPosts(userName);
         res.send(postDtos);
     } catch(err){
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-postRouter.post("/addComment", async (req: Request, res) => {
+postRouter.post("/addComment", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -214,12 +168,6 @@ postRouter.post("/addComment", async (req: Request, res) => {
         }
         res.status(200).send(createdComment);
     } catch (err) {
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
-        res.status(500).send();
+        next(err);
     }
 })

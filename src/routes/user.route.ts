@@ -223,7 +223,7 @@ export const userRouter = Router();
 
 
 
-userRouter.post("/signup", async (req, res) => {
+userRouter.post("/signup", async (req, res, next) => {
     try {
         const registerRequest = zodRegisterRequest.parse(req.body);
         const loginResponse = await userService.signup(registerRequest);
@@ -232,15 +232,11 @@ userRouter.post("/signup", async (req, res) => {
         }
         res.status(200).cookie("bearer", loginResponse.token).send(loginResponse.user);
     } catch(err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        res.status(500).send();
+        next(err);
     }
 });
 
-userRouter.post("/login", async (req, res) => {
+userRouter.post("/login", async (req, res, next) => {
     try{
         const loginRequest = zodLoginRequest.parse(req.body);
         const loginResponse = await userService.login(loginRequest);
@@ -249,11 +245,7 @@ userRouter.post("/login", async (req, res) => {
         }
         res.cookie("bearer", loginResponse.token).status(201).send(loginResponse.user);
     } catch(err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        res.status(500).send();
+        next(err);
     }
 });
 
@@ -267,15 +259,11 @@ userRouter.use((req: Request, res: Response, next: NextFunction) => {
         req.user = authorizedUser["data"] as AuthorizedUser;
         next();
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        res.status(500).send();
+        next(err);
     }
 });
 
-userRouter.get("/profile/:userName", async (req: Request, res) => {
+userRouter.get("/profile/:userName", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -283,16 +271,11 @@ userRouter.get("/profile/:userName", async (req: Request, res) => {
         const profile = await userService.getProfile(req.params.userName, req.user.userName);
         res.status(200).send(JSON.stringify(profile));
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-userRouter.get("/myProfile", async (req: Request, res) => {
+userRouter.get("/myProfile", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -300,16 +283,11 @@ userRouter.get("/myProfile", async (req: Request, res) => {
         const profile = await userService.getMyProfile(req.user.userName);
         res.status(200).send(JSON.stringify(profile));
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-userRouter.post("/profile", async (req: Request, res) => {
+userRouter.post("/profile", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -318,15 +296,11 @@ userRouter.post("/profile", async (req: Request, res) => {
         const updatedProfile = await userService.editProfile(profileDto, req.user);
         res.status(200).send(updatedProfile);
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        res.status(500).send();
+        next(err);
     }
 });
 
-userRouter.post("/follow", async (req: Request, res) => {
+userRouter.post("/follow", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -338,20 +312,15 @@ userRouter.post("/follow", async (req: Request, res) => {
         const followRequest: FollowRequest = {followerUserName: req.user.userName, followingUserName};
         const success = await userService.follow(followRequest);
         if (!success) {
-            res.status(500).send();
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         res.status(200).send();
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 })
 
-userRouter.post("/unfollow", async (req: Request, res) => {
+userRouter.post("/unfollow", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -363,20 +332,15 @@ userRouter.post("/unfollow", async (req: Request, res) => {
         const followRequest: FollowRequest = {followerUserName: req.user.userName, followingUserName};
         const success = await userService.unfollow(followRequest);
         if (!success) {
-            res.status(500).send();
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         res.status(200).send();
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-userRouter.post("/followingers", async (req: Request, res) => {
+userRouter.post("/followingers", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(400, ErrorCode.UNAUTHORIZED, "Not authorized");
@@ -390,12 +354,6 @@ userRouter.post("/followingers", async (req: Request, res) => {
         }
         res.status(200).send(followingers);
     }catch (err) {
-        if (err instanceof HttpError) {
-            console.error(err);
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.log(err);
-        res.status(500).send();
+        next(err);
     }
 })
