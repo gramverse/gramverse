@@ -1,8 +1,9 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { ErrorRequestHandler, Router, Request, Response, NextFunction } from "express";
 import { tokenService } from "../config";  
 import { zodResetPasswordRequest } from "../models/reset-password/resetpassword-request";
 import { HttpError } from "../errors/http-error";
 import { ErrorCode } from "../errors/error-codes";
+import { ZodError } from "zod";
 
 export const tokenRouter = Router();
 
@@ -85,7 +86,7 @@ export const tokenRouter = Router();
  *         description: Internal server error
  */
 
-tokenRouter.post("/request-reset-password", async (req: Request, res: Response) => {
+tokenRouter.post("/request-reset-password", async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email } = req.body;
         
@@ -98,16 +99,11 @@ tokenRouter.post("/request-reset-password", async (req: Request, res: Response) 
         
         res.status(200).send();
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-tokenRouter.post("/validate-reset-token", async (req: Request, res: Response) => {
+tokenRouter.post("/validate-reset-token", async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { token } = req.body;
         if (!token){
@@ -116,26 +112,16 @@ tokenRouter.post("/validate-reset-token", async (req: Request, res: Response) =>
         await tokenService.validateResetPasswordToken(token);
         res.status(200).send()
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 });
 
-tokenRouter.post("/reset-password", async (req: Request, res: Response) => {
+tokenRouter.post("/reset-password", async (req: Request, res: Response, next: NextFunction) => {
     try {
         const resetPasswordRequest = zodResetPasswordRequest.parse(req.body);
         await tokenService.resetPassword(resetPasswordRequest);
         res.status(200).send();
     } catch (err) {
-        if (err instanceof HttpError) {
-            res.status(err.statusCode).send(err);
-            return;
-        }
-        console.error(err);
-        res.status(500).send();
+        next(err);
     }
 });
