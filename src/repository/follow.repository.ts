@@ -1,6 +1,8 @@
 import { Model } from "mongoose";
 import {followSchema} from "../models/follow/follow-schema";
 import {IFollow,Follow} from "../models/follow/follow"
+import { FollowRequest } from "../models/follow/follow-request";
+import { FollowRequestState } from "../models/follow/follow-request-state";
 
 export class FollowRepository {
     private follows: Model<IFollow>;
@@ -8,8 +10,8 @@ export class FollowRepository {
         this.follows = dataHandler.model<IFollow>("follows", followSchema);
     }
 
-    add = async (follow: Follow) => {
-        const createdFollow = (await this.follows.create(follow));
+    add = async (followRequest: FollowRequest) => {
+        const createdFollow = (await this.follows.create(followRequest));
         if (!createdFollow) {
             return undefined;
         }
@@ -18,7 +20,7 @@ export class FollowRepository {
     }
 
     undeleteFollow = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false})
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false, followRequestState: FollowRequestState.ACCEPTED})
         if (!updateResult.acknowledged) {
             return false;
         }
@@ -26,7 +28,7 @@ export class FollowRepository {
     }
 
     deleteFollow = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true})
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true, followRequestState: FollowRequestState.UNFOLLOW, isCloseFriend: false});
         if (!updateResult.acknowledged) {
             return false;
         }
