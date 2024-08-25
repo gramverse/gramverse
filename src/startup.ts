@@ -17,6 +17,9 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res, next) => {
         res.status(400).send({message: err.errors});
         return;
     } else if (err instanceof HttpError) {
+        if (err.errorCode == 401) {
+            res.clearCookie("bearer");
+        }
         res.status(err.statusCode).send(err);
         return;
     } else     if (err instanceof multer.MulterError) {

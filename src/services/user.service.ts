@@ -61,13 +61,16 @@ export class UserService implements IUserService {
             email: user.email
         };
         let token : string;
+        let expireTime: number;
         if (loginRequest.rememberMe) {
             token = await jwt.sign({ data: tokenPayload }, jwtSecret, { expiresIn: "168h" });
+            expireTime = 7*24*3600*1000;
         } else {
             token = await jwt.sign({ data: tokenPayload }, jwtSecret, { expiresIn: "72h"});
+            expireTime = 3*24*3600*1000;
         }
         
-        const loginResponse : LoginResponse = {user, token};
+        const loginResponse : LoginResponse = {user, token, expireTime};
         return loginResponse;
     }
 
