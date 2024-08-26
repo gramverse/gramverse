@@ -285,6 +285,7 @@ userRouter.post("/profile", async (req: Request, res, next) => {
 
 userRouter.post("/follow", async (req: Request, res, next) => {
     try {
+        let success;
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
@@ -293,7 +294,12 @@ userRouter.post("/follow", async (req: Request, res, next) => {
             throw new HttpError(400, ErrorCode.MISSING_FOLLOWING_USERNAME, "Missing following username");
         }
         const followRequest: FollowRequest = {followerUserName: req.user.userName, followingUserName};
-        const success = await userService.follow(followRequest);
+        if (req.body.isFollow){    
+            success = await userService.follow(followRequest);
+        }
+        if (!req.body.isFollow){
+            success = await userService.unfollow(followRequest);
+        }
         if (!success) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
@@ -303,25 +309,6 @@ userRouter.post("/follow", async (req: Request, res, next) => {
     }
 })
 
-userRouter.post("/unfollow", async (req: Request, res, next) => {
-    try {
-        if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
-        }
-        const {followingUserName} = req.body;
-        if (!followingUserName) {
-            throw new HttpError(400, ErrorCode.MISSING_FOLLOWING_USERNAME, "Missing following username");
-        }
-        const followRequest: FollowRequest = {followerUserName: req.user.userName, followingUserName};
-        const success = await userService.unfollow(followRequest);
-        if (!success) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
-        }
-        res.status(200).send();
-    } catch (err) {
-        next(err);
-    }
-});
 
 userRouter.post("/followingers", async (req: Request, res, next) => {
     try {
