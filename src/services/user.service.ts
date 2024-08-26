@@ -223,14 +223,7 @@ export class UserService implements IUserService {
             }
             return false;
         }
-        const newFollow: Follow = {
-            followerUserName,
-            followingUserName,
-            isDeleted: false,
-            created_time: new Date(),
-            updated_time: new Date()
-        };
-        if (!(await this.followRepository.add(newFollow)))  {
+        if (!(await this.followRepository.add(followRequest)))  {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unkown problem occurred");
         }
         return true;
