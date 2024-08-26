@@ -1,6 +1,5 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
-import jwtDecode from "jwt-decode";
 import path from "path";
+import {authMiddleware} from "../middlewares/auth-middleware";
 import {jwtSecret, userService} from "../config"
 import{Router, ErrorRequestHandler, Request, Response, NextFunction} from "express";
 import multer from "multer";
@@ -13,12 +12,6 @@ import { string } from "zod";
 import { postService } from "../config";
 import { zodEditPostRequest } from "../models/post/edit-post-request";
 import {EditProfileDto} from "../models/profile/edit-profile-dto";
-
-declare module "express" {
-    interface Request {
-        user?: AuthorizedUser;
-    }
-}
 
 export const fileRouter = Router();
 
@@ -36,19 +29,7 @@ const upload = multer({
     }
 });
 
-fileRouter.use((req: Request, res: Response, next: NextFunction) => {
-    try {
-        const token = req.cookies["bearer"];
-        if (!token) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
-        }
-        const authorizedUser = jwt.verify(token, jwtSecret) as JwtPayload;
-        req.user = authorizedUser["data"] as AuthorizedUser;
-        next();
-    } catch (err) {
-        next(err);
-    }
-});
+fileRouter.use(authMiddleware);
 
 fileRouter.post("/myProfile", upload.single("profileImage"), async (req: Request, res, next) => {
     try {

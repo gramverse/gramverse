@@ -8,6 +8,7 @@ import { zodLikeRequest, LikeRequest } from '../models/like/like-request';
 import { CommentsLikeRequest, zodCommentslikeRequest } from "../models/commentslike/commentslike-request";
 import {zodCommentRequest } from "../models/comment/comment-request";
 import { BookmarkRequest, zodBookmarkRequest } from "../models/bookmark/bookmark-request";
+import { authMiddleware } from "../middlewares/auth-middleware";
 
 declare module "express" {
     interface Request {
@@ -17,19 +18,7 @@ declare module "express" {
 
 export const postRouter = Router();
 
-postRouter.use((req: Request, res: Response, next: NextFunction) => {
-    try {
-        const token = req.cookies["bearer"];
-        if (!token) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
-        }
-        const authorizedUser = jwt.verify(token, jwtSecret) as JwtPayload;
-        req.user = authorizedUser["data"] as AuthorizedUser;
-        next();
-    } catch (err) {
-        next(err);
-    }
-});
+postRouter.use(authMiddleware);
 
 postRouter.post("/like", async (req: Request, res, next) => {
     try{

@@ -12,12 +12,7 @@ import { zodProfileDto } from "../models/profile/edit-profile-dto";
 import {FollowRequest, zodFollowRequest} from "../models/follow/follow-request";
 import {FollowingersRequest, zodFollowingersRequest} from "../models/follow/followingers-request";
 import {Followinger} from "../models/follow/followinger";
-
-declare module "express" {
-    interface Request {
-        user?: AuthorizedUser;
-    }
-}
+import { authMiddleware } from "../middlewares/auth-middleware";
 
 export const userRouter = Router();
 
@@ -249,19 +244,7 @@ userRouter.post("/login", async (req, res, next) => {
     }
 });
 
-userRouter.use((req: Request, res: Response, next: NextFunction) => {
-    try {
-        const token = req.cookies["bearer"];
-        if (!token) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
-        }
-        const authorizedUser = jwt.verify(token, jwtSecret) as JwtPayload;
-        req.user = authorizedUser["data"] as AuthorizedUser;
-        next();
-    } catch (err) {
-        next(err);
-    }
-});
+userRouter.use(authMiddleware);
 
 userRouter.get("/profile/:userName", async (req: Request, res, next) => {
     try {
