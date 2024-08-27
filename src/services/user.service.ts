@@ -241,8 +241,10 @@ export class UserService implements IUserService {
         return true;
     }
 
-    getFollowers = async (userName: string) => {
-        const followers = await this.followRepository.getFollowers(userName);
+    getFollowers = async (userName: string,page: number,limit: number) => {
+        const skip = (page -1) * limit
+        
+        const followers = await this.followRepository.getFollowers(userName,skip,limit);
         const followingers: Followinger[] = [];
         const processes = followers.map(async f => {
             const user = await this.userRepository.getUserByUserName(f.followerUserName);
@@ -260,8 +262,10 @@ export class UserService implements IUserService {
         return followingers;
     }
 
-    getFollowings = async (userName: string) => {
-        const followings = await this.followRepository.getFollowings(userName);
+    getFollowings = async (userName: string,page: number,limit: number) => {
+        const skip = (page -1) * limit
+        
+        const followings = await this.followRepository.getFollowings(userName,skip,limit);
         const followingers: Followinger[] = [];
         const processes = followings.map(async f => {
             const user = await this.userRepository.getUserByUserName(f.followingUserName);

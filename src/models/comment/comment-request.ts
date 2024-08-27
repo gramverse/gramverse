@@ -5,6 +5,8 @@ export const zodCommentRequest = z.object({
     postId: z.string(),
     comment: z.string().nonempty(),
     parentCommentId: z.string(),
+    page: z.number(),
+    limit: z.number(),
 })
 
 export type CommentRequest = z.infer<typeof zodCommentRequest>

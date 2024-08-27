@@ -53,11 +53,20 @@ export class FollowRepository {
         return follow;
     }
 
-    getFollowers = async (followingUserName: string) => {
-        return (await this.follows.find({followingUserName, isDeleted: false})).map(f => f.toObject());
+    getFollowers = async (followingUserName: string, skip: number, limit: number) => {
+        return await this.follows
+            .find({ followingUserName, isDeleted: false })
+            .skip(skip)
+            .limit(limit)
+            .lean();
     }
-
-    getFollowings = async (followerUserName: string) => {
-        return (await this.follows.find({followerUserName, isDeleted: false})).map(f => f.toObject());
+    
+    getFollowings = async (followerUserName: string, skip: number, limit: number) => {
+        return await this.follows
+            .find({ followerUserName, isDeleted: false })
+            .skip(skip)
+            .limit(limit)
+            .lean(); 
     }
+    
 }
