@@ -126,8 +126,9 @@ export class PostService implements IPostService{
         return commentDto;
     }
 
-    getComments = async (userName: string, postId: string) => {
-        const allComments = await this.commentsRepository.getByPostId(postId);
+    getComments = async (userName: string, postId: string,page: number,limit: number) => {
+        const skip = (page -1) * limit
+        const allComments = await this.commentsRepository.getByPostId(postId,skip,limit);
         const allDtos: CommentDto[] = [];
         const promises = allComments.map(async c => {
             const dto: CommentDto = await this.getCommentDto(userName, c);
@@ -138,7 +139,9 @@ export class PostService implements IPostService{
         return unflattenedComments;
     }
 
-    getPostById = async (_id: string, userName: string) => {
+    getPostById = async (_id: string, userName: string,page: number,limit: number) => {
+        const skip = (page -1) * limit
+        
         const post = await this.postRepository.getPostById(_id);
         if (!post) {
             return;
@@ -146,7 +149,7 @@ export class PostService implements IPostService{
         const tags = (await this.tagRepository.findPostTags(_id))
             .filter(t => !t.isDeleted)
             .map(t => t.tag);
-        const comments: CommentDto[] = await this.getComments(userName, _id);
+        const comments: CommentDto[] = await this.getComments(userName, _id,skip,limit);
         const commentsCount = await this.commentsRepository.getCountByPostId(_id);
         const likesCount = await this.likesRepository.getCountByPostId(_id);
         const bookmarksCount = await this.bookmarksRepository.getCountByPostId(_id);

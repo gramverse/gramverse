@@ -310,17 +310,19 @@ userRouter.post("/follow", async (req: Request, res, next) => {
 })
 
 
-userRouter.post("/followingers", async (req: Request, res, next) => {
+userRouter.post("/followingers", async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.user) {
             throw new HttpError(400, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const followingersRequest = zodFollowingersRequest.parse(req.body);
+        const { page, limit } = followingersRequest
         let followingers: Followinger[];
         if (followingersRequest.isFollowing) {
-            followingers = await userService.getFollowings(followingersRequest.userName);
+            followingers = await userService.getFollowings(followingersRequest.userName,page,limit);
         } else {
-            followingers = await userService.getFollowers(followingersRequest.userName);
+            followingers = await userService.getFollowers(followingersRequest.userName,page,limit);
+        
         }
         res.status(200).send(followingers);
     }catch (err) {

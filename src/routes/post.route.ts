@@ -107,7 +107,7 @@ postRouter.get("/post/:postId", async (req: Request, res, next) => {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const postDetailDto = await postService.getPostById(req.params.postId, req.user.userName);
+        const postDetailDto = await postService.getPostById(req.params.postId, req.user.userName,req.body.limit,req.body.page);
         if (!postDetailDto) {
             throw new HttpError(404, ErrorCode.POST_NOT_FOUND, "Post not found");
         }
