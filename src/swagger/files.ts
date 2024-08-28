@@ -20,11 +20,7 @@
  *                   format: binary
  *               postFields:
  *                 type: string
-<<<<<<< HEAD
  *                 description: object
-=======
- *                 description: {caption: string, mentions: string[]}
->>>>>>> d369a627d12ab639aee15658b082e8dd07b770ab
  *     responses:
  *       200:
  *         description: Profile updated successfully.
@@ -56,11 +52,7 @@
  *                   format: binary
  *               postFields:
  *                 type: string
-<<<<<<< HEAD
  *                 description: object
-=======
- *                 description: {_id: string, caption: string, mentions: string[], photoUrls: string[]}
->>>>>>> d369a627d12ab639aee15658b082e8dd07b770ab
  *     responses:
  *       200:
  *         description: Profile updated successfully.
