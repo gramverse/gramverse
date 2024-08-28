@@ -47,6 +47,10 @@ export class CommentsRepository {
         return await this.comments.countDocuments({postId});
     }
 
+    getRootCountByPostId = async (postId: string) => {
+        return await this.comments.countDocuments({postId, parentCommentId: ""});
+    }
+
     getById = async (_id: string) => {
         const comment = await this.comments.findById(_id);
         return comment||undefined;

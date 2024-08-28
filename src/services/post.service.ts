@@ -145,7 +145,8 @@ export class PostService implements IPostService{
             const dto: CommentDto = await this.getCommentDto(userName, "", c);
             allDtos.push(dto);
         }
-        return allDtos;
+        const commentsCount = await this.commentsRepository.getRootCountByPostId(postId);
+        return {comments: allDtos, totalCount: commentsCount};
     }
 
     flatComment = (comment: Comment) => {
