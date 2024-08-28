@@ -178,3 +178,39 @@
  *         description: Internal server error
  */
 
+<<<<<<< HEAD
+
+/**
+ * @swagger
+ * /api/posts/comments:
+ *   get:
+ *     summary: Get comments for the requested post
+ *     tags:
+ *       - posts
+ *     parameters:
+ *       - in: query
+ *         name: postId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The post id to retrieve comments.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *     responses:
+ *       200:
+ *         description: Posts retrieved successfully.
+ *       401:
+ *         description: Not authorized.
+ *       500:
+ *         description: Internal server error.
+ */
+=======
+>>>>>>> d369a627d12ab639aee15658b082e8dd07b770ab

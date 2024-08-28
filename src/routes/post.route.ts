@@ -162,12 +162,12 @@ postRouter.post("/addComment", async (req: Request, res, next) => {
     }
 })
 
-postRouter.post("/comments", async (req: Request, res, next) => {
+postRouter.get("/comments", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const {postId, page, limit} = zodGetCommentsRequest.parse(req.body);
+        const {postId, page, limit} = zodGetCommentsRequest.parse(req.query);
         const comments = await postService.getComments(req.user.userName, postId, page, limit);
         res.status(200).send(comments);
     } catch (err) {
