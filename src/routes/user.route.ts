@@ -258,6 +258,18 @@ userRouter.get("/profile/:userName", async (req: Request, res, next) => {
     }
 });
 
+userRouter.get("/check-username/:userName", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userName } = req.params;
+
+        const exists = await userService.checkUserNameExistance(userName);
+
+        res.status(200).json({ exists });
+    } catch (err) {
+        next(err);
+    }
+});
+
 userRouter.get("/myProfile", async (req: Request, res, next) => {
     try {
         if (!req.user) {
