@@ -16,6 +16,8 @@ import { authMiddleware } from "../middlewares/auth-middleware";
 import {zodGetCloseFriendsRequest} from "../models/follow/get-close-friends-request";
 import {zodCloseFriendRequest} from "../models/follow/close-friend-request";
 import {zodAcceptRequest} from "../models/follow/accept-request";
+import {zodGetBlackListRequest} from "../models/block/get-blackList-request";
+import { BlockRequest,zodBlockRequest } from "../models/block/block-request";
 
 export const userRouter = Router();
 
@@ -195,3 +197,41 @@ userRouter.post("/acceptRequest", async (req: Request, res, next) => {
         next(err);
     }
 });
+
+userRouter.post("/block", async (req: Request, res, next) => {
+
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const blockRequest = zodBlockRequest.parse({...req.body,followerUserName: req.user.userName})
+        let success : boolean
+        if (blockRequest.isBlock){
+           success = await userService.block(blockRequest);
+        } else {
+           success = await userService.unBlock(blockRequest);
+        }
+        if (!success) { 
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+        }
+        res.status(200).send();
+    } catch (err) {
+      
+        next(err);
+    }
+
+}) 
+
+
+userRouter.get("/blackList", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {page, limit} = zodGetBlackListRequest.parse(req.query);
+        const blockList = await userService.getBlackList(req.user.userName, page, limit);
+        res.status(200).send(blockList);
+    } catch (err) {
+        next(err);
+    }
+})
