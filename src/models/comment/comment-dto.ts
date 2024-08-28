@@ -8,8 +8,7 @@ export type CommentDto = {
     parentCommentId: string,
     parentCommentUserName: string,
     creationDate: Date,
-    isDeleted: boolean,
     likesCount: number,
     isLiked: boolean,
-    childComments: Comment[],
+    childDtos: CommentDto[],
 }

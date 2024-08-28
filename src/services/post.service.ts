@@ -20,6 +20,7 @@ import { LikeDto, LikeRequest } from '../models/like/like-request'
 import { CommentsLikeRequest, zodCommentslikeRequest, CommentsLikeDto } from '../models/commentslike/commentslike-request';
 import { CommentRequest } from '../models/comment/comment-request';
 import { BookmarkDto, BookmarkRequest } from '../models/bookmark/bookmark-request';
+import { forEachChild } from 'typescript';
 
 export interface IPostService{
     extractHashtags : (text : string) => Array<String>;
@@ -116,31 +117,45 @@ export class PostService implements IPostService{
         return postDtos;
     }
 
-    getCommentDto = async (userName: string, parentCommentUserName: string, comment: Comment) => {
+    getCommentDto = async (requestUserName: string, parentCommentUserName: string, comment: Comment) => {
+        const {_id, userName, postId, comment: commentText, parentCommentId, creationDate} = comment;
         const commentDto: CommentDto = {
-            ...comment,
+            _id,
+            userName,
+            postId,
+            comment: commentText,
+            parentCommentId,
             parentCommentUserName,
+            creationDate,
             isLiked: await this.commentslikeRepository.commentslikeExists(userName, comment._id),
             likesCount: await this.commentslikeRepository.getCountByCommentId(comment._id),
+            childDtos: [],
         };
+        for (const c of comment.childComments) {
+            commentDto.childDtos.push(await this.getCommentDto(userName, comment.userName, c));
+        }
         return commentDto;
     }
 
     getComments = async (userName: string, postId: string, page: number, limit: number) => {
         const skip = (page -1) * limit;
-        const allComments = await this.commentsRepository.getByPostId(postId, skip, limit);
+        const parentComments = await this.commentsRepository.getByPostId(postId, skip, limit);
         const allDtos: CommentDto[] = [];
-        const promises = allComments.map(async c => {
-            const parentCommentUserName = allComments.find(p => p._id == c.parentCommentId)?.userName||"";
-            const dto: CommentDto = await this.getCommentDto(userName, parentCommentUserName, c);
+        for (const c of parentComments) {
+            const dto: CommentDto = await this.getCommentDto(userName, "", c);
             allDtos.push(dto);
-        });
-        await Promise.all(promises);
-        // const unflattenedComments = unflattener(allDtos);
-        const flattenedComments = allDtos.flat();
-        return flattenedComments;
+        }
+        return allDtos;
     }
 
+    flatComment = (comment: Comment) => {
+        let result: Comment[] = [comment];
+        comment.childComments.forEach(child => {
+            const flattenedChild = this.flatComment(child);
+            result = [...result, ...flattenedChild];
+        });
+        return result;
+    }
     getPostById = async (_id: string, userName: string,page: number,limit: number) => {
         const skip = (page -1) * limit
         
