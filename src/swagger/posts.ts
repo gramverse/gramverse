@@ -178,8 +178,6 @@
  *         description: Internal server error
  */
 
-<<<<<<< HEAD
-
 /**
  * @swagger
  * /api/posts/comments:
@@ -212,5 +210,3 @@
  *       500:
  *         description: Internal server error.
  */
-=======
->>>>>>> d369a627d12ab639aee15658b082e8dd07b770ab
