@@ -19,7 +19,7 @@ const swaggerOptions = {
       },
     },
   },
-  apis: ['./src/routes/*.ts'], 
+  apis: ['./src/swagger/*.ts'], 
 };
 
 

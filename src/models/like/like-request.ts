@@ -1,8 +1,8 @@
 import z from "zod";
 
 export const zodLikeRequest = z.object({
-    postId: z.string(),
     userName: z.string(),
+    postId: z.string(),
     isLike: z.boolean()
 })
 
