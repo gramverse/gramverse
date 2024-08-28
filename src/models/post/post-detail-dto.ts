@@ -8,7 +8,6 @@ export type PostDetailDto = {
     mentions: String[],
     tags : String[]
     creationDate: Date,
-    comments: CommentDto[],
     commentsCount: number,
     likesCount: number,
     bookmarksCount: number,

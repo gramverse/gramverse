@@ -9,6 +9,7 @@ import { CommentsLikeRequest, zodCommentslikeRequest } from "../models/commentsl
 import {zodCommentRequest } from "../models/comment/comment-request";
 import { BookmarkRequest, zodBookmarkRequest } from "../models/bookmark/bookmark-request";
 import { authMiddleware } from "../middlewares/auth-middleware";
+import {zodGetCommentsRequest} from "../models/comment/get-comments-request";
 
 declare module "express" {
     interface Request {
@@ -156,6 +157,19 @@ postRouter.post("/addComment", async (req: Request, res, next) => {
             return;
         }
         res.status(200).send(createdComment);
+    } catch (err) {
+        next(err);
+    }
+})
+
+postRouter.post("/comments", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {postId, page, limit} = zodGetCommentsRequest.parse(req.body);
+        const comments = await postService.getComments(req.user.userName, postId, page, limit);
+        res.status(200).send(comments);
     } catch (err) {
         next(err);
     }
