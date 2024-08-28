@@ -18,11 +18,29 @@ export class CommentsRepository {
     }
 
     getByPostId = async (postId: string,skip: number, limit: number): Promise<Comment[]> => {
-        return (await this.comments
-        .find({postId})            
-        .skip(skip)
-        .limit(limit))
-        .map(c => c.toObject())
+        const parents: Comment[] = (await this.comments
+            .find({postId, parentCommentId: ""})
+            .sort({createdAt: -1})
+            .skip(skip)
+            .limit(limit))
+            .map(c => c.toObject());
+        const promises = parents.map(async p => {
+            p.childComments = await this.getByParentId(p._id);
+        })
+        await Promise.all(promises);
+        return parents;
+    }
+
+    getByParentId = async (parentCommentId: string) => {
+        const parents: Comment[] = (await this.comments
+            .find({parentCommentId})
+            .sort({createdAt: -1}))
+            .map(c => c.toObject());
+        const promises = parents.map(async p => {
+            p.childComments = await this.getByParentId(p._id);
+        });
+        await Promise.all(promises);
+        return parents;
     }
 
     getCountByPostId = async (postId: string) => {

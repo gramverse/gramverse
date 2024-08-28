@@ -1,3 +1,4 @@
+import {Comment} from "./comment";
 
 export type CommentDto = {
     _id: string,
@@ -5,9 +6,10 @@ export type CommentDto = {
     postId: string,
     comment: string,
     parentCommentId: string,
+    parentCommentUserName: string,
     creationDate: Date,
     isDeleted: boolean,
     likesCount: number,
     isLiked: boolean,
-    childComments: CommentDto[],
+    childComments: Comment[],
 }

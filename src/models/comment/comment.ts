@@ -6,6 +6,7 @@ export interface IComment extends Document {
     parentCommentId: string;
     creationDate: Date;
     isDeleted: boolean;
+    childComments: Comment[];
 }
 
 export interface Comment {
@@ -16,4 +17,5 @@ export interface Comment {
     parentCommentId: string;
     creationDate: Date;
     isDeleted: boolean;
+    childComments: Comment[];
 }

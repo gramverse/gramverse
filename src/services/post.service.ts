@@ -116,27 +116,29 @@ export class PostService implements IPostService{
         return postDtos;
     }
 
-    getCommentDto = async (userName: string, comment: Comment) => {
+    getCommentDto = async (userName: string, parentCommentUserName: string, comment: Comment) => {
         const commentDto: CommentDto = {
             ...comment,
+            parentCommentUserName,
             isLiked: await this.commentslikeRepository.commentslikeExists(userName, comment._id),
             likesCount: await this.commentslikeRepository.getCountByCommentId(comment._id),
-            childComments: []
         };
         return commentDto;
     }
 
-    getComments = async (userName: string, postId: string,page: number,limit: number) => {
-        const skip = (page -1) * limit
-        const allComments = await this.commentsRepository.getByPostId(postId,skip,limit);
+    getComments = async (userName: string, postId: string, page: number, limit: number) => {
+        const skip = (page -1) * limit;
+        const allComments = await this.commentsRepository.getByPostId(postId, skip, limit);
         const allDtos: CommentDto[] = [];
         const promises = allComments.map(async c => {
-            const dto: CommentDto = await this.getCommentDto(userName, c);
+            const parentCommentUserName = allComments.find(p => p._id == c.parentCommentId)?.userName||"";
+            const dto: CommentDto = await this.getCommentDto(userName, parentCommentUserName, c);
             allDtos.push(dto);
         });
         await Promise.all(promises);
-        const unflattenedComments = unflattener(allDtos);
-        return unflattenedComments;
+        // const unflattenedComments = unflattener(allDtos);
+        const flattenedComments = allDtos.flat();
+        return flattenedComments;
     }
 
     getPostById = async (_id: string, userName: string,page: number,limit: number) => {
@@ -149,7 +151,6 @@ export class PostService implements IPostService{
         const tags = (await this.tagRepository.findPostTags(_id))
             .filter(t => !t.isDeleted)
             .map(t => t.tag);
-        const comments: CommentDto[] = await this.getComments(userName, _id,skip,limit);
         const commentsCount = await this.commentsRepository.getCountByPostId(_id);
         const likesCount = await this.likesRepository.getCountByPostId(_id);
         const bookmarksCount = await this.bookmarksRepository.getCountByPostId(_id);
@@ -158,7 +159,6 @@ export class PostService implements IPostService{
         const postDetailDto: PostDetailDto = {
             ... post,
             tags,
-            comments,
             commentsCount,
             likesCount,
             bookmarksCount,
