@@ -255,8 +255,8 @@ export class UserService implements IUserService {
         
         const followers = await this.followRepository.getFollowers(userName,skip,limit);
         const followingers: Followinger[] = [];
+        const totalCount = await this.followRepository.getFollowerCount(userName)
         const processes = followers.map(async f => {
-            const totalFollowers = await this.followRepository.getFollowerCount(userName)
             const user = await this.userRepository.getUserByUserName(f.followerUserName);
             if (!user) {
                 throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Database integrity error");
@@ -265,17 +265,16 @@ export class UserService implements IUserService {
                 userName: user.userName,
                 profileImage: user.profileImage,
                 followerCount: await this.followRepository.getFollowerCount(user.userName),
-                totalCount: totalFollowers
             };
             followingers.push(followinger);
         });
         await Promise.all(processes);
-        return followingers;
+        return {followingers ,totalCount};
     }
 
     getFollowings = async (userName: string,page: number,limit: number) => {
         const skip = (page -1) * limit
-        const totalFollowings = await this.followRepository.getFollowingCount(userName)
+        const totalCount = await this.followRepository.getFollowingCount(userName)
         const followings = await this.followRepository.getFollowings(userName,skip,limit);
         const followingers: Followinger[] = [];
         const processes = followings.map(async f => {
@@ -287,11 +286,10 @@ export class UserService implements IUserService {
                 userName: user.userName,
                 profileImage: user.profileImage,
                 followerCount: await this.followRepository.getFollowerCount(user.userName),
-                totalCount: totalFollowings
             };
             followingers.push(followinger);
         });
         await Promise.all(processes);
-        return followingers;
+        return {followingers ,totalCount};
     }
 }
