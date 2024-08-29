@@ -101,7 +101,7 @@
  * @swagger
  * /api/users/follow:
  *   post:
- *     summary: Follow a user
+ *     summary: Follow/unfollow a user
  *     tags:
  *       - users
  *     requestBody:
@@ -113,6 +113,8 @@
  *             properties:
  *               followingUserName:
  *                 type: string
+ *               isFollow:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: User successfully followed

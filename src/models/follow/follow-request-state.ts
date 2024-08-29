@@ -1,5 +1,5 @@
 export enum FollowRequestState {
-    UNFOLLOW = "unfollow",
+    NONE = "none",
     DECLINED = "declined",
     PENDING = "pending",
     ACCEPTED = "accepted",
