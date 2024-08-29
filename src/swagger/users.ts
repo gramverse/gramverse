@@ -101,7 +101,7 @@
  * @swagger
  * /api/users/follow:
  *   post:
- *     summary: Follow a user
+ *     summary: Follow/unfollow a user
  *     tags:
  *       - users
  *     requestBody:
@@ -113,6 +113,8 @@
  *             properties:
  *               followingUserName:
  *                 type: string
+ *               isFollow:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: User successfully followed
@@ -122,33 +124,4 @@
  *         description: Invalid request
  *       500:
  *         description: Internal server error
- */
-
-/**
- * @swagger
- * /api/users/unfollow:
- *   post:
- *     summary: Unfollow a user.
- *     tags:
- *       - users
- *     requestBody:
- *       description: Unfollow request data.
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               followingUserName:
- *                 type: string
- *                 description: The username of the user to unfollow.
- *     responses:
- *       200:
- *         description: Successfully unfollowed the user.
- *       400:
- *         description: Missing following username.
- *       401:
- *         description: Not authorized.
- *       500:
- *         description: Internal server error.
  */

@@ -1,3 +1,5 @@
+import { FollowRequestState } from "../follow/follow-request-state"
+
 export type ProfileDto = {
     userName: string,
     firstName: string,
@@ -5,7 +7,10 @@ export type ProfileDto = {
     isPrivate: boolean,
     profileImage: string,
     bio: string,
-    isFollowed: boolean,
+    followRequestState: FollowRequestState,
+    isBlocked: boolean,
+    isCloseFriend: boolean,
+    hasBlockedUs: boolean,
     followerCount: number,
     followingCount: number,
     postCount: number,
