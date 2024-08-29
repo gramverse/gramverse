@@ -125,3 +125,69 @@
  *       500:
  *         description: Internal server error
  */
+
+/**
+ * @swagger
+ * /api/users/unfollow:
+ *   post:
+ *     summary: Unfollow a user.
+ *     tags:
+ *       - users
+ *     requestBody:
+ *       description: Unfollow request data.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               followingUserName:
+ *                 type: string
+ *                 description: The username of the user to unfollow.
+ *     responses:
+ *       200:
+ *         description: Successfully unfollowed the user.
+ *       400:
+ *         description: Missing following username.
+ *       401:
+ *         description: Not authorized.
+ *       500:
+ *         description: Internal server error.
+ */
+
+/**
+ * @swagger
+ * /api/users/followingers:
+ *   get:
+ *     summary: Get comments for the requested post
+ *     tags:
+ *       - users
+ *     parameters:
+ *       - in: query
+ *         name: userName
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: query
+ *         name: isFollowing
+ *         schema:
+ *           type: boolean
+ *         required: true
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *     responses:
+ *       200:
+ *         description: Posts retrieved successfully.
+ *       401:
+ *         description: Not authorized.
+ *       500:
+ *         description: Internal server error.
+ */
