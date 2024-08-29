@@ -28,7 +28,7 @@ export class FollowRepository {
     }
 
     deleteFollow = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true, followRequestState: FollowRequestState.UNFOLLOW, isCloseFriend: false});
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true, followRequestState: FollowRequestState.NONE, isCloseFriend: false});
         if (!updateResult.acknowledged) {
             return false;
         }

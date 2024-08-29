@@ -19,6 +19,7 @@ import { FollowRequest } from "../models/follow/follow-request";
 import { Follow } from "../models/follow/follow";
 import { FollowingersRequest } from '../models/follow/followingers-request';
 import {Followinger} from "../models/follow/followinger";
+import { FollowRequestState } from "../models/follow/follow-request-state";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
@@ -165,7 +166,12 @@ export class UserService implements IUserService {
             return undefined;
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const isFollowed = await this.followRepository.followExists(myUserName, userName);
+        const {followRequestState, isBlocked, isCloseFriend} = await this.followRepository.getFollow(myUserName, userName)|| {
+            followRequestState: FollowRequestState.NONE, isBlocked: false, isCloseFriend: false
+        };
+        const {isBlocked: hasBlockedUs} = await this.followRepository.getFollow(userName, myUserName)|| {
+            isBlocked: false
+        };
         const followerCount = await this.followRepository.getFollowerCount(user.userName);
         const followingCount = await this.followRepository.getFollowingCount(user.userName);
         const postCount = await this.postRepository.getPostCount(user.userName);
@@ -176,7 +182,10 @@ export class UserService implements IUserService {
             profileImage,
             isPrivate,
             bio,
-            isFollowed,
+            followRequestState,
+            isBlocked,
+            isCloseFriend,
+            hasBlockedUs,
             followerCount,
             followingCount,
             postCount
