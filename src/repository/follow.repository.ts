@@ -58,6 +58,7 @@ export class FollowRepository {
             .find({ followingUserName, isDeleted: false })
             .skip(skip)
             .limit(limit)
+            .sort({creationDate: -1})
             .lean();
     }
     
@@ -66,6 +67,7 @@ export class FollowRepository {
             .find({ followerUserName, isDeleted: false })
             .skip(skip)
             .limit(limit)
+            .sort({creationDate: -1})
             .lean(); 
     }
     
