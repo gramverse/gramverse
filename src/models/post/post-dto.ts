@@ -4,6 +4,7 @@ export type PostDto = {
     photoUrls: string[],
     caption: string,
     mentions: string[],
+    forCloseFriends: boolean,
     tags: string[]
     creationDate: Date,
 }

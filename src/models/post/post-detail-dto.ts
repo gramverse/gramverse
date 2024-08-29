@@ -6,6 +6,7 @@ export type PostDetailDto = {
     photoUrls: String[],
     caption : String,
     mentions: String[],
+    forCloseFriends: boolean,
     tags : String[]
     creationDate: Date,
     commentsCount: number,

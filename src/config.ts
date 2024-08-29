@@ -13,19 +13,19 @@ import { CommentslikeRepository } from "./repository/commentslike.repository";
 import { CommentsRepository } from "./repository/comments.repository";
 import { BookmarksRepository } from "./repository/bookmarks.repository";
 
-export const followRepository = new FollowRepository(mongoose);
-export const tagRepository = new TagRepository(mongoose);
-export const postRepository = new PostRepository(mongoose);
-export const likesRepository = new LikesRepository(mongoose);
-export const commentslikeRepository = new CommentslikeRepository(mongoose);
-export const commentsRepository = new CommentsRepository(mongoose);
-export const bookmarksRepository = new BookmarksRepository(mongoose);
-export const userRepository = new UserRepository(mongoose);
-export const bookmarkRepository = new BookmarksRepository(mongoose);
-export const postService = new PostService(postRepository, tagRepository, commentsRepository, bookmarksRepository, likesRepository, commentslikeRepository, bookmarkRepository);
-export const tokenRepository = new TokenRepository(mongoose);
-export const emailService = new EmailService();
+const followRepository = new FollowRepository(mongoose);
+const tagRepository = new TagRepository(mongoose);
+const postRepository = new PostRepository(mongoose);
+const likesRepository = new LikesRepository(mongoose);
+const commentslikeRepository = new CommentslikeRepository(mongoose);
+const commentsRepository = new CommentsRepository(mongoose);
+const bookmarksRepository = new BookmarksRepository(mongoose);
+const userRepository = new UserRepository(mongoose);
+const bookmarkRepository = new BookmarksRepository(mongoose);
+const tokenRepository = new TokenRepository(mongoose);
+const emailService = new EmailService();
 
+export const postService = new PostService(postRepository, userRepository, tagRepository, commentsRepository, bookmarksRepository, likesRepository, commentslikeRepository, bookmarkRepository, followRepository);
 export const userService = new UserService(userRepository, postRepository, tokenRepository, followRepository);
 export const tokenService = new TokenService(tokenRepository,userRepository,userService, emailService);
 

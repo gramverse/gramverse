@@ -6,6 +6,7 @@ export interface IPost extends Document {
     photoUrls: string[];
     caption: string;
     mentions: string[];
+    forCloseFriends: boolean;
     creationDate: Date,
 }
 
@@ -15,6 +16,7 @@ export interface Post {
     photoUrls: string[];
     caption: string;
     mentions: string[];
+    forCloseFriends: boolean;
     creationDate: Date,
 }
 
@@ -22,7 +24,8 @@ export const zodPostDto = z.object({
     userName : z.string().nonempty(),
     photoUrls: z.array(z.string()).nonempty(),
     caption : z.string(),
-    mention: z.string().nonempty()
+    mention: z.string().nonempty(),
+    forCloseFriends: z.boolean(),
 });
 
 export type PostDto = z.infer<typeof zodPostDto>  

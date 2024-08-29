@@ -10,6 +10,7 @@ import {zodCommentRequest } from "../models/comment/comment-request";
 import { BookmarkRequest, zodBookmarkRequest } from "../models/bookmark/bookmark-request";
 import { authMiddleware } from "../middlewares/auth-middleware";
 import {zodGetCommentsRequest} from "../models/comment/get-comments-request";
+import {zodGetPostsRequest} from "../models/post/get-posts-request";
 
 declare module "express" {
     interface Request {
@@ -108,7 +109,7 @@ postRouter.get("/post/:postId", async (req: Request, res, next) => {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const postDetailDto = await postService.getPostById(req.params.postId, req.user.userName,req.body.limit,req.body.page);
+        const postDetailDto = await postService.getPostById(req.params.postId, req.user.userName);
         if (!postDetailDto) {
             throw new HttpError(404, ErrorCode.POST_NOT_FOUND, "Post not found");
         }
@@ -124,7 +125,8 @@ postRouter.get("/myPosts", async (req : Request, res, next) => {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const userName = req.user.userName;
-        const postDtos = await postService.getPosts(userName);
+        const {page, limit} = zodGetPostsRequest.parse(req.query);
+        const postDtos = await postService.getPosts(userName, userName, page, limit);
         res.send(postDtos);
     } catch(err){
         next(err);
@@ -138,7 +140,8 @@ postRouter.get("/userName/:userName", async (req : Request, res, next) => {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const userName = req.params.userName;
-        const postDtos = await postService.getPosts(userName);
+        const {page, limit} = zodGetPostsRequest.parse(req.query);
+        const postDtos = await postService.getPosts(userName, req.user.userName, page, limit);
         res.send(postDtos);
     } catch(err){
         next(err);

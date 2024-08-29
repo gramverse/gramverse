@@ -5,6 +5,7 @@ export const postSchema = new mongoose.Schema({
     photoUrls: {type: [String],required: true},
     caption: {type:String, default: ""},
     mentions: {type: [String], required: true},
+    forCloseFriends: {type: Boolean, default: false},
   }, { 
     timestamps: { createdAt: "creationDate", updatedAt: "updateDate" }
 });
