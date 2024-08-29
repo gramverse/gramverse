@@ -144,7 +144,7 @@ export class UserService implements IUserService {
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
         const followerCount = await this.followRepository.getFollowerCount(user.userName);
         const followingCount = await this.followRepository.getFollowingCount(user.userName);
-        const postCount = await this.postRepository.getPostCount(user.userName);
+        const postCount = await this.postRepository.getPostCount(user.userName, false);
         const profile: MyProfileDto = {
             userName: user.userName,
             email,
@@ -174,7 +174,7 @@ export class UserService implements IUserService {
         };
         const followerCount = await this.followRepository.getFollowerCount(user.userName);
         const followingCount = await this.followRepository.getFollowingCount(user.userName);
-        const postCount = await this.postRepository.getPostCount(user.userName);
+        const postCount = await this.postRepository.getPostCount(user.userName, false);
         const profile: ProfileDto = {
             userName: user.userName,
             firstName,

@@ -5,6 +5,19 @@
  *     summary: Get posts for the currently logged-in user.
  *     tags:
  *       - posts
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: page number (starting from 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Number of results in each page
  *     responses:
  *       200:
  *         description: Posts retrieved successfully.
@@ -28,6 +41,18 @@
  *           type: string
  *         required: true
  *         description: The username of the user to retrieve posts.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: page number (starting from 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Number of results in each page
  *     responses:
  *       200:
  *         description: Posts retrieved successfully.

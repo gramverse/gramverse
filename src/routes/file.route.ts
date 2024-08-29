@@ -93,7 +93,7 @@ fileRouter.post("/editPost", upload.array("photoFiles", 10), async (req : Reques
                 postRequest.photoUrls.push(`/api/files/${f.filename}`);
             })
         } 
-        const edittedPost = await postService.editPost(postRequest);
+        const edittedPost = await postService.editPost(postRequest, req.user.userName);
         
         if (!edittedPost) {
             res.status(500).send()

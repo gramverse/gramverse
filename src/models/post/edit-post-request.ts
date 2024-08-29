@@ -5,7 +5,8 @@ export const zodEditPostRequest = z.object({
     userName: z.string().nonempty(),
     photoUrls: z.array(z.string()).nonempty(),  
     caption: z.string(),
-    mentions: z.array(z.string()) 
+    mentions: z.array(z.string()),
+    forCloseFriends: z.boolean(),
 });
 
 export type EditPostRequest = z.infer<typeof zodEditPostRequest>

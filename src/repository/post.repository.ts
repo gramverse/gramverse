@@ -19,13 +19,32 @@ export class PostRepository {
         return newPost;
     }
 
-    getPostsByUserName = async (userName: string): Promise<Post[]> => {
-        const posts: Post[] = (await this.posts.find({userName})).map(p => p.toObject());
+    getPostsByUserName = async (userName: string, notForCloseFriends: boolean, skip: number, limit: number): Promise<Post[]> => {
+        let posts: Post[]  = [];
+        if (notForCloseFriends) {
+            posts = (await this.posts.find({userName, forCloseFriends: false})
+            .skip(skip)
+            .limit(limit)
+            .sort({creationDate: -1}))
+            .map(p => p.toObject());
+        } else {
+            posts = (await this.posts.find({userName})
+            .skip(skip)
+            .limit(limit)
+            .sort({creationDate: -1}))
+            .map(p => p.toObject());
+        }
         return posts;
     }
 
-    getPostCount = async (userName: string) => {
-        return await this.posts.countDocuments({userName});
+    getPostCount = async (userName: string, notForCloseFriends: boolean) => {
+        let count: number;
+        if (notForCloseFriends) {
+            count = await this.posts.countDocuments({userName, forCloseFriends: false});
+        } else {
+            count = await this.posts.countDocuments({userName});
+        }
+        return count;
     }
 
     update = async (editPostRequest: EditPostRequest) => {

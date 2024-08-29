@@ -1,11 +1,13 @@
 import { PostRequest } from '../models/post/post-request'
 import { PostRepository } from '../repository/post.repository';
 import { Post } from '../models/post/post';
+import {UserRepository} from "../repository/user.repository";
 import { TagRepository } from '../repository/tag.repository'
 import {CommentsRepository} from "../repository/comments.repository";
 import {BookmarksRepository} from "../repository/bookmarks.repository";
 import {LikesRepository} from "../repository/likes.repository";
 import { CommentslikeRepository} from "../repository/commentslike.repository";
+import {FollowRepository} from "../repository/follow.repository";
 import { Tag } from '../models/tag/tag';
 import { PostDto } from '../models/post/post-dto';
 import {PostDetailDto} from "../models/post/post-detail-dto";
@@ -20,16 +22,11 @@ import { LikeDto, LikeRequest } from '../models/like/like-request'
 import { CommentsLikeRequest, zodCommentslikeRequest, CommentsLikeDto } from '../models/commentslike/commentslike-request';
 import { CommentRequest } from '../models/comment/comment-request';
 import { BookmarkDto, BookmarkRequest } from '../models/bookmark/bookmark-request';
-import { forEachChild } from 'typescript';
+import { forEachChild, getModeForFileReference, hasRestParameter } from 'typescript';
+import {FollowRequestState} from "../models/follow/follow-request-state";
 
-export interface IPostService{
-    extractHashtags : (text : string) => Array<String>;
-    addPost : (postRequest : PostRequest) => Promise<Post | undefined>
-    getPosts: (userName : string) => Promise<PostDto[]> 
-}
-
-export class PostService implements IPostService{
-    constructor(private postRepository : PostRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository) {}
+export class PostService {
+    constructor(private postRepository : PostRepository, private userRepository: UserRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository, private followRepository: FollowRepository) {}
 
     extractHashtags =  (text : string) => {
         const regex = /#[\w]+/g;
@@ -61,7 +58,14 @@ export class PostService implements IPostService{
         return createdPost;
     }
 
-    editPost = async (editPostRequest: EditPostRequest) => {
+    editPost = async (editPostRequest: EditPostRequest, userName: string) => {
+        const post = await this.postRepository.getPostById(editPostRequest._id);
+        if (!post) {
+            throw new HttpError(404, ErrorCode.POST_NOT_FOUND, "Post not found");
+        }
+        if (post.userName != userName) {
+            throw new HttpError(403, ErrorCode.EDIT_POST_ACCESS_DENIED, "Only post creator can edit post");
+        }
         if (editPostRequest.photoUrls.length < 1) {
             throw new HttpError(400, ErrorCode.MISSING_PHOTO_FOR_POST, "Missing photo for post");
         }
@@ -70,7 +74,7 @@ export class PostService implements IPostService{
         }
         const postTags = await this.tagRepository.findPostTags(editPostRequest._id);
         const oldTags = postTags.filter(t => !t.isDeleted);
-        const newTags = await this.extractHashtags(editPostRequest.caption);
+        const newTags = this.extractHashtags(editPostRequest.caption);
         const tagsToBeDeleted = oldTags.filter(t => !newTags.includes(t.tag));
         const tagsToBeAdded = newTags.filter(t => !oldTags.find(T => T.tag == t));
         tagsToBeDeleted.forEach(async t => {
@@ -104,17 +108,27 @@ export class PostService implements IPostService{
         return postDto;
     }
 
-    getPosts = async (userName : string) => {
+    getPosts = async (userName: string, myUserName: string, page: number, limit: number) => {
+        const skip = (page-1) * limit;
+        await this.checkUserAccess(myUserName, userName);
+        let notForCloseFriends: boolean;
+        if (userName == myUserName) {
+            notForCloseFriends = false;
+        }else {
+            const follow = await this.followRepository.getFollow(userName, myUserName);
+            notForCloseFriends = (!follow || !follow.isCloseFriend) ? true: false;
+        }
+        const posts = await this.postRepository.getPostsByUserName(userName, notForCloseFriends, skip, limit);
+        const totalCount = await this.postRepository.getPostCount(userName, notForCloseFriends);
         const postDtos : PostDto[] = [];
-        const posts = await this.postRepository.getPostsByUserName(userName);
-        posts.forEach(async p => {
+        posts.forEach(p => {
             const postDto : PostDto = {
                 ...p,
-                tags: await this.extractHashtags(p.caption)
+                tags: this.extractHashtags(p.caption)
             }
             postDtos.push(postDto)
         })
-        return postDtos;
+        return {posts: postDtos, totalCount};
     }
 
     getCommentDto = async (requestUserName: string, parentCommentUserName: string, comment: Comment) => {
@@ -138,7 +152,8 @@ export class PostService implements IPostService{
     }
 
     getComments = async (userName: string, postId: string, page: number, limit: number) => {
-        const skip = (page -1) * limit;
+        await this.checkPostAccess(userName, postId);
+        const skip = (page-1) * limit;
         const parentComments = await this.commentsRepository.getByPostId(postId, skip, limit);
         const allDtos: CommentDto[] = [];
         for (const c of parentComments) {
@@ -149,17 +164,8 @@ export class PostService implements IPostService{
         return {comments: allDtos, totalCount: commentsCount};
     }
 
-    flatComment = (comment: Comment) => {
-        let result: Comment[] = [comment];
-        comment.childComments.forEach(child => {
-            const flattenedChild = this.flatComment(child);
-            result = [...result, ...flattenedChild];
-        });
-        return result;
-    }
-    getPostById = async (_id: string, userName: string,page: number,limit: number) => {
-        const skip = (page -1) * limit
-        
+    getPostById = async (_id: string, userName: string) => {
+        await this.checkPostAccess(userName, _id);
         const post = await this.postRepository.getPostById(_id);
         if (!post) {
             return;
@@ -185,6 +191,7 @@ export class PostService implements IPostService{
     }
 
     likePost = async (likeRequest : LikeRequest) => {
+        await this.checkPostAccess(likeRequest.userName, likeRequest.postId);
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId)
         if  (existingLike){
             if (!existingLike.isDeleted){
@@ -206,6 +213,7 @@ export class PostService implements IPostService{
     }
 
     unlikePost = async (likeRequest : LikeRequest) => {
+        await this.checkPostAccess(likeRequest.userName, likeRequest.postId);
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: true}
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId);
         if (!existingLike || existingLike.isDeleted) {
@@ -239,7 +247,6 @@ export class PostService implements IPostService{
     }
 
     unlikeComment = async (commentslikeRequest: CommentsLikeRequest) => {
-        const commentsLikeDto: CommentsLikeDto = {userName: commentslikeRequest.userName, commentId: commentslikeRequest.commentId, isDeleted: true}
         const existingCommentsLike = await this.commentslikeRepository.getCommentsLike(commentslikeRequest.userName, commentslikeRequest.commentId);
         if (!existingCommentsLike || existingCommentsLike.isDeleted) {
             return true;
@@ -253,12 +260,15 @@ export class PostService implements IPostService{
 
     addComment = async (commentRequest: CommentRequest) => {
         if (commentRequest.parentCommentId != "" && !(await this.commentsRepository.getById(commentRequest.parentCommentId))) {
-            throw new HttpError(400, ErrorCode.COMMENT_INVALID_PARRENT_ID, "Parent comment doesn't exist");
+            throw new HttpError(400, ErrorCode.COMMENT_INVALID_PARENT_ID, "Parent comment doesn't exist");
         }
+        await this.checkPostAccess(commentRequest.userName, commentRequest.postId);
         const createdComment = await this.commentsRepository.add(commentRequest);
         return createdComment||undefined;
     }
+
     bookmark = async (bookmarkRequest: BookmarkRequest) =>{
+        await this.checkPostAccess(bookmarkRequest.userName, bookmarkRequest.postId);
         const existingBookmark = await this.bookmarksRepository.getBookmark(bookmarkRequest.userName, bookmarkRequest.postId);
         if (existingBookmark){
             if (!existingBookmark.isDeleted){
@@ -279,7 +289,7 @@ export class PostService implements IPostService{
     }
 
     unbookmark = async (bookmarkRequest: BookmarkRequest) => {
-        const bookmarkDto: BookmarkDto = {userName: bookmarkRequest.userName, postId: bookmarkRequest.postId, isDeleted: true}
+        await this.checkPostAccess(bookmarkRequest.userName, bookmarkRequest.postId);
         const existingBookmark = await this.bookmarksRepository.getBookmark(bookmarkRequest.userName, bookmarkRequest.postId);
         if (!existingBookmark || existingBookmark.isDeleted) {
             return true;
@@ -289,5 +299,45 @@ export class PostService implements IPostService{
             return false;
         }
         return true;
+    }
+
+    checkPostAccess = async (userName: string, postId: string) => {
+        const post = await this.postRepository.getPostById(postId);
+        if (!post) {
+            throw new HttpError(400, ErrorCode.INVALID_POST_ID, "Post doesn't exist");
+        }
+        const visitorFollow = await this.followRepository.getFollow(userName, post.userName);
+        const creatorFollow = await this.followRepository.getFollow(post.userName, userName);
+        if (visitorFollow && visitorFollow.isBlocked) {
+            throw new HttpError(403, ErrorCode.CREATOR_IS_BLOCKED_BY_YOU, "You have blocked this user");
+        }
+        if (creatorFollow && creatorFollow.isBlocked) {
+            throw new HttpError(403, ErrorCode.YOU_ARE_BLOCKED, "This user has blocked you");
+        }
+        const creatorUser = await this.userRepository.getUserByUserName(post.userName);
+        if (!creatorUser) {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "post username doesn't exist in users");
+        }
+        if (creatorUser.isPrivate && (!visitorFollow || visitorFollow.followRequestState != FollowRequestState.ACCEPTED)) {
+            throw new HttpError(403, ErrorCode.USER_IS_PRIVATE, "User is private");
+        }
+    }
+
+    checkUserAccess = async (myUserName: string, userName: string) => {
+        const visitorFollow = await this.followRepository.getFollow(myUserName, userName);
+        const creatorFollow = await this.followRepository.getFollow(userName, myUserName);
+        if (visitorFollow && visitorFollow.isBlocked) {
+            throw new HttpError(403, ErrorCode.CREATOR_IS_BLOCKED_BY_YOU, "You have blocked this user");
+        }
+        if (creatorFollow && creatorFollow.isBlocked) {
+            throw new HttpError(403, ErrorCode.YOU_ARE_BLOCKED, "This user has blocked you");
+        }
+        const creatorUser = await this.userRepository.getUserByUserName(userName);
+        if (!creatorUser) {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "post username doesn't exist in users");
+        }
+        if (creatorUser.isPrivate && (!visitorFollow || visitorFollow.followRequestState != FollowRequestState.ACCEPTED)) {
+            throw new HttpError(403, ErrorCode.USER_IS_PRIVATE, "User is private");
+        }
     }
 }
