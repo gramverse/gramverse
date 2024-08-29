@@ -20,6 +20,7 @@ import { Follow } from "../models/follow/follow";
 import { FollowingersRequest } from '../models/follow/followingers-request';
 import {Followinger} from "../models/follow/followinger";
 import { FollowRequestState } from "../models/follow/follow-request-state";
+import {PostService} from "./post.service";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
@@ -33,7 +34,7 @@ export interface IUserService {
 }
 
 export class UserService implements IUserService {
-    constructor(private userRepository: UserRepository, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository) {}
+    constructor(private postService: PostService, private userRepository: UserRepository, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository) {}
 
     getUser = async (userNameOrEmail : string) =>{
         const isEmail = userNameOrEmail.includes("@");
@@ -232,6 +233,9 @@ export class UserService implements IUserService {
             }
             return false;
         }
+        if (!(await this.checkUserNameExistance(followingUserName))) {
+            throw new HttpError(400, ErrorCode.INVALID_FOLLOWING_USERNAME, "Requested user doesn't exist");
+        }
         if (!(await this.followRepository.add(followRequest)))  {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unkown problem occurred");
         }
@@ -244,15 +248,18 @@ export class UserService implements IUserService {
         if (!existingFollow || existingFollow.isDeleted) {
             return true;
         }
+        if (!(await this.checkUserNameExistance(followingUserName))) {
+            throw new HttpError(400, ErrorCode.INVALID_FOLLOWING_USERNAME, "Requested user doesn't exist");
+        }
         if (!(await this.followRepository.deleteFollow(followerUserName, followingUserName))) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         return true;
     }
 
-    getFollowers = async (userName: string,page: number,limit: number) => {
+    getFollowers = async (userName: string,myUserName: string, page: number,limit: number) => {
+        await this.postService.checkUserAccess(myUserName, userName);
         const skip = (page -1) * limit
-        
         const followers = await this.followRepository.getFollowers(userName,skip,limit);
         const followingers: Followinger[] = [];
         const totalCount = await this.followRepository.getFollowerCount(userName)
@@ -272,7 +279,8 @@ export class UserService implements IUserService {
         return {followingers ,totalCount};
     }
 
-    getFollowings = async (userName: string,page: number,limit: number) => {
+    getFollowings = async (userName: string,myUserName: string, page: number,limit: number) => {
+        await this.postService.checkUserAccess(myUserName, userName);
         const skip = (page -1) * limit
         const totalCount = await this.followRepository.getFollowingCount(userName)
         const followings = await this.followRepository.getFollowings(userName,skip,limit);

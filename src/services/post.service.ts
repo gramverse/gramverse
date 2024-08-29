@@ -109,8 +109,8 @@ export class PostService {
     }
 
     getPosts = async (userName: string, myUserName: string, page: number, limit: number) => {
-        const skip = (page-1) * limit;
         await this.checkUserAccess(myUserName, userName);
+        const skip = (page-1) * limit;
         let notForCloseFriends: boolean;
         if (userName == myUserName) {
             notForCloseFriends = false;
@@ -209,7 +209,6 @@ export class PostService {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occurred")
         }
         return true;
-
     }
 
     unlikePost = async (likeRequest : LikeRequest) => {
@@ -227,6 +226,11 @@ export class PostService {
     }
     
     likeComment = async (commentslikeRequest: CommentsLikeRequest) => {
+        const comment = await this.commentsRepository.getById(commentslikeRequest.commentId);
+        if (!comment) {
+            throw new HttpError(404, ErrorCode.COMMENT_NOT_FOUND, "Comment not found");
+        }
+        await this.checkPostAccess(commentslikeRequest.userName, comment.postId);
         const existingCommentsLike = await this.commentslikeRepository.getCommentsLike(commentslikeRequest.userName, commentslikeRequest.commentId)
         if (existingCommentsLike){
             if (!existingCommentsLike.isDeleted){
@@ -247,6 +251,11 @@ export class PostService {
     }
 
     unlikeComment = async (commentslikeRequest: CommentsLikeRequest) => {
+        const comment = await this.commentsRepository.getById(commentslikeRequest.commentId);
+        if (!comment) {
+            throw new HttpError(404, ErrorCode.COMMENT_NOT_FOUND, "Comment not found");
+        }
+        await this.checkPostAccess(commentslikeRequest.userName, comment.postId);
         const existingCommentsLike = await this.commentslikeRepository.getCommentsLike(commentslikeRequest.userName, commentslikeRequest.commentId);
         if (!existingCommentsLike || existingCommentsLike.isDeleted) {
             return true;
