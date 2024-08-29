@@ -125,14 +125,12 @@ userRouter.get("/followingers", async (req: Request, res: Response, next: NextFu
         if (!req.user) {
             throw new HttpError(400, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const followingersRequest = zodFollowingersRequest.parse(req.query);
-        const { page, limit } = followingersRequest
+        const {userName, page, limit, isFollowing} = zodFollowingersRequest.parse(req.query);
         let followingers: {followingers: Followinger[], totalCount: number};
-        if (followingersRequest.isFollowing) {
-            followingers = await userService.getFollowings(followingersRequest.userName,page,limit);
+        if (isFollowing == "true") {
+            followingers = await userService.getFollowings(userName,page,limit);
         } else {
-            followingers = await userService.getFollowers(followingersRequest.userName,page,limit);
-        
+            followingers = await userService.getFollowers(userName,page,limit);
         }
         res.status(200).send(followingers);
     }catch (err) {

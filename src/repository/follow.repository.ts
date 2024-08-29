@@ -36,11 +36,11 @@ export class FollowRepository {
     }
 
     getFollowerCount = async (userName: string): Promise<number> => {
-        return await this.follows.countDocuments({followingUserName: userName, isDeleted: false});
+        return await this.follows.countDocuments({followingUserName: userName, isDeleted: false, followRequestState: FollowRequestState.ACCEPTED});
     }
 
     getFollowingCount = async (userName: string): Promise<number> => {
-        return await this.follows.countDocuments({followerUserName: userName, isDeleted: false});
+        return await this.follows.countDocuments({followerUserName: userName, isDeleted: false, followRequestState: FollowRequestState.ACCEPTED});
     }
 
     followExists= async (followerUserName: string, followingUserName: string) => {
@@ -55,7 +55,7 @@ export class FollowRepository {
 
     getFollowers = async (followingUserName: string, skip: number, limit: number) => {
         return await this.follows
-            .find({ followingUserName, isDeleted: false })
+            .find({ followingUserName, isDeleted: false, followRequestState: FollowRequestState.ACCEPTED})
             .skip(skip)
             .limit(limit)
             .sort({creationDate: -1})
@@ -64,7 +64,7 @@ export class FollowRepository {
     
     getFollowings = async (followerUserName: string, skip: number, limit: number) => {
         return await this.follows
-            .find({ followerUserName, isDeleted: false })
+            .find({ followerUserName, isDeleted: false, followRequestState: FollowRequestState.ACCEPTED})
             .skip(skip)
             .limit(limit)
             .sort({creationDate: -1})
