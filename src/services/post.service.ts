@@ -324,6 +324,9 @@ export class PostService {
     }
 
     checkUserAccess = async (myUserName: string, userName: string) => {
+        if (userName == myUserName) {
+            return;
+        }
         const visitorFollow = await this.followRepository.getFollow(myUserName, userName);
         const creatorFollow = await this.followRepository.getFollow(userName, myUserName);
         if (visitorFollow && visitorFollow.isBlocked) {
