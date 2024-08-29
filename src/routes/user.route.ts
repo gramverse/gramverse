@@ -127,7 +127,7 @@ userRouter.get("/followingers", async (req: Request, res: Response, next: NextFu
         }
         const followingersRequest = zodFollowingersRequest.parse(req.query);
         const { page, limit } = followingersRequest
-        let followingers: Followinger[];
+        let followingers: {followingers: Followinger[], totalCount: number};
         if (followingersRequest.isFollowing) {
             followingers = await userService.getFollowings(followingersRequest.userName,page,limit);
         } else {
