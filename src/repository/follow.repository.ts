@@ -11,7 +11,7 @@ export class FollowRepository {
     }
 
     add = async (followRequest: FollowRequest) => {
-        const createdFollow = (await this.follows.create(followRequest));
+        const createdFollow = await this.follows.create(followRequest);
         if (!createdFollow) {
             return undefined;
         }
@@ -29,6 +29,14 @@ export class FollowRepository {
 
     deleteFollow = async (followerUserName: string, followingUserName: string) => {
         const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true, followRequestState: FollowRequestState.NONE, isCloseFriend: false});
+        if (!updateResult.acknowledged) {
+            return false;
+        }
+        return true;
+    }
+
+    setFollowAsPending = async (followerUserName: string, followingUserName: string) => {
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false, followRequestState: FollowRequestState.PENDING});
         if (!updateResult.acknowledged) {
             return false;
         }
@@ -70,5 +78,12 @@ export class FollowRepository {
             .sort({creationDate: -1})
             .lean(); 
     }
-    
+
+    getAllFollowings = async (followerUserName: string) => {
+        return await this.follows.find({followerUserName, followRequestState: FollowRequestState.ACCEPTED}).lean();
+    }
+
+    getAllCloseFriends = async (followingUserName: string) => {
+        return await this.follows.find({followingUserName, isCloseFriend: true}).lean();
+    }
 }

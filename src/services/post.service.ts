@@ -352,4 +352,12 @@ export class PostService {
             throw new HttpError(403, ErrorCode.USER_IS_PRIVATE, "User is private");
         }
     }
+
+    getExplorePosts = async (userName: string, page: number, limit: number) => {
+        const skip = (page-1) * limit;
+        const allFollows = await this.followRepository.getAllFollowings(userName);
+        const followingsList = allFollows.map(f => f.followingUserName);
+        const closeFriendsList = allFollows.filter(f => f.isCloseFriend).map(f => f.followingUserName);
+        
+    }
 }

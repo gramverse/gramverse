@@ -223,38 +223,50 @@ export class UserService implements IUserService {
 
     follow = async (followRequest: FollowRequest) => {
         const {followerUserName, followingUserName} = followRequest;
+        const user = await this.getUser(followingUserName);
+        if (!user) {
+            throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
+        }
+        if (user.isPrivate) {
+            return await this.sendFollowRequest(followRequest);
+        }
         const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
         if (existingFollow) {
-            if (!existingFollow.isDeleted) {
+            if (existingFollow.followRequestState == FollowRequestState.ACCEPTED) {
                 return true;
             }
-            if (await this.followRepository.undeleteFollow(followerUserName, followingUserName)) {
+            return await this.followRepository.undeleteFollow(followerUserName, followingUserName);
+        }
+        const createdFollow = await this.followRepository.add(followRequest);
+        return !!createdFollow;
+    }
+
+    sendFollowRequest = async (followRequest: FollowRequest) => {
+        const {followerUserName, followingUserName} = followRequest;
+        const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
+        if (existingFollow) {
+            if (existingFollow.followRequestState == FollowRequestState.ACCEPTED
+            || existingFollow.followRequestState == FollowRequestState.PENDING) {
                 return true;
             }
-            return false;
+            const success = await this.followRepository.setFollowAsPending(followerUserName, followingUserName);
+            return success;
         }
-        if (!(await this.checkUserNameExistance(followingUserName))) {
-            throw new HttpError(400, ErrorCode.INVALID_FOLLOWING_USERNAME, "Requested user doesn't exist");
-        }
-        if (!(await this.followRepository.add(followRequest)))  {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unkown problem occurred");
-        }
-        return true;
+        const createdFollow = await this.followRepository.add({...followRequest, followRequestState: FollowRequestState.PENDING});
+        return !!createdFollow;
     }
 
     unfollow = async (followRequest: FollowRequest) => {
         const {followerUserName, followingUserName} = followRequest;
+        const user = await this.getUser(followingUserName);
+        if (!user) {
+            throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
+        }
         const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
         if (!existingFollow || existingFollow.isDeleted) {
             return true;
         }
-        if (!(await this.checkUserNameExistance(followingUserName))) {
-            throw new HttpError(400, ErrorCode.INVALID_FOLLOWING_USERNAME, "Requested user doesn't exist");
-        }
-        if (!(await this.followRepository.deleteFollow(followerUserName, followingUserName))) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
-        }
-        return true;
+        return await this.followRepository.deleteFollow(followerUserName, followingUserName);
     }
 
     getFollowers = async (userName: string,myUserName: string, page: number,limit: number) => {
