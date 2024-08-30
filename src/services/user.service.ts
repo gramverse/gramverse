@@ -315,7 +315,7 @@ export class UserService implements IUserService {
 
     getCloseFriends = async (userName: string,page: number,limit: number) => {
         const skip = (page -1) * limit;
-        const totalCount = await this.followRepository.getFollowingCount(userName);
+        const totalCount = await this.followRepository.getCloseFriendsCount(userName);
         const closeFriends = await this.followRepository.getCloseFriends(userName,skip, limit);
         const followingers: Followinger[] = [];
         for (const f of closeFriends) {
@@ -330,7 +330,7 @@ export class UserService implements IUserService {
             };
             followingers.push(followinger);
         }
-        return {followingers ,totalCount};
+        return {followingers, totalCount};
     }   
 
     addCloseFriend = async (followerUserName: string, followingUserName: string) => {
