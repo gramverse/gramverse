@@ -13,6 +13,8 @@ import {FollowRequest, zodFollowRequest} from "../models/follow/follow-request";
 import {FollowingersRequest, zodFollowingersRequest} from "../models/follow/followingers-request";
 import {Followinger} from "../models/follow/followinger";
 import { authMiddleware } from "../middlewares/auth-middleware";
+import {zodGetCloseFriendsRequest} from "../models/follow/get-close-friends-request";
+import {zodCloseFriendRequest} from "../models/follow/close-friend-request";
 
 export const userRouter = Router();
 
@@ -134,6 +136,40 @@ userRouter.get("/followingers", async (req: Request, res: Response, next: NextFu
         }
         res.status(200).send(followingers);
     }catch (err) {
+        next(err);
+    }
+})
+
+userRouter.get("/closeFriends", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {page, limit} = zodGetCloseFriendsRequest.parse(req.query);
+        const closeFriends = await userService.getCloseFriends(req.user.userName, page, limit);
+        res.status(200).send(closeFriends);
+    } catch (err) {
+        next(err);
+    }
+})
+
+userRouter.post("/closeFriend", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {userName, isAdd} = zodCloseFriendRequest.parse(req.body);
+        let success: boolean;
+        if (isAdd) {
+            success = await userService.addCloseFriend(req.user.userName, userName);
+        } else {
+            success = await userService.removeCloseFriend(req.user.userName, userName);
+        }
+        if (!success) {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error occurred");
+        }
+        res.status(200).send();
+    } catch (err) {
         next(err);
     }
 })

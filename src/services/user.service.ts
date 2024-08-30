@@ -21,6 +21,7 @@ import { FollowingersRequest } from '../models/follow/followingers-request';
 import {Followinger} from "../models/follow/followinger";
 import { FollowRequestState } from "../models/follow/follow-request-state";
 import {PostService} from "./post.service";
+import e from "express";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
@@ -297,7 +298,7 @@ export class UserService implements IUserService {
         const totalCount = await this.followRepository.getFollowingCount(userName)
         const followings = await this.followRepository.getFollowings(userName,skip,limit);
         const followingers: Followinger[] = [];
-        const processes = followings.map(async f => {
+        for (const f of followings) {
             const user = await this.userRepository.getUserByUserName(f.followingUserName);
             if (!user) {
                 throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Database integrity error");
@@ -308,8 +309,57 @@ export class UserService implements IUserService {
                 followerCount: await this.followRepository.getFollowerCount(user.userName),
             };
             followingers.push(followinger);
-        });
-        await Promise.all(processes);
+        }
         return {followingers ,totalCount};
+    }
+
+    getCloseFriends = async (userName: string,page: number,limit: number) => {
+        const skip = (page -1) * limit;
+        const totalCount = await this.followRepository.getFollowingCount(userName);
+        const closeFriends = await this.followRepository.getCloseFriends(userName,skip, limit);
+        const followingers: Followinger[] = [];
+        for (const f of closeFriends) {
+            const user = await this.userRepository.getUserByUserName(f.followingUserName);
+            if (!user) {
+                throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Database integrity error");
+            }
+            const followinger: Followinger = {
+                userName: user.userName,
+                profileImage: user.profileImage,
+                followerCount: await this.followRepository.getFollowerCount(user.userName),
+            };
+            followingers.push(followinger);
+        }
+        return {followingers ,totalCount};
+    }   
+
+    addCloseFriend = async (followerUserName: string, followingUserName: string) => {
+        const user = await this.getUser(followingUserName);
+        if (!user) {
+            throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
+        }
+        const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
+        if (!existingFollow || existingFollow.followRequestState != FollowRequestState.ACCEPTED) {
+            throw new HttpError(403, ErrorCode.USER_IS_NOT_FOLLOWED, "Close friend must be your following");
+        }
+        if (existingFollow.isCloseFriend) {
+            return true;
+        }
+        return await this.followRepository.addCloseFriend(followerUserName, followingUserName);
+    }
+
+    removeCloseFriend = async (followerUserName: string, followingUserName: string) => {
+        const user = await this.getUser(followingUserName);
+        if (!user) {
+            throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
+        }
+        const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
+        if (!existingFollow || existingFollow.followRequestState != FollowRequestState.ACCEPTED) {
+            throw new HttpError(403, ErrorCode.USER_IS_NOT_FOLLOWED, "Close friend must be your following");
+        }
+        if (!existingFollow.isCloseFriend) {
+            return true;
+        }
+        return await this.followRepository.removeCloseFriend(followerUserName, followingUserName);
     }
 }
