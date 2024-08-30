@@ -59,4 +59,16 @@ export class PostRepository {
         }
         return post.toObject();
     }
+
+    getExplorePosts = async (closeFriendsList: string[], followingsList: string[], skip: number, limit: number) => {
+        const posts = await this.posts.find({$or:[
+            {userName: {$in: followingsList}, forCloseFriends: false},
+            {userName: {$in: closeFriendsList}, forCloseFriends: true}
+        ]})
+        .skip(skip)
+        .limit(limit)
+        .sort({creationDate: -1})
+        .lean();
+        return posts;
+    }
 }
