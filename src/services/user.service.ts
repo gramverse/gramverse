@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { jwtSecret } from "../config";
+import { jwtSecret, userService } from "../config";
 import { ErrorCode } from "../errors/error-codes";
 import { HttpError } from "../errors/http-error";
 import {AuthorizedUser} from "../models/profile/authorized-user";
@@ -22,6 +22,8 @@ import {Followinger} from "../models/follow/followinger";
 import { FollowRequestState } from "../models/follow/follow-request-state";
 import {PostService} from "./post.service";
 import e from "express";
+import { BlockRequest } from "../models/block/block-request";
+import {BlockRepository} from "../repository/block.repository"
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
@@ -35,7 +37,7 @@ export interface IUserService {
 }
 
 export class UserService implements IUserService {
-    constructor(private postService: PostService, private userRepository: UserRepository, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository) {}
+    constructor(private postService: PostService, private userRepository: UserRepository, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository,private blockrepository:BlockRepository) {}
 
     getUser = async (userNameOrEmail : string) =>{
         const isEmail = userNameOrEmail.includes("@");
@@ -381,4 +383,50 @@ export class UserService implements IUserService {
         }
         return await this.followRepository.removeCloseFriend(followerUserName, followingUserName);
     }
+
+    block = async(blockRequest: BlockRequest) => {
+        const {followerUserName,followingUserName} = blockRequest
+        const existingBlock = await this.blockrepository.getBlock(followerUserName, followingUserName);
+        const userExists = await userService.checkUserNameExistance(followingUserName)
+        if (!userExists) {
+            throw new HttpError(400, ErrorCode.USER_NOT_FOUND,"Blocking UserName not exists")
+        }
+        if (existingBlock) {
+            if (existingBlock.isBlocked) {
+                return true;
+            }
+            await this.followRepository.deleteFollow(followingUserName,followerUserName)
+            return (await this.blockrepository.block(followerUserName, followingUserName));
+        }
+        return await this.blockrepository.blockNonFollowing(followerUserName,followingUserName)
+    }
+    unBlock = async(blockRequest: BlockRequest) => {
+        const {followerUserName,followingUserName} = blockRequest
+        const existingBlock = await this.blockrepository.getBlock(followerUserName, followingUserName);
+        if (!existingBlock) {
+                return true;}
+        return await this.blockrepository.unblock(followerUserName, followingUserName)
+    }    
+    getBlackList = async (userName: string,page: number,limit: number) => {
+        const skip = (page -1) * limit;
+        const totalCount = await this.blockrepository.getBlockListCount(userName);
+        const blockList = await this.blockrepository.getBlockList(userName,skip, limit);
+        const followingers: Followinger[] = [];
+        for (const f of blockList) {
+            const user = await this.userRepository.getUserByUserName(f.followingUserName);
+            if (!user) {
+                throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Database integrity error");
+            }
+            const followinger: Followinger = {
+                userName: user.userName,
+                profileImage: user.profileImage,
+                followerCount: await this.followRepository.getFollowerCount(user.userName),
+            };
+            followingers.push(followinger);
+        }
+        return {followingers, totalCount};
+    }
+
 }
+
+

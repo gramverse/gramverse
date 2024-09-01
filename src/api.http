@@ -64,6 +64,7 @@ Content-Type: application/json
 
 
 
+
 ###
 POST http://localhost:3000/api/users/login
 Content-Type: application/json
@@ -85,3 +86,6 @@ Content-Type: application/json
 
 ####
 GET api/check-username/:userName؟
+
+### 
+GET http://localhost:3000/api/users/blackList?userName=hawmidak&page=1&limit=10
