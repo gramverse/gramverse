@@ -319,6 +319,9 @@ export class PostService {
         if (!post) {
             throw new HttpError(400, ErrorCode.INVALID_POST_ID, "Post doesn't exist");
         }
+        if (userName == post.userName) {
+            return;
+        }
         const visitorFollow = await this.followRepository.getFollow(userName, post.userName);
         const creatorFollow = await this.followRepository.getFollow(post.userName, userName);
         if (visitorFollow && visitorFollow.isBlocked) {
