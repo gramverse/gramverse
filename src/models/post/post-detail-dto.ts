@@ -1,13 +1,13 @@
 import {CommentDto} from "../comment/comment-dto";
 
 export type PostDetailDto = {
-    _id : String,
-    userName : String,
-    photoUrls: String[],
+    _id: string,
+    userName: string,
+    photoUrls: string[],
     caption : String,
     mentions: String[],
     forCloseFriends: boolean,
-    tags : String[]
+    tags: string[],
     creationDate: Date,
     commentsCount: number,
     likesCount: number,

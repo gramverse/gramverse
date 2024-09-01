@@ -71,4 +71,11 @@ export class PostRepository {
         .lean();
         return posts;
     }
+
+    getExplorePostCount = async (closeFriendsList: string[], followingsList: string[]) => {
+        return await this.posts.countDocuments({$or:[
+            {userName: {$in: followingsList}, forCloseFriends: false},
+            {userName: {$in: closeFriendsList}, forCloseFriends: true}
+        ]});
+    }
 }

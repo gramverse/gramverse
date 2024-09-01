@@ -119,6 +119,20 @@ postRouter.get("/post/:postId", async (req: Request, res, next) => {
     }
 })
 
+postRouter.get("/explorePosts", async (req : Request, res, next) => {
+    try{
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const userName = req.user.userName;
+        const {page, limit} = zodGetPostsRequest.parse(req.query);
+        const postDtos = await postService.getExplorePosts(userName, page, limit);
+        res.send(postDtos);
+    } catch(err){
+        next(err);
+    }
+});
+
 postRouter.get("/myPosts", async (req : Request, res, next) => {
     try{
         if (!req.user) {

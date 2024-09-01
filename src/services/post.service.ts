@@ -24,6 +24,8 @@ import { CommentRequest } from '../models/comment/comment-request';
 import { BookmarkDto, BookmarkRequest } from '../models/bookmark/bookmark-request';
 import { forEachChild, getModeForFileReference, hasRestParameter } from 'typescript';
 import {FollowRequestState} from "../models/follow/follow-request-state";
+import {ExplorePostDto} from "../models/post/explore-post-dto";
+import { userService } from '../config';
 
 export class PostService {
     constructor(private postRepository : PostRepository, private userRepository: UserRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository, private followRepository: FollowRepository) {}
@@ -164,20 +166,13 @@ export class PostService {
         return {comments: allDtos, totalCount: commentsCount};
     }
 
-    getPostById = async (_id: string, userName: string) => {
-        await this.checkPostAccess(userName, _id);
-        const post = await this.postRepository.getPostById(_id);
-        if (!post) {
-            return;
-        }
-        const tags = (await this.tagRepository.findPostTags(_id))
-            .filter(t => !t.isDeleted)
-            .map(t => t.tag);
-        const commentsCount = await this.commentsRepository.getCountByPostId(_id);
-        const likesCount = await this.likesRepository.getCountByPostId(_id);
-        const bookmarksCount = await this.bookmarksRepository.getCountByPostId(_id);
-        const isLiked = await this.likesRepository.likeExists(userName, _id);
-        const isBookmarked = await this.bookmarksRepository.bookmarkExists(userName, _id);
+    getPostDto = async (userName: string, post: Post) => {
+        const tags = this.extractHashtags(post.caption);
+        const commentsCount = await this.commentsRepository.getCountByPostId(post._id);
+        const likesCount = await this.likesRepository.getCountByPostId(post._id);
+        const bookmarksCount = await this.bookmarksRepository.getCountByPostId(post._id);
+        const isLiked = await this.likesRepository.likeExists(userName, post._id);
+        const isBookmarked = await this.bookmarksRepository.bookmarkExists(userName, post._id);
         const postDetailDto: PostDetailDto = {
             ... post,
             tags,
@@ -188,6 +183,15 @@ export class PostService {
             isBookmarked,
         };
         return postDetailDto;
+    }
+
+    getPostById = async (_id: string, userName: string) => {
+        await this.checkPostAccess(userName, _id);
+        const post = await this.postRepository.getPostById(_id);
+        if (!post) {
+            return;
+        }
+        return await this.getPostDto(userName, post);
     }
 
     likePost = async (likeRequest : LikeRequest) => {
@@ -358,6 +362,24 @@ export class PostService {
         const allFollows = await this.followRepository.getAllFollowings(userName);
         const followingsList = allFollows.map(f => f.followingUserName);
         const closeFriendsList = allFollows.filter(f => f.isCloseFriend).map(f => f.followingUserName);
-        
+        const posts = await this.postRepository.getExplorePosts(closeFriendsList, followingsList, skip, limit);
+        const totalCount = await this.postRepository.getExplorePostCount(closeFriendsList, followingsList);
+        const postDtos: ExplorePostDto[] = [];
+        for (const p of posts) {
+            const postDto = await this.getPostDto(userName, p);
+            const user = await userService.getUser(p.userName);
+            if (!user) {
+                throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+            }
+            const {profileImage} = user;
+            const followerCount = await this.followRepository.getFollowerCount(p.userName);
+            const explorePostDto: ExplorePostDto = {
+                ...postDto,
+                profileImage,
+                followerCount,
+            };
+            postDtos.push(explorePostDto);
+        }
+        return {postDtos, totalCount};
     }
 }
