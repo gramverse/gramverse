@@ -218,3 +218,33 @@
  *       500:
  *         description: Internal server error.
  */
+
+
+/**
+ * @swagger
+ * /api/users/acceptRequest:
+ *   post:
+ *     summary: Accept/decline a follow request
+ *     tags:
+ *       - users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               followerUserName:
+ *                 type: string
+ *               accepted:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Request successfully accepted/declined
+ *       401:
+ *         description: Unauthorized, token is missing or invalid
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
