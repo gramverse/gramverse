@@ -212,6 +212,9 @@ export class UserService implements IUserService {
         if (!oldUser) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "An error occurred reading database.");
         }
+        if (oldUser.isPrivate && !profileDto.isPrivate) {
+            this.followRepository.acceptPendingRequests(profileDto.userName);
+        }
         const passwordHash = passwordIsUpdated ? await bcrypt.hash(profileDto.password, 10) : oldUser.passwordHash;
         const userToBeUpdated = {
             _id: user._id,
@@ -268,6 +271,22 @@ export class UserService implements IUserService {
             return true;
         }
         return await this.followRepository.deleteFollow(followerUserName, followingUserName);
+    }
+
+    acceptRequest = async (followerUserName: string, followingUserName: string) => {
+        const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
+        if (!existingFollow || existingFollow.followRequestState != FollowRequestState.PENDING) {
+            throw new HttpError(400, ErrorCode.NO_SUCH_REQUEST, "You have no follow request from this username");
+        }
+        return await this.followRepository.undeleteFollow(followerUserName, followingUserName);
+    }
+
+    declineRequest = async (followerUserName: string, followingUserName: string) => {
+        const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
+        if (!existingFollow || existingFollow.followRequestState != FollowRequestState.PENDING) {
+            throw new HttpError(400, ErrorCode.NO_SUCH_REQUEST, "You have no follow request from this username");
+        }
+        return await this.followRepository.declineFollow(followerUserName, followingUserName);
     }
 
     getFollowers = async (userName: string,myUserName: string, page: number,limit: number) => {

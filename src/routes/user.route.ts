@@ -15,6 +15,7 @@ import {Followinger} from "../models/follow/followinger";
 import { authMiddleware } from "../middlewares/auth-middleware";
 import {zodGetCloseFriendsRequest} from "../models/follow/get-close-friends-request";
 import {zodCloseFriendRequest} from "../models/follow/close-friend-request";
+import {zodAcceptRequest} from "../models/follow/accept-request";
 
 export const userRouter = Router();
 
@@ -173,3 +174,24 @@ userRouter.post("/closeFriend", async (req: Request, res, next) => {
         next(err);
     }
 })
+
+userRouter.post("/acceptRequest", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {followerUserName, accepted} = zodAcceptRequest.parse(req.body);
+        let success: boolean;
+        if (accepted) {
+            success = await userService.acceptRequest(followerUserName, req.user.userName);
+        } else {
+            success = await userService.declineRequest(followerUserName, req.user.userName);
+        }
+        if (!success) {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "An error occurred");
+        }
+        res.status(200).send();
+    } catch (err) {
+        next(err);
+    }
+});

@@ -34,6 +34,15 @@ export class FollowRepository {
         return updateResult.acknowledged;
     }
 
+    declineFollow = async (followerUserName: string, followingUserName: string) => {
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false, followRequestState: FollowRequestState.DECLINED});
+        return updateResult.acknowledged;
+    }
+
+    acceptPendingRequests = async (followingUserName: string) => {
+        const updateResult = await this.follows.updateMany({followingUserName, followRequestState: FollowRequestState.PENDING}, {followRequestState: FollowRequestState.ACCEPTED});
+    }
+
     getFollowerCount = async (userName: string): Promise<number> => {
         return await this.follows.countDocuments({followingUserName: userName, isDeleted: false, followRequestState: FollowRequestState.ACCEPTED});
     }
