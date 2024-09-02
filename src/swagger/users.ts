@@ -310,3 +310,18 @@
  *       500:
  *         description: Internal server error.
  */
+
+/**
+ * @swagger
+ * /api/users/signOut:
+ *   post:
+ *     summary: Sign out the currently authenticated user.
+ *     description: This endpoint clears the authentication cookie and signs out the user.
+ *     tags:
+ *       - users
+ *     responses:
+ *       200:
+ *         description: Successfully signed out.
+ *       401:
+ *         description: Unauthorized. The user is not authenticated.
+ */

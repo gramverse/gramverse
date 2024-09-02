@@ -236,12 +236,11 @@ userRouter.get("/blackList", async (req: Request, res, next) => {
     }
 })
 
-userRouter.get("/signOut",async (req:Request,res,next)=>{
+userRouter.post("/signOut",async (req:Request,res,next)=>{
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-
         res.clearCookie("bearer").status(200).send()
     } catch (err) {
         next(err);
