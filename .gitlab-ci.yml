@@ -1,16 +1,15 @@
-stages:          # List of stages for jobs, and their order of execution
+stages:         
   - build
   - deploy
 
-build-job:       # This job runs in the build stage, which runs first.
+build-job:      
   stage: build
   script:
     - cd /home/ubuntu/projects
     - sudo docker-compose build
 
-deploy-job:      # This job runs in the deploy stage.
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-  environment: production
+deploy-job:     
+  stage: deploy
   script:
     - cd /home/ubuntu/projects
     - sudo docker-compose up -d
