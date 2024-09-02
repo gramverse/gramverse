@@ -24,7 +24,7 @@ stages:          # List of stages for jobs, and their order of execution
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
-    - cd projects
+    - cd /home/ubuntu/projects
     - sudo docker-compose build
     - echo "Compile complete."
 
