@@ -24,6 +24,7 @@ import {PostService} from "./post.service";
 import e from "express";
 import { BlockRequest } from "../models/block/block-request";
 import {BlockRepository} from "../repository/block.repository"
+import { RemoveFollowRequest } from "../models/follow/remove-follow-request";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
@@ -426,7 +427,16 @@ export class UserService implements IUserService {
         }
         return {followingers, totalCount};
     }
-
+    removeFollow = async (removeFollowRequest: RemoveFollowRequest) => {
+        const {followerUserName, followingUserName} = removeFollowRequest;
+        const user = await this.getUser(followerUserName)
+        if (!user) {
+            throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
+        }
+        const existingFollow = await this.followRepository.getFollow(followerUserName, followingUserName);
+        if (!existingFollow || existingFollow.isDeleted) {
+            return true;
+        }
+        return await this.followRepository.deleteFollow(followerUserName, followingUserName);
+    }
 }
-
-

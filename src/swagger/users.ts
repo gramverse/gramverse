@@ -325,3 +325,30 @@
  *       401:
  *         description: Unauthorized. The user is not authenticated.
  */
+
+/**
+ * @swagger
+ * /api/users/removeFollow:
+ *   post: 
+ *     summary: remove a user from followers
+ *     tags:
+ *       - users
+ *     requestBody:
+ *       required: true
+ *       content: 
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               followerUserName:
+ *                 type: string
+ *     responses:
+ *        200:
+ *           description: User removed from followers successfully
+ *        401:
+ *           description: Unauthorized, token is missing or invalid
+ *        400:
+ *           description: Missing follower username
+ *        500: 
+ *           description: internal server error
+ */ 
