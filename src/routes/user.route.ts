@@ -18,6 +18,7 @@ import {zodCloseFriendRequest} from "../models/follow/close-friend-request";
 import {zodAcceptRequest} from "../models/follow/accept-request";
 import {zodGetBlackListRequest} from "../models/block/get-blackList-request";
 import { BlockRequest,zodBlockRequest } from "../models/block/block-request";
+import {zodRemoveFollowRequest, RemoveFollowRequest} from "../models/follow/remove-follow-request";
 
 export const userRouter = Router();
 
@@ -245,4 +246,24 @@ userRouter.post("/signOut",async (req:Request,res,next)=>{
     } catch (err) {
         next(err);
     }    
+})
+
+userRouter.post("/removeFollow", async (req:Request, res, next) => {
+    try {
+        if(!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {followerUserName} = req.body;
+        if (!followerUserName) {
+            throw new HttpError(402, ErrorCode.MISSING_FOLLOWER_USERNAME, "Missing follower username");
+        }
+        const removeFollowRequest: RemoveFollowRequest = {followingUserName: req.user.userName, followerUserName};
+        const success = await userService.removeFollow(removeFollowRequest);
+        if (!success) {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+        }
+        res.status(200).send();
+    } catch(err) {
+        next(err);
+    }
 })
