@@ -9,9 +9,13 @@ build-job:
     - git pull
     - cd /home/ubuntu/projects
     - sudo docker-compose build
+  only:
+    - main
 
 deploy-job:     
   stage: deploy
   script:
     - cd /home/ubuntu/projects
     - sudo docker-compose up -d
+  only:
+    - main
