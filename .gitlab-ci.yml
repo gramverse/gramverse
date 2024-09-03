@@ -5,6 +5,8 @@ stages:
 build-job:      
   stage: build
   script:
+    - cd ~/projects/collegegram-back-end
+    - git pull
     - cd /home/ubuntu/projects
     - sudo docker-compose build
 
