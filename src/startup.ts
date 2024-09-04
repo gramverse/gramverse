@@ -8,6 +8,7 @@ import {fileRouter} from "./routes/file.route";
 import swaggerUi from "swagger-ui-express";
 import { swaggerDocs } from "./swagger";
 import {errorHandler} from "./middlewares/error-handler-middleware";
+import {notificationRouter} from "./routes/notification.route";
 
 export const buildApp = () => {
     const app = express();
@@ -20,6 +21,7 @@ export const buildApp = () => {
     app.use("/api/users",userRouter);
     app.use("/api/posts", postRouter);
     app.use("/api/reset", tokenRouter);
+    app.use("/api/notifications", notificationRouter);
     app.use("/api/api-docs",swaggerUi.serve, swaggerUi.setup(swaggerDocs))
     app.use(errorHandler);
 
