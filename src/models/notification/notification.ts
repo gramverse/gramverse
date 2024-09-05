@@ -3,6 +3,7 @@ import { EventType } from "./event-type";
 
 export interface INotification extends Document {
     _id: string,
+    userName: string,
     isMine: boolean,
     creationDate: Date,
     updateDate: Date,
@@ -12,6 +13,7 @@ export interface INotification extends Document {
 
 export interface Notification {
     _id: string,
+    userName: string,
     isMine: boolean,
     creationDate: Date,
     updateDate: Date,
