@@ -7,4 +7,5 @@ export class NotificationRepository {
     constructor(private dataHandler : typeof import ("mongoose")) {
         this.notifications = dataHandler.model<INotification>("notifications", notificationSchema);
     }
+    
 }
