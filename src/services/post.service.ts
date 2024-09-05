@@ -229,6 +229,8 @@ export class PostService {
         if (!deleteResult){
             return false;
         }
+        this.notificationService.unLike(likeRequest.userName,likeRequest.postId)
+
         return true;
     }
     

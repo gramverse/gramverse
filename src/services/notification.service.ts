@@ -193,6 +193,15 @@ export class NotificationService {
         }
         return true
     }
+    unLike = async (userName: string,postId:string) =>{
+        const eventId = (await this.eventRepository.getEvent(userName,postId))?._id
+        if (!eventId){
+            return
+        }
+        this.eventRepository.deleteEvent(eventId)
+        
+        this.notificationRepository.DeleteNotif(eventId)
 
-
+    }
+    
 }
