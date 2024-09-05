@@ -204,4 +204,46 @@ export class NotificationService {
 
     }
     
+    commentNotif = async(userName: string,eventId:string,isMine: boolean) =>{
+        return await this.notificationRepository.add(userName,eventId,isMine)
+    }
+    commentEvent = async (performerUserName: string,targetId: string ,type: string) => {
+        return await this.eventRepository.add(performerUserName,targetId,type)
+    }
+    comment = async(userName: string,postId:string) => {
+        const post = await this.postRepository.getPostById(postId)
+        if(!post){
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Post does not excites");
+        }
+        const myUserName = post.userName
+        const eventId = (await this.commentEvent(userName,postId,EventType.COMMENT))
+        if (!eventId){
+            return
+        }
+        this.commentNotif(myUserName,eventId,true)
+        
+        const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
+    
+        followers.forEach(async (follower) => {
+                const hasAccess = await this.checkPostAccessForNotification(follower, postId);
+    
+                if (hasAccess) {
+                    await this.commentNotif(follower, eventId,false);
+                }
+    
+            })
+    
+    }
+    deleteComment = async (userName: string,postId:string) =>{
+        const eventId = (await this.eventRepository.getEvent(userName,postId))?._id
+        if (!eventId){
+            return
+        }
+        this.eventRepository.deleteEvent(eventId)
+        
+        this.notificationRepository.DeleteNotif(eventId)
+
+    }
+
+
 }
