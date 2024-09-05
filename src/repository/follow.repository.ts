@@ -109,4 +109,10 @@ export class FollowRepository {
         const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isCloseFriend: false});
         return     updateResult.acknowledged;
     }
+    
+    getAllFollowers = async (followingUserName: string) => {
+        return await this.follows
+            .find({ followingUserName, isDeleted: false, followRequestState: FollowRequestState.ACCEPTED})
+            .lean();
+    }
 }

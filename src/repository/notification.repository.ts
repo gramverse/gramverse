@@ -25,16 +25,18 @@ export class NotificationRepository {
         return await this.notifications.countDocuments({userName, seen: false});
     }
     
-    add = async (addNotifRequest: AddNotifRequest ) =>{
-        const createdEvent = await this.notifications.create(addNotifRequest);
+    add = async (userName: string,eventId: string,isMine: boolean ) =>{
+        const createdEvent = await this.notifications.create({userName,eventId,isMine});
         if (!createdEvent) {
             return undefined;
         }
         const newNotif: INotification = createdEvent;
         return newNotif;
     }
-    deleteEvent = async (notificationId: string) => {
-        const deleteResult = await this.notifications.deleteOne({_id : notificationId})
+
+    DeleteNotif = async (eventId: string )=>{
+        const deleteResult = await this.notifications.deleteMany({eventId})
         return deleteResult.acknowledged;
+
     }
 }

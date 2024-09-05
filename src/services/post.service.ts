@@ -26,9 +26,11 @@ import { forEachChild, getModeForFileReference, hasRestParameter } from 'typescr
 import {FollowRequestState} from "../models/follow/follow-request-state";
 import {ExplorePostDto} from "../models/post/explore-post-dto";
 import { userService } from '../config';
+import { NotificationRepository } from '../repository/notification.repository';
+import { NotificationService } from './notification.service';
 
 export class PostService {
-    constructor(private postRepository : PostRepository, private userRepository: UserRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository, private followRepository: FollowRepository) {}
+    constructor(private postRepository : PostRepository, private userRepository: UserRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository, private followRepository: FollowRepository,private notificationService:NotificationService ) {}
 
     extractHashtags =  (text : string) => {
         const regex = /#[\w]+/g;
@@ -212,6 +214,7 @@ export class PostService {
         if (!insertDto){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occurred")
         }
+        this.notificationService.like(likeRequest.userName,likeRequest.postId)
         return true;
     }
 
@@ -226,6 +229,8 @@ export class PostService {
         if (!deleteResult){
             return false;
         }
+        this.notificationService.unLike(likeRequest.userName,likeRequest.postId)
+
         return true;
     }
     
@@ -385,31 +390,5 @@ export class PostService {
         }
         return {postDtos, totalCount};
     }
-    checkPostAccessForNotification = async (userName: string, postId: string) => {
-        const post = await this.postRepository.getPostById(postId);
-        if (!post) {
-            return false
-        }
-        if (userName == post.userName) {
-            return true
-        }
-        const visitorFollow = await this.followRepository.getFollow(userName, post.userName);
-        const creatorFollow = await this.followRepository.getFollow(post.userName, userName);
-        if (visitorFollow && visitorFollow.isBlocked) {
-            return false
-        }
-        if (creatorFollow && creatorFollow.isBlocked) {
-            return false
-        }
-        const creatorUser = await this.userRepository.getUserByUserName(post.userName);
-        if (!creatorUser) {
-            return false
-        }
-        if (creatorUser.isPrivate && (!visitorFollow || visitorFollow.followRequestState != FollowRequestState.ACCEPTED)) {
-            return false
-        }
-        return true
-    }
-
         
 }
