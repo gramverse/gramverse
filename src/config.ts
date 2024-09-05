@@ -14,6 +14,7 @@ import { CommentsRepository } from "./repository/comments.repository";
 import { BookmarksRepository } from "./repository/bookmarks.repository";
 import { BlockRepository } from "./repository/block.repository";
 import {NotificationRepository} from "./repository/notification.repository";
+import {EventRepository} from "./repository/event.repository";
 import {NotificationService} from "./services/notification.service";
 
 const followRepository = new FollowRepository(mongoose);
@@ -29,8 +30,9 @@ const tokenRepository = new TokenRepository(mongoose);
 const emailService = new EmailService();
 const blockRepository = new BlockRepository(mongoose);
 const notificationRepository = new NotificationRepository(mongoose);
+const eventRepository = new EventRepository(mongoose);
 
-export const notificationService = new NotificationService(notificationRepository);
+export const notificationService = new NotificationService(notificationRepository, eventRepository, postRepository, commentsRepository, followRepository, userRepository);
 export const postService = new PostService(postRepository, userRepository, tagRepository, commentsRepository, bookmarksRepository, likesRepository, commentslikeRepository, bookmarkRepository, followRepository);
 export const userService = new UserService(postService, userRepository, postRepository, tokenRepository, followRepository,blockRepository);
 export const tokenService = new TokenService(tokenRepository,userRepository,userService, emailService);
