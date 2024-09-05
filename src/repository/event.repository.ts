@@ -9,6 +9,9 @@ export class EventRepository {
         this.events = dataHandler.model<IEvent>("events", eventSchema);
     }
 
+    getEventById = async (_id: string) => {
+        return (await this.events.findById(_id))||undefined;
+    }
     add = async (addEventRequest: AddEventRequest ) =>{
         const createdEvent = await this.events.create(addEventRequest);
         if (!createdEvent) {

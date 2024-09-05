@@ -21,6 +21,6 @@ export class NotificationRepository {
     }
 
     getUnreadCount = async (userName: string) => {
-        return await this.notifications.countDocuments({userName, isRead: false});
+        return await this.notifications.countDocuments({userName, seen: false});
     }
 }
