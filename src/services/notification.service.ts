@@ -159,7 +159,7 @@ export class NotificationService {
         const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
     
         followers.forEach(async (follower) => {
-                const hasAccess = await this.checkPostAccessForNotification(follower, eventId);
+                const hasAccess = await this.checkPostAccessForNotification(follower, postId);
     
                 if (hasAccess) {
                     await this.likeNotif(follower, eventId,false);
