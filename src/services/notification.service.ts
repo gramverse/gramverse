@@ -9,8 +9,4 @@ export class NotificationService {
     getMyNotifications = async (userName: string, page: number, limit: number) => {
         return {notifications: getMockData(), totalCount: 1};
     }
-
-    myLike = (postId: string) => {
-        
-    }
 }

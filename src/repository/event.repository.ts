@@ -14,7 +14,11 @@ export class eventsRepository {
         if (!createdEvent) {
             return undefined;
         }
-        const newEvent: Event = createdEvent;
+        const newEvent: IEvent = createdEvent;
         return newEvent;
+    }
+    deleteEvent = async (eventId: string) => {
+        const deleteResult = await this.events.deleteOne({_id : eventId})
+        return deleteResult.acknowledged;
     }
 }
