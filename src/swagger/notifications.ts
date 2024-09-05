@@ -51,3 +51,20 @@
  *       500:
  *         description: Internal server error.
  */
+
+/**
+ * @swagger
+ * /api/notifications/unreadCount:
+ *   get:
+ *     summary: Get number of unread notifications
+ *     tags:
+ *       - notifications
+ *     responses:
+ *       200:
+ *         description: Number of unread notifications
+ *       401:
+ *         description: Not authorized.
+ *       500:
+ *         description: Internal server error.
+ */
+
