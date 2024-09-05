@@ -285,6 +285,7 @@ export class PostService {
         }
         await this.checkPostAccess(commentRequest.userName, commentRequest.postId);
         const createdComment = await this.commentsRepository.add(commentRequest);
+        this.notificationService.comment(commentRequest.userName,commentRequest.postId)
         return createdComment||undefined;
     }
 
