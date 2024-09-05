@@ -17,8 +17,7 @@ export class EventRepository {
         if (!createdEvent) {
             return undefined;
         }
-        const newEvent: Event = createdEvent;
-        return newEvent;
+        return createdEvent._id;
     }
     deleteEvent = async (eventId: string) => {
         const deleteResult = await this.events.deleteOne({_id : eventId})

@@ -14,6 +14,7 @@ import {FollowRequestState} from "../models/follow/follow-request-state";
 import e from "express";
 import { Post } from "../models/post/post";
 
+
 export class NotificationService {
     constructor(private notificationRepository: NotificationRepository, private eventRepository: EventRepository, private postRepository: PostRepository, private commentRepository: CommentsRepository, private followRepository: FollowRepository, private userRepository: UserRepository) {}
 
@@ -141,7 +142,7 @@ export class NotificationService {
         return await this.notificationRepository.add(userName,eventId,isMine)
     }
     likeEvent = async (performerUserName: string,targetId: string ,type: string) => {
-        return await this.eventRepository.add()
+        return await this.eventRepository.add(performerUserName,targetId,type)
     }
     like = async(userName: string,postId:string) => {
         const post = await this.postRepository.getPostById(postId)
@@ -149,7 +150,10 @@ export class NotificationService {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Post does not excites");
         }
         const myUserName = post.userName
-        
+        const eventId = (await this.likeEvent(userName,postId,EventType.LIKE))
+        if (!eventId){
+            return
+        }
         this.likeNotif(myUserName,eventId,true)
         
         const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
@@ -183,7 +187,7 @@ export class NotificationService {
         const creatorUser = await this.userRepository.getUserByUserName(post.userName);
         if (!creatorUser) {
             return false
-        }
+        }   
         if (creatorUser.isPrivate && (!visitorFollow || visitorFollow.followRequestState != FollowRequestState.ACCEPTED)) {
             return false
         }

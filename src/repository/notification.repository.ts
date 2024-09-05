@@ -33,7 +33,7 @@ export class NotificationRepository {
         const newNotif: INotification = createdEvent;
         return newNotif;
     }
-    deleteEvent = async (notificationId: string) => {
+    deleteNotif = async (notificationId: string) => {
         const deleteResult = await this.notifications.deleteOne({_id : notificationId})
         return deleteResult.acknowledged;
     }
