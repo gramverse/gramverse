@@ -1,6 +1,7 @@
 import { Model } from "mongoose";
 import { INotification } from "../models/notification/notification";
 import { notificationSchema } from "../models/notification/notification-schema";
+import { AddNotifRequest } from "../models/notification/add-notif-request";
 
 export class NotificationRepository {
     private notifications: Model<INotification>;
@@ -22,5 +23,18 @@ export class NotificationRepository {
 
     getUnreadCount = async (userName: string) => {
         return await this.notifications.countDocuments({userName, seen: false});
+    }
+    
+    add = async (addNotifRequest: AddNotifRequest ) =>{
+        const createdEvent = await this.notifications.create(addNotifRequest);
+        if (!createdEvent) {
+            return undefined;
+        }
+        const newNotif: INotification = createdEvent;
+        return newNotif;
+    }
+    deleteEvent = async (notificationId: string) => {
+        const deleteResult = await this.notifications.deleteOne({_id : notificationId})
+        return deleteResult.acknowledged;
     }
 }
