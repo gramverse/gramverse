@@ -78,4 +78,8 @@ export class PostRepository {
             {userName: {$in: closeFriendsList}, forCloseFriends: true}
         ]});
     }
+    getPostUserName = async (postId: string) => {
+        const userName = await this.posts.findById(postId)
+        return userName
+    }
 }

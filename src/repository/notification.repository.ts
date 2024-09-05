@@ -25,8 +25,8 @@ export class NotificationRepository {
         return await this.notifications.countDocuments({userName, seen: false});
     }
     
-    add = async (addNotifRequest: AddNotifRequest ) =>{
-        const createdEvent = await this.notifications.create(addNotifRequest);
+    add = async (userName: string,eventId: string,isMine: boolean ) =>{
+        const createdEvent = await this.notifications.create({userName,eventId,isMine});
         if (!createdEvent) {
             return undefined;
         }

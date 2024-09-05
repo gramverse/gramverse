@@ -12,6 +12,7 @@ import {HttpError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {FollowRequestState} from "../models/follow/follow-request-state";
 import e from "express";
+import { Post } from "../models/post/post";
 
 export class NotificationService {
     constructor(private notificationRepository: NotificationRepository, private eventRepository: EventRepository, private postRepository: PostRepository, private commentRepository: CommentsRepository, private followRepository: FollowRepository, private userRepository: UserRepository) {}
@@ -135,5 +136,59 @@ export class NotificationService {
     getUnreadCount = async (userName: string) => {
         return await this.notificationRepository.getUnreadCount(userName);
     }
+
+    likeNotif = async(userName: string,eventId:string,isMine: boolean) =>{
+        return await this.notificationRepository.add(userName,eventId,isMine)
+    }
+    likeEvent = async (performerUserName: string,targetId: string ,type: string) => {
+        return await this.eventRepository.add()
+    }
+    like = async(userName: string,postId:string) => {
+        const post = await this.postRepository.getPostById(postId)
+        if(!post){
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Post does not excites");
+        }
+        const myUserName = post.userName
+        
+        this.likeNotif(myUserName,eventId,true)
+        
+        const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
+    
+        followers.forEach(async (follower) => {
+                const hasAccess = await this.checkPostAccessForNotification(follower, eventId);
+    
+                if (hasAccess) {
+                    await this.likeNotif(follower, eventId,false);
+                }
+    
+            })
+    
+    }
+    checkPostAccessForNotification = async (userName: string, postId: string) => {
+        const post = await this.postRepository.getPostById(postId);
+        if (!post) {
+            return false
+        }
+        if (userName == post.userName) {
+            return true
+        }
+        const visitorFollow = await this.followRepository.getFollow(userName, post.userName);
+        const creatorFollow = await this.followRepository.getFollow(post.userName, userName);
+        if (visitorFollow && visitorFollow.isBlocked) {
+            return false
+        }
+        if (creatorFollow && creatorFollow.isBlocked) {
+            return false
+        }
+        const creatorUser = await this.userRepository.getUserByUserName(post.userName);
+        if (!creatorUser) {
+            return false
+        }
+        if (creatorUser.isPrivate && (!visitorFollow || visitorFollow.followRequestState != FollowRequestState.ACCEPTED)) {
+            return false
+        }
+        return true
+    }
+
 
 }
