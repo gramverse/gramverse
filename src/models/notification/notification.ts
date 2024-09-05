@@ -21,7 +21,7 @@ export interface Notification {
 
 
 export interface BaseNotification {
-    eventType: EventType,
+    eventType: string,
     performerUserName: string,
     creationDate: Date,
     isMine: Boolean,
@@ -29,20 +29,20 @@ export interface BaseNotification {
 }
 
 export interface FollowNotification extends BaseNotification {
-    followRequestState: FollowRequestState,
     followingUserName: string,
-    profileImage: string,
 }
 
 export interface CommentNotification extends BaseNotification {
     postId: string,
     postImage: string,
+    postCreator: string,
     comment: string,
 }
 
 export interface LikeNotification extends BaseNotification {
     postId: string,
     postImage: string,
+    postCreator: string,
 }
 
 export interface MentionNotification extends BaseNotification {
