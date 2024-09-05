@@ -135,5 +135,5 @@ export class NotificationService {
     getUnreadCount = async (userName: string) => {
         return await this.notificationRepository.getUnreadCount(userName);
     }
-    like = async ()
+
 }
