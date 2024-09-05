@@ -201,6 +201,7 @@ export class PostService {
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId)
         if  (existingLike){
             if (!existingLike.isDeleted){
+                this.notificationService.like(likeRequest.userName,likeRequest.postId)
                 return true;
             }
             const undeleteResult = await this.likesRepository.undeleteLike(likeRequest.userName, likeRequest.postId)
@@ -223,14 +224,16 @@ export class PostService {
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: true}
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId);
         if (!existingLike || existingLike.isDeleted) {
-            return true;
+            this.notificationService.unLike(likeRequest.userName,likeRequest.postId)
+            return true
+
         }
         const deleteResult = (await this.likesRepository.deleteLike(likeRequest.userName, likeRequest.postId))
         if (!deleteResult){
             return false;
         }
+        
         this.notificationService.unLike(likeRequest.userName,likeRequest.postId)
-
         return true;
     }
     
