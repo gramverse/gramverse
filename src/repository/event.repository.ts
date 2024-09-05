@@ -23,8 +23,8 @@ export class EventRepository {
         const deleteResult = await this.events.deleteOne({_id : eventId})
         return deleteResult.acknowledged;
     }
-    getEvent = async (performerUsername: string,targetId: string) =>{
-        return (await this.events.findOne({performerUsername,targetId}))|| undefined
+    getEvent = async (performerUserName: string,targetId: string) =>{
+        return (await this.events.findOne({performerUserName,targetId}))|| undefined
     }
 
 }
