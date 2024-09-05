@@ -6,7 +6,7 @@ export interface INotification extends Document {
     isMine: boolean,
     creationDate: Date,
     updateDate: Date,
-    isRead: boolean,
+    seen: boolean,
     eventId: string,
 }
 
@@ -15,17 +15,17 @@ export interface Notification {
     isMine: boolean,
     creationDate: Date,
     updateDate: Date,
-    isRead: boolean,
+    seen: boolean,
     eventId: string,
 }
 
 
 export interface BaseNotification {
-    eventType: string,
+    type: string,
     performerUserName: string,
     creationDate: Date,
     isMine: Boolean,
-    isRead: boolean,
+    seen: boolean,
 }
 
 export interface FollowNotification extends BaseNotification {

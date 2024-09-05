@@ -27,7 +27,7 @@ export class NotificationService {
                 throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Event not found");
             }
             let dto: BaseNotification|undefined = undefined;
-            switch(event.eventType) {
+            switch(event.type) {
                 case EventType.LIKE:
                     dto = await this.getLikeDto(event, notification);
                     break;
@@ -49,8 +49,8 @@ export class NotificationService {
     }
 
     getLikeDto = async (event: Event, notification: Notification) => {
-        const {performerUserName, targetId: postId, eventType, creationDate} = event;
-        const {isRead, isMine} = notification;
+        const {performerUserName, targetId: postId, type, creationDate} = event;
+        const {seen, isMine} = notification;
         const post = await this.postRepository.getPostById(postId);
         if (!post) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
@@ -58,21 +58,21 @@ export class NotificationService {
         const postImage = post.photoUrls[0];
         const postCreator = post.userName;
         const dto: LikeNotification = {
-            eventType,
+            type,
             performerUserName,
             postId,
             postImage,
             postCreator,
             creationDate,
             isMine,
-            isRead,
+            seen,
         }
         return dto;
     }
 
     getCommentDto = async (event: Event, notification: Notification) => {
-        const {performerUserName, targetId: commentId, eventType, creationDate} = event;
-        const {isRead, isMine} = notification;
+        const {performerUserName, targetId: commentId, type, creationDate} = event;
+        const {seen, isMine} = notification;
         const commentObject = await this.commentRepository.getById(commentId);
         if (!commentObject) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
@@ -85,7 +85,7 @@ export class NotificationService {
         const postImage = post.photoUrls[0];
         const postCreator = post.userName;
         const dto: CommentNotification = {
-            eventType,
+            type,
             performerUserName,
             postId,
             postImage,
@@ -93,41 +93,41 @@ export class NotificationService {
             comment,
             creationDate,
             isMine,
-            isRead,
+            seen,
         }
         return dto;
     }
 
     getMentionDto = async (event: Event, notification: Notification) => {
-        const {performerUserName, targetId: postId, eventType, creationDate} = event;
-        const {isRead, isMine} = notification;
+        const {performerUserName, targetId: postId, type, creationDate} = event;
+        const {seen, isMine} = notification;
         const post = await this.postRepository.getPostById(postId);
         if (!post) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         const postImage = post.photoUrls[0];
         const dto: MentionNotification = {
-            eventType,
+            type,
             performerUserName,
             postId,
             postImage,
             creationDate,
             isMine,
-            isRead,
+            seen,
         }
         return dto;
     }
 
     getFollowDto = async (event: Event, notification: Notification) => {
-        const {performerUserName, targetId: followingUserName, eventType, creationDate} = event;
-        const {isRead, isMine} = notification;
+        const {performerUserName, targetId: followingUserName, type, creationDate} = event;
+        const {seen, isMine} = notification;
         const dto: FollowNotification = {
-            eventType,
+            type,
             performerUserName,
             followingUserName,
             creationDate,
             isMine,
-            isRead,
+            seen,
         }
         return dto;
     }
