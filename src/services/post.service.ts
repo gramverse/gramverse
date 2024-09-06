@@ -55,7 +55,7 @@ export class PostService {
             this.notificationService.addMention(myUserName, mention, postId);
         }
         for (const mention of mentionsToBeRemoved) {
-            this.notificationService.deleteMention(myUserName, mention, postId);
+            this.notificationService.deleteNotif(myUserName, mention);
         }
     }
 
@@ -248,7 +248,7 @@ export class PostService {
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: true}
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId);
         if (!existingLike || existingLike.isDeleted) {
-            this.notificationService.unLike(likeRequest.userName,likeRequest.postId)
+            this.notificationService.deleteNotif(likeRequest.userName,likeRequest.postId)
             return true
 
         }
@@ -257,7 +257,7 @@ export class PostService {
             return false;
         }
         
-        this.notificationService.unLike(likeRequest.userName,likeRequest.postId)
+        this.notificationService.deleteNotif(likeRequest.userName,likeRequest.postId)
         return true;
     }
     

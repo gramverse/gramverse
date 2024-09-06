@@ -250,7 +250,9 @@ export class UserService implements IUserService {
             return await this.followRepository.undeleteFollow(followerUserName, followingUserName);
         }
         const createdFollow = await this.followRepository.add(followRequest);
-        this.notificationService.follow(followRequest.followerUserName, followRequest.followingUserName)
+        if (createdFollow) {
+            this.notificationService.follow(followRequest.followerUserName, followRequest.followingUserName)
+        }
         return !!createdFollow;
     }
 
@@ -266,7 +268,9 @@ export class UserService implements IUserService {
             return success;
         }
         const createdFollow = await this.followRepository.add({...followRequest, followRequestState: FollowRequestState.PENDING});
-        this.notificationService.followRequest(followRequest.followerUserName, followRequest.followingUserName)
+        if (createdFollow) {
+            this.notificationService.follow(followRequest.followerUserName, followRequest.followingUserName)
+        }
         return !!createdFollow;
     }
 
@@ -283,8 +287,11 @@ export class UserService implements IUserService {
         if (!existingFollow || existingFollow.isDeleted) {
             return true;
         }
-        this.notificationService.deleteFollow(followerUserName, followingUserName);
-        return await this.followRepository.deleteFollow(followerUserName, followingUserName);
+        const success = await this.followRepository.deleteFollow(followerUserName, followingUserName);
+        if (success) {
+            this.notificationService.deleteNotif(followerUserName, followingUserName);
+        }
+        return success;
     }
 
     acceptRequest = async (followerUserName: string, followingUserName: string) => {
@@ -292,8 +299,11 @@ export class UserService implements IUserService {
         if (!existingFollow || existingFollow.followRequestState != FollowRequestState.PENDING) {
             throw new HttpError(400, ErrorCode.NO_SUCH_REQUEST, "You have no follow request from this username");
         }
-        this.notificationService.follow(followerUserName, followingUserName);
-        return await this.followRepository.undeleteFollow(followerUserName, followingUserName);
+        const success = await this.followRepository.undeleteFollow(followerUserName, followingUserName);
+        if (success) {
+            this.notificationService.follow(followerUserName, followingUserName);
+        }
+        return success;
     }
 
     declineRequest = async (followerUserName: string, followingUserName: string) => {
@@ -301,8 +311,11 @@ export class UserService implements IUserService {
         if (!existingFollow || existingFollow.followRequestState != FollowRequestState.PENDING) {
             throw new HttpError(400, ErrorCode.NO_SUCH_REQUEST, "You have no follow request from this username");
         }
-        this.notificationService.deleteFollow(followerUserName, followingUserName);
-        return await this.followRepository.declineFollow(followerUserName, followingUserName);
+        const success = await this.followRepository.declineFollow(followerUserName, followingUserName);
+        if (success) {
+            this.notificationService.deleteNotif(followerUserName, followingUserName);
+        }
+        return success;
     }
 
     getFollowers = async (userName: string,myUserName: string, page: number,limit: number) => {
