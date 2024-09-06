@@ -11,6 +11,7 @@ export type ProfileDto = {
     isBlocked: boolean,
     isCloseFriend: boolean,
     hasBlockedUs: boolean,
+    requestState: FollowRequestState,
     followerCount: number,
     followingCount: number,
     postCount: number,
