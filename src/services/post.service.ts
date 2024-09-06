@@ -169,12 +169,12 @@ export class PostService {
             parentCommentId,
             parentCommentUserName,
             creationDate,
-            isLiked: await this.commentslikeRepository.commentslikeExists(userName, comment._id),
+            isLiked: await this.commentslikeRepository.commentslikeExists(requestUserName, comment._id),
             likesCount: await this.commentslikeRepository.getCountByCommentId(comment._id),
             childDtos: [],
         };
         for (const c of comment.childComments) {
-            commentDto.childDtos.push(await this.getCommentDto(userName, comment.userName, c));
+            commentDto.childDtos.push(await this.getCommentDto(requestUserName, comment.userName, c));
         }
         return commentDto;
     }
