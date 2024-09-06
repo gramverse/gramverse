@@ -17,6 +17,10 @@ export class NotificationRepository {
         .map(n => n.toObject());
     }
 
+    markAsRead = async (idList: string[]) => {
+        await this.notifications.updateMany({_id: {$in: idList}}, {$set:{seen: true}});
+    }
+
     getNotifCount = async (userName: string, isMine: boolean) => {
         return await this.notifications.countDocuments({userName, isMine});
     }

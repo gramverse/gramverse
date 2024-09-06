@@ -34,6 +34,10 @@ export interface FollowNotification extends BaseNotification {
     followingUserName: string,
 }
 
+export interface FollowRequestNotification extends BaseNotification {
+    followingUserName: string,
+}
+
 export interface CommentNotification extends BaseNotification {
     postId: string,
     postImage: string,

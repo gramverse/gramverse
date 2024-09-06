@@ -5,7 +5,7 @@ import {CommentsRepository} from "../repository/comments.repository";
 import {FollowRepository} from "../repository/follow.repository";
 import {UserRepository} from "../repository/user.repository";
 import {Event} from "../models/notification/event";
-import {Notification, BaseNotification, FollowNotification, CommentNotification, LikeNotification, MentionNotification} from "../models/notification/notification";
+import {Notification, BaseNotification, FollowNotification, FollowRequestNotification, CommentNotification, LikeNotification, MentionNotification} from "../models/notification/notification";
 import { EventType } from "../models/notification/event-type";
 import {getMockData} from "../utilities/mock";
 import {HttpError} from "../errors/http-error";
@@ -42,11 +42,16 @@ export class NotificationService {
                 case EventType.FOLLOW:
                     dto = await this.getFollowDto(event, notification);
                     break;
+                case EventType.FOLLOW_REQUEST:
+                    dto = await this.getFollowRequestDto(event, notification);
+                    break;
             }
             if (dto) {
                 dtos.push(dto);
             }
         }
+        const idList = notifications.map(n => n._id.toString());
+        this.notificationRepository.markAsRead(idList);
         return {notifications: dtos, totalCount: dtos.length};
     }
 
@@ -134,27 +139,35 @@ export class NotificationService {
         return dto;
     }
 
+    getFollowRequestDto = async (event: Event, notification: Notification) => {
+        const {performerUserName, targetId: followingUserName, type, creationDate} = event;
+        const {seen, isMine} = notification;
+        const dto: FollowRequestNotification = {
+            type,
+            performerUserName,
+            followingUserName,
+            creationDate,
+            isMine,
+            seen,
+        }
+        return dto;
+    }
+
     getUnreadCount = async (userName: string) => {
         return await this.notificationRepository.getUnreadCount(userName);
     }
 
-    likeNotif = async(userName: string,eventId:string,isMine: boolean) =>{
-        return await this.notificationRepository.add(userName,eventId,isMine)
-    }
-    likeEvent = async (performerUserName: string,targetId: string ,type: string) => {
-        return await this.eventRepository.add(performerUserName,targetId,type)
-    }
     like = async(userName: string,postId:string) => {
         const post = await this.postRepository.getPostById(postId)
         if(!post){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Post does not excites");
         }
         const myUserName = post.userName
-        const eventId = (await this.likeEvent(userName,postId,EventType.LIKE))
+        const eventId = (await this.addEvent(userName,postId,EventType.LIKE))
         if (!eventId){
             return
         }
-        this.likeNotif(myUserName,eventId,true)
+        this.addNotification(myUserName,eventId,true)
         
         const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
     
@@ -162,7 +175,7 @@ export class NotificationService {
                 const hasAccess = await this.checkPostAccessForNotification(follower, postId);
     
                 if (hasAccess) {
-                    await this.likeNotif(follower, eventId,false);
+                    await this.addNotification(follower, eventId,false);
                 }
     
             })
@@ -192,16 +205,6 @@ export class NotificationService {
             return false
         }
         return true
-    }
-    unLike = async (userName: string,postId:string) =>{
-        const eventId = (await this.eventRepository.getEvent(userName,postId))?._id
-        if (!eventId){
-            return
-        }
-        this.eventRepository.deleteEvent(eventId)
-        
-        this.notificationRepository.DeleteNotif(eventId)
-
     }
     
     addNotification = async(userName: string,eventId:string,isMine: boolean) =>{
@@ -236,16 +239,6 @@ export class NotificationService {
             })
     
     }
-    deleteComment = async (userName: string,postId:string) =>{
-        const eventId = (await this.eventRepository.getEvent(userName,postId))?._id
-        if (!eventId){
-            return
-        }
-        this.eventRepository.deleteEvent(eventId)
-        
-        this.notificationRepository.DeleteNotif(eventId)
-
-    }
 
     addMention = async (myUserName: string, mention: string, postId: string) => {
         const eventId = await this.addEvent(myUserName, postId, EventType.MENTION);
@@ -254,15 +247,6 @@ export class NotificationService {
         }
         await this.addNotification(mention, eventId, true);
     }
-
-    deleteMention = async (myUserName: string, mention: string, postId: string) => {
-        const event = await this.eventRepository.getEvent(myUserName, postId);
-        if (!event) {
-            return;
-        }
-        await this.notificationRepository.DeleteNotif(event._id);
-    }
-
 
     checkUserAccessForFollowNotification = async (followingUserName: string, friendUserName: string) => {
         const followingAndFriend = await this.followRepository.getFollow(followingUserName, friendUserName);
@@ -275,7 +259,6 @@ export class NotificationService {
         }
         return true;
     }
-
 
     followRequest = async (followerUserName: string, followingUserName: string) => { 
         const eventId = await this.addEvent(followerUserName, followingUserName, EventType.FOLLOW_REQUEST);
@@ -295,17 +278,17 @@ export class NotificationService {
         const followers = (await this.followRepository.getAllFollowers(followerUserName)).map(f=> f.followerUserName);
 
         followers.forEach(async (follower) => {
-            const hasAccess = await this.checkPostAccessForNotification(followerUserName, follower);
+            const hasAccess = await this.checkUserAccessForFollowNotification(followerUserName, follower);
 
             if (hasAccess) {
-                await this.likeNotif(follower, eventId,false);
+                await this.addNotification(follower, eventId,false);
             }
 
         })
     }
 
-    deleteFollow = async(followerUserName:string, followingUserName:string) => { 
-        const eventId = (await this.eventRepository.getEvent(followerUserName, followingUserName))?._id;
+    deleteNotif = async(performerUserName:string, targetId:string) => { 
+        const eventId = (await this.eventRepository.getEvent(performerUserName, targetId))?._id;
         if (!eventId) {
             return;
         }
