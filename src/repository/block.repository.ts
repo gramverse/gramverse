@@ -19,16 +19,6 @@ export class BlockRepository {
         return updateResult.acknowledged
     }
 
-    blockExists= async (followerUserName: string, followingUserName: string) => {
-        const block = await this.blocks.findOne({followerUserName, followingUserName});
-        return block != null && !block.isDeleted;
-    }
-
-    getBlock = async (followerUserName: string, followingUserName: string) => {
-        const block: Follow|undefined = await this.blocks.findOne({followerUserName, followingUserName, isBlocked: true})||undefined;
-        return block;
-    }
-
     getBlocks = async (followerUserName: string) => {
         return (await this.blocks.find({followerUserName, isBlocked: true})).map(f => f.toObject());
     }

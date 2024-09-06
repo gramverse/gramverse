@@ -387,7 +387,7 @@ export class UserService implements IUserService {
 
     block = async(blockRequest: BlockRequest) => {
         const {followerUserName,followingUserName} = blockRequest
-        const existingBlock = await this.blockrepository.getBlock(followerUserName, followingUserName);
+        const existingBlock = await this.followRepository.getFollow(followerUserName, followingUserName);
         const userExists = await userService.checkUserNameExistance(followingUserName)
         if (!userExists) {
             throw new HttpError(400, ErrorCode.USER_NOT_FOUND,"Blocking UserName not exists")
