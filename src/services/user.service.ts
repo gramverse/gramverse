@@ -251,7 +251,7 @@ export class UserService implements IUserService {
         }
         const createdFollow = await this.followRepository.add(followRequest);
         if (createdFollow) {
-            this.notificationService.follow(followRequest.followerUserName, followRequest.followingUserName)
+            this.notificationService.follow(followRequest.followerUserName, followRequest.followingUserName, false)
         }
         return !!createdFollow;
     }
@@ -265,11 +265,14 @@ export class UserService implements IUserService {
                 return true;
             }
             const success = await this.followRepository.setFollowAsPending(followerUserName, followingUserName);
+            if (success) {
+                this.notificationService.followRequest(followRequest.followerUserName, followRequest.followingUserName)
+            }
             return success;
         }
         const createdFollow = await this.followRepository.add({...followRequest, followRequestState: FollowRequestState.PENDING});
         if (createdFollow) {
-            this.notificationService.follow(followRequest.followerUserName, followRequest.followingUserName)
+            this.notificationService.followRequest(followRequest.followerUserName, followRequest.followingUserName)
         }
         return !!createdFollow;
     }
@@ -301,7 +304,7 @@ export class UserService implements IUserService {
         }
         const success = await this.followRepository.undeleteFollow(followerUserName, followingUserName);
         if (success) {
-            this.notificationService.follow(followerUserName, followingUserName);
+            this.notificationService.follow(followerUserName, followingUserName, true);
         }
         return success;
     }

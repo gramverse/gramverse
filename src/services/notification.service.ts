@@ -268,12 +268,12 @@ export class NotificationService {
         this.addNotification(followingUserName, eventId, true);
     }
 
-    follow = async (followerUserName: string, followingUserName: string) => {
+    follow = async (followerUserName: string, followingUserName: string, isAccept: boolean) => {
         const eventId = await this.addEvent(followerUserName, followingUserName, EventType.FOLLOW);
         if(!eventId) {
             return;
         }
-        this.addNotification(followingUserName, eventId, true);
+        await this.addNotification(isAccept ? followerUserName : followingUserName, eventId, true);
 
         const followers = (await this.followRepository.getAllFollowers(followerUserName)).map(f=> f.followerUserName);
 
