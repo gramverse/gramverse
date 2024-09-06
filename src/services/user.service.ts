@@ -403,9 +403,10 @@ export class UserService implements IUserService {
     }
     unBlock = async(blockRequest: BlockRequest) => {
         const {followerUserName,followingUserName} = blockRequest
-        const existingBlock = await this.blockrepository.getBlock(followerUserName, followingUserName);
+        const existingBlock = await this.followRepository.getFollow(followerUserName, followingUserName);
         if (!existingBlock) {
-                return true;}
+            return true;
+        }
         return await this.blockrepository.unblock(followerUserName, followingUserName)
     }    
     getBlackList = async (userName: string,page: number,limit: number) => {
