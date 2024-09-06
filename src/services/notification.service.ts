@@ -204,23 +204,25 @@ export class NotificationService {
 
     }
     
-    commentNotif = async(userName: string,eventId:string,isMine: boolean) =>{
+    addNotification = async(userName: string,eventId:string,isMine: boolean) =>{
         return await this.notificationRepository.add(userName,eventId,isMine)
     }
-    commentEvent = async (performerUserName: string,targetId: string ,type: string) => {
+
+    addEvent = async (performerUserName: string,targetId: string ,type: string) => {
         return await this.eventRepository.add(performerUserName,targetId,type)
     }
+
     comment = async(userName: string,postId:string) => {
         const post = await this.postRepository.getPostById(postId)
         if(!post){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Post does not excites");
         }
         const myUserName = post.userName
-        const eventId = (await this.commentEvent(userName,postId,EventType.COMMENT))
+        const eventId = (await this.addEvent(userName,postId,EventType.COMMENT))
         if (!eventId){
             return
         }
-        this.commentNotif(myUserName,eventId,true)
+        this.addNotification(myUserName,eventId,true)
         
         const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
     
@@ -228,7 +230,7 @@ export class NotificationService {
                 const hasAccess = await this.checkPostAccessForNotification(follower, postId);
     
                 if (hasAccess) {
-                    await this.commentNotif(follower, eventId,false);
+                    await this.addNotification(follower, eventId,false);
                 }
     
             })
@@ -245,5 +247,19 @@ export class NotificationService {
 
     }
 
+    addMention = async (myUserName: string, mention: string, postId: string) => {
+        const eventId = await this.addEvent(myUserName, postId, EventType.MENTION);
+        if (!eventId) {
+            return;
+        }
+        await this.addNotification(mention, eventId, true);
+    }
 
+    deleteMention = async (myUserName: string, mention: string, postId: string) => {
+        const event = await this.eventRepository.getEvent(myUserName, postId);
+        if (!event) {
+            return;
+        }
+        await this.notificationRepository.DeleteNotif(event._id);
+    }
 }

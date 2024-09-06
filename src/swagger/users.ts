@@ -352,3 +352,27 @@
  *        500: 
  *           description: internal server error
  */ 
+
+
+/**
+ * @swagger
+ * /api/users/access/{userName}:
+ *   get:
+ *     summary: get mention access for requested username
+ *     tags:
+ *       - users
+ *     parameters:
+ *       - in: path
+ *         name: userName
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The username of the user to check access.
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully.
+ *       401:
+ *         description: Not authorized.
+ *       500:
+ *         description: Internal server error.
+ */
