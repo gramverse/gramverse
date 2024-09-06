@@ -25,6 +25,7 @@ import e from "express";
 import { BlockRequest } from "../models/block/block-request";
 import {BlockRepository} from "../repository/block.repository"
 import { RemoveFollowRequest } from "../models/follow/remove-follow-request";
+import { NotificationService } from "./notification.service";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
@@ -38,7 +39,7 @@ export interface IUserService {
 }
 
 export class UserService implements IUserService {
-    constructor(private postService: PostService, private userRepository: UserRepository, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository,private blockrepository:BlockRepository) {}
+    constructor(private postService: PostService, private userRepository: UserRepository, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository,private blockrepository:BlockRepository, private notificationService:NotificationService) {}
 
     getUser = async (userNameOrEmail : string) =>{
         const isEmail = userNameOrEmail.includes("@");
@@ -249,6 +250,7 @@ export class UserService implements IUserService {
             return await this.followRepository.undeleteFollow(followerUserName, followingUserName);
         }
         const createdFollow = await this.followRepository.add(followRequest);
+        this.notificationService.follow(followRequest.followerUserName, followRequest.followingUserName)
         return !!createdFollow;
     }
 
@@ -264,6 +266,7 @@ export class UserService implements IUserService {
             return success;
         }
         const createdFollow = await this.followRepository.add({...followRequest, followRequestState: FollowRequestState.PENDING});
+        this.notificationService.followRequest(followRequest.followerUserName, followRequest.followingUserName)
         return !!createdFollow;
     }
 
@@ -280,6 +283,7 @@ export class UserService implements IUserService {
         if (!existingFollow || existingFollow.isDeleted) {
             return true;
         }
+        this.notificationService.deleteFollow(followerUserName, followingUserName);
         return await this.followRepository.deleteFollow(followerUserName, followingUserName);
     }
 
@@ -288,6 +292,7 @@ export class UserService implements IUserService {
         if (!existingFollow || existingFollow.followRequestState != FollowRequestState.PENDING) {
             throw new HttpError(400, ErrorCode.NO_SUCH_REQUEST, "You have no follow request from this username");
         }
+        this.notificationService.follow(followerUserName, followingUserName);
         return await this.followRepository.undeleteFollow(followerUserName, followingUserName);
     }
 
@@ -296,6 +301,7 @@ export class UserService implements IUserService {
         if (!existingFollow || existingFollow.followRequestState != FollowRequestState.PENDING) {
             throw new HttpError(400, ErrorCode.NO_SUCH_REQUEST, "You have no follow request from this username");
         }
+        this.notificationService.deleteFollow(followerUserName, followingUserName);
         return await this.followRepository.declineFollow(followerUserName, followingUserName);
     }
 

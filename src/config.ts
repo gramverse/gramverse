@@ -35,7 +35,7 @@ const eventRepository = new EventRepository(mongoose);
 
 export const notificationService = new NotificationService(notificationRepository, eventRepository, postRepository, commentsRepository, followRepository, userRepository);
 export const postService = new PostService(postRepository, userRepository, tagRepository, commentsRepository, bookmarksRepository, likesRepository, commentslikeRepository, bookmarkRepository, followRepository,notificationService);
-export const userService = new UserService(postService, userRepository, postRepository, tokenRepository, followRepository,blockRepository);
+export const userService = new UserService(postService, userRepository, postRepository, tokenRepository, followRepository,blockRepository, notificationService);
 export const tokenService = new TokenService(tokenRepository,userRepository,userService, emailService);
 
 export const jwtSecret = process.env.JWT_SECRET||"FDaI22";
