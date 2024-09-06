@@ -174,8 +174,8 @@ export class UserService implements IUserService {
         const {followRequestState, isBlocked, isCloseFriend} = await this.followRepository.getFollow(myUserName, userName)|| {
             followRequestState: FollowRequestState.NONE, isBlocked: false, isCloseFriend: false
         };
-        const {isBlocked: hasBlockedUs} = await this.followRepository.getFollow(userName, myUserName)|| {
-            isBlocked: false
+        const {isBlocked: hasBlockedUs, followRequestState: requestState} = await this.followRepository.getFollow(userName, myUserName)|| {
+            isBlocked: false, followRequestState: FollowRequestState.NONE
         };
         const followerCount = await this.followRepository.getFollowerCount(user.userName);
         const followingCount = await this.followRepository.getFollowingCount(user.userName);
@@ -191,6 +191,7 @@ export class UserService implements IUserService {
             isBlocked,
             isCloseFriend,
             hasBlockedUs,
+            requestState,
             followerCount,
             followingCount,
             postCount
@@ -230,6 +231,9 @@ export class UserService implements IUserService {
 
     follow = async (followRequest: FollowRequest) => {
         const {followerUserName, followingUserName} = followRequest;
+        if (followerUserName == followingUserName) {
+            throw new HttpError(400, ErrorCode.INVALID_FOLLOW_REQUEST, "You can't follow yourself");
+        }
         const user = await this.getUser(followingUserName);
         if (!user) {
             throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
@@ -265,6 +269,9 @@ export class UserService implements IUserService {
 
     unfollow = async (followRequest: FollowRequest) => {
         const {followerUserName, followingUserName} = followRequest;
+        if (followerUserName == followingUserName) {
+            throw new HttpError(400, ErrorCode.INVALID_FOLLOW_REQUEST, "You can't unfollow yourself");
+        }
         const user = await this.getUser(followingUserName);
         if (!user) {
             throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
@@ -356,6 +363,9 @@ export class UserService implements IUserService {
     }   
 
     addCloseFriend = async (followerUserName: string, followingUserName: string) => {
+        if (followerUserName == followingUserName) {
+            throw new HttpError(400, ErrorCode.INVALID_FOLLOW_REQUEST, "You can't add yourself to close friends");
+        }
         const user = await this.getUser(followingUserName);
         if (!user) {
             throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
@@ -371,6 +381,9 @@ export class UserService implements IUserService {
     }
 
     removeCloseFriend = async (followerUserName: string, followingUserName: string) => {
+        if (followerUserName == followingUserName) {
+            throw new HttpError(400, ErrorCode.INVALID_FOLLOW_REQUEST, "You can't remove yourself from close friends");
+        }
         const user = await this.getUser(followingUserName);
         if (!user) {
             throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
@@ -387,6 +400,9 @@ export class UserService implements IUserService {
 
     block = async(blockRequest: BlockRequest) => {
         const {followerUserName,followingUserName} = blockRequest
+        if (followerUserName == followingUserName) {
+            throw new HttpError(400, ErrorCode.INVALID_FOLLOW_REQUEST, "You can't block yourself");
+        }
         const existingBlock = await this.followRepository.getFollow(followerUserName, followingUserName);
         const userExists = await userService.checkUserNameExistance(followingUserName)
         if (!userExists) {
@@ -403,6 +419,9 @@ export class UserService implements IUserService {
     }
     unBlock = async(blockRequest: BlockRequest) => {
         const {followerUserName,followingUserName} = blockRequest
+        if (followerUserName == followingUserName) {
+            throw new HttpError(400, ErrorCode.INVALID_FOLLOW_REQUEST, "You can't unblock yourself");
+        }
         const existingBlock = await this.followRepository.getFollow(followerUserName, followingUserName);
         if (!existingBlock) {
             return true;
