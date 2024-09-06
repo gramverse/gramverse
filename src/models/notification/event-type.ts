@@ -3,4 +3,5 @@ export enum EventType {
     FOLLOW = "follow",
     COMMENT = "comment",
     MENTION = "mention",
+    FOLLOW_REQUEST = "follow requested",
 }

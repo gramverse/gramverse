@@ -262,4 +262,54 @@ export class NotificationService {
         }
         await this.notificationRepository.DeleteNotif(event._id);
     }
+
+
+    checkUserAccessForFollowNotification = async (followingUserName: string, friendUserName: string) => {
+        const followingAndFriend = await this.followRepository.getFollow(followingUserName, friendUserName);
+        const friendAndFollowing = await this.followRepository.getFollow(friendUserName, followingUserName);
+        if (followingAndFriend && followingAndFriend.isBlocked) {
+            return false;
+        }
+        if (friendAndFollowing && friendAndFollowing.isBlocked){
+            return false;
+        }
+        return true;
+    }
+
+
+    followRequest = async (followerUserName: string, followingUserName: string) => { 
+        const eventId = await this.addEvent(followerUserName, followingUserName, EventType.FOLLOW_REQUEST);
+        if (!eventId) {
+            return;
+        }
+        this.addNotification(followingUserName, eventId, true);
+    }
+
+    follow = async (followerUserName: string, followingUserName: string) => {
+        const eventId = await this.addEvent(followerUserName, followingUserName, EventType.FOLLOW);
+        if(!eventId) {
+            return;
+        }
+        this.addNotification(followingUserName, eventId, true);
+
+        const followers = (await this.followRepository.getAllFollowers(followerUserName)).map(f=> f.followerUserName);
+
+        followers.forEach(async (follower) => {
+            const hasAccess = await this.checkPostAccessForNotification(followerUserName, follower);
+
+            if (hasAccess) {
+                await this.likeNotif(follower, eventId,false);
+            }
+
+        })
+    }
+
+    deleteFollow = async(followerUserName:string, followingUserName:string) => { 
+        const eventId = (await this.eventRepository.getEvent(followerUserName, followingUserName))?._id;
+        if (!eventId) {
+            return;
+        }
+        this.eventRepository.deleteEvent(eventId);
+        this.notificationRepository.DeleteNotif(eventId);
+    }
 }
