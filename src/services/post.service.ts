@@ -40,13 +40,36 @@ export class PostService {
         return matches ? Array.from(new Set(matches.map(tag => tag.slice(1)))) : [];
     }
 
+    checkMentions = async (myUserName: string, oldMentions: string[], newMentions: string[]) => {
+        const mentionsToBeRemoved = oldMentions.filter(m => !newMentions.includes(m));
+        const mentionsToBeAdded = newMentions.filter(m => !oldMentions.includes(m));
+        for (const mention of mentionsToBeAdded) {
+            await this.checkMentionAccess(myUserName, mention);
+        }
+    }
+
+    updateMentions = async (myUserName: string, postId: string, oldMentions: string[], newMentions: string[]) => {
+        const mentionsToBeRemoved = oldMentions.filter(m => !newMentions.includes(m));
+        const mentionsToBeAdded = newMentions.filter(m => !oldMentions.includes(m));
+        for (const mention of mentionsToBeAdded) {
+            this.notificationService.addMention(myUserName, mention, postId);
+        }
+        for (const mention of mentionsToBeRemoved) {
+            this.notificationService.deleteMention(myUserName, mention, postId);
+        }
+    }
+
     addPost = async (postRequest : PostRequest) =>{
         if (postRequest.photoUrls.length == 0) {
             throw new HttpError(400, ErrorCode.MISSING_PHOTO_FOR_POST, "Missing photo for post");
         }
+        if (postRequest.photoUrls.length > 10) {
+            throw new HttpError(400, ErrorCode.PHOTO_COUNT_EXCEDED, "Maximum photo count = 10");
+        }
+        await this.checkMentions(postRequest.userName, [], postRequest.mentions);
         const createdPost = await this.postRepository.add(postRequest);
         if (!createdPost){
-            return undefined;
+            return;
         } 
         const tags : Array<string> = this.extractHashtags(createdPost.caption)
         tags.forEach(async  t => {
@@ -55,10 +78,9 @@ export class PostService {
                 tag : t, 
                 isDeleted : false
             }
-            
-            
             await this.tagRepository.add(newTagRequest);
         })
+        await this.updateMentions(postRequest.userName, createdPost._id, [], postRequest.mentions);
         return createdPost;
     }
 
@@ -76,6 +98,7 @@ export class PostService {
         if (editPostRequest.photoUrls.length > 10) {
             throw new HttpError(400, ErrorCode.PHOTO_COUNT_EXCEDED, "Maximum photo count = 10");
         }
+        await this.checkMentions(editPostRequest.userName, post.mentions, editPostRequest.mentions);
         const postTags = await this.tagRepository.findPostTags(editPostRequest._id);
         const oldTags = postTags.filter(t => !t.isDeleted);
         const newTags = this.extractHashtags(editPostRequest.caption);
@@ -109,6 +132,7 @@ export class PostService {
             ... updatedPost,
             tags: newTags,
         }
+        await this.updateMentions(editPostRequest.userName, editPostRequest._id, post.mentions, editPostRequest.mentions);
         return postDto;
     }
 
@@ -366,6 +390,24 @@ export class PostService {
         }
         if (creatorUser.isPrivate && (!visitorFollow || visitorFollow.followRequestState != FollowRequestState.ACCEPTED)) {
             throw new HttpError(403, ErrorCode.USER_IS_PRIVATE, "User is private");
+        }
+    }
+
+    checkMentionAccess = async (mentioner: string, mentioned: string) => {
+        if (mentioner== mentioned) {
+            return;
+        }
+        const mentionerFollow = await this.followRepository.getFollow(mentioner, mentioned);
+        const mentionedFollow = await this.followRepository.getFollow(mentioned, mentioner);
+        if (mentionerFollow && mentionerFollow.isBlocked) {
+            throw new HttpError(403, ErrorCode.CREATOR_IS_BLOCKED_BY_YOU, "You have blocked this user");
+        }
+        if (mentionedFollow && mentionedFollow.isBlocked) {
+            throw new HttpError(403, ErrorCode.YOU_ARE_BLOCKED, "This user has blocked you");
+        }
+        const mentionedUser = await this.userRepository.getUserByUserName(mentioned);
+        if (!mentionedUser) {
+            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "post username doesn't exist in users");
         }
     }
 

@@ -439,4 +439,26 @@ export class UserService implements IUserService {
         }
         return await this.followRepository.deleteFollow(followerUserName, followingUserName);
     }
+
+    checkMentionAccess = async (myUserName: string, userName: string) => {
+        if (userName == myUserName) {
+            return false;
+        }
+        const mentionerFollow = await this.followRepository.getFollow(myUserName, userName);
+        const mentionedFollow = await this.followRepository.getFollow(userName, myUserName);
+        if (mentionerFollow && mentionerFollow.isBlocked) {
+            return false;
+        }
+        if (mentionedFollow && mentionedFollow.isBlocked) {
+            return false;
+        }
+        const mentionedUser = await this.userRepository.getUserByUserName(userName);
+        if (!mentionedUser) {
+            return false;
+        }
+        if (mentionedUser.isPrivate && (!mentionerFollow || mentionerFollow.followRequestState != FollowRequestState.ACCEPTED)) {
+            return false;
+        }
+        return true;
+    }
 }

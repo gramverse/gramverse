@@ -267,3 +267,15 @@ userRouter.post("/removeFollow", async (req:Request, res, next) => {
         next(err);
     }
 })
+
+userRouter.get("/access/:userName", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const hasAccess = await userService.checkMentionAccess(req.user.userName, req.params.userName);
+        res.status(200).send({hasAccess});
+    } catch (err) {
+        next(err);
+    }
+})
