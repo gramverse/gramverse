@@ -82,6 +82,7 @@ export class NotificationService {
         const {seen, isMine} = notification;
         const commentObject = await this.commentRepository.getById(commentId);
         if (!commentObject) {
+            console.log(commentId);
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         const {comment, postId} = commentObject;
@@ -215,13 +216,17 @@ export class NotificationService {
         return await this.eventRepository.add(performerUserName,targetId,type)
     }
 
-    comment = async(userName: string,postId:string) => {
-        const post = await this.postRepository.getPostById(postId)
+    comment = async(userName: string,commentId: string) => {
+        const comment = await this.commentRepository.getById(commentId);
+        if (!comment) {
+            return;
+        }
+        const post = await this.postRepository.getPostById(comment.postId)
         if(!post){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Post does not excites");
         }
         const myUserName = post.userName
-        const eventId = (await this.addEvent(userName,postId,EventType.COMMENT))
+        const eventId = (await this.addEvent(userName,commentId, EventType.COMMENT))
         if (!eventId){
             return
         }
@@ -230,7 +235,7 @@ export class NotificationService {
         const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
     
         followers.forEach(async (follower) => {
-                const hasAccess = await this.checkPostAccessForNotification(follower, postId);
+                const hasAccess = await this.checkPostAccessForNotification(follower, comment.postId);
     
                 if (hasAccess) {
                     await this.addNotification(follower, eventId,false);
@@ -288,11 +293,11 @@ export class NotificationService {
     }
 
     deleteNotif = async(performerUserName:string, targetId:string) => { 
-        const eventId = (await this.eventRepository.getEvent(performerUserName, targetId))?._id.toString();
+        const eventId = (await this.eventRepository.getEvent(performerUserName, targetId))?._id;
         if (!eventId) {
             return;
         }
         await this.eventRepository.deleteEvent(eventId);
-        await this.notificationRepository.DeleteNotif(eventId);
+        await this.notificationRepository.DeleteNotif(eventId.toString());
     }
 }

@@ -309,7 +309,9 @@ export class PostService {
         }
         await this.checkPostAccess(commentRequest.userName, commentRequest.postId);
         const createdComment = await this.commentsRepository.add(commentRequest);
-        this.notificationService.comment(commentRequest.userName,commentRequest.postId)
+        if (createdComment) {
+            this.notificationService.comment(commentRequest.userName,createdComment._id);
+        }
         return createdComment||undefined;
     }
 
