@@ -175,7 +175,7 @@ export class NotificationService {
         followers.forEach(async (follower) => {
                 const hasAccess = await this.checkPostAccessForNotification(follower, postId);
     
-                if (hasAccess) {
+                if (hasAccess && follower != post.userName) {
                     await this.addNotification(follower, eventId,false);
                 }
     
@@ -237,7 +237,7 @@ export class NotificationService {
         followers.forEach(async (follower) => {
                 const hasAccess = await this.checkPostAccessForNotification(follower, comment.postId);
     
-                if (hasAccess) {
+                if (hasAccess && follower != post.userName) {
                     await this.addNotification(follower, eventId,false);
                 }
     
