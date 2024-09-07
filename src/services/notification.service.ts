@@ -167,7 +167,7 @@ export class NotificationService {
         if (!eventId){
             return
         }
-        this.addNotification(myUserName,eventId,true)
+        await this.addNotification(myUserName,eventId,true)
         
         const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
     
@@ -225,7 +225,7 @@ export class NotificationService {
         if (!eventId){
             return
         }
-        this.addNotification(myUserName,eventId,true)
+        await this.addNotification(myUserName,eventId,true)
         
         const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
     
@@ -265,7 +265,7 @@ export class NotificationService {
         if (!eventId) {
             return;
         }
-        this.addNotification(followingUserName, eventId, true);
+        await this.addNotification(followingUserName, eventId, true);
     }
 
     follow = async (followerUserName: string, followingUserName: string, isAccept: boolean) => {
@@ -280,7 +280,7 @@ export class NotificationService {
         followers.forEach(async (follower) => {
             const hasAccess = await this.checkUserAccessForFollowNotification(followerUserName, follower);
 
-            if (hasAccess) {
+            if (hasAccess && follower != followingUserName) {
                 await this.addNotification(follower, eventId,false);
             }
 
@@ -292,7 +292,7 @@ export class NotificationService {
         if (!eventId) {
             return;
         }
-        this.eventRepository.deleteEvent(eventId);
-        this.notificationRepository.DeleteNotif(eventId);
+        await this.eventRepository.deleteEvent(eventId);
+        await this.notificationRepository.DeleteNotif(eventId);
     }
 }
