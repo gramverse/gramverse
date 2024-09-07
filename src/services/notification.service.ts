@@ -288,7 +288,7 @@ export class NotificationService {
     }
 
     deleteNotif = async(performerUserName:string, targetId:string) => { 
-        const eventId = (await this.eventRepository.getEvent(performerUserName, targetId))?._id;
+        const eventId = (await this.eventRepository.getEvent(performerUserName, targetId))?._id.toString();
         if (!eventId) {
             return;
         }
