@@ -9,8 +9,8 @@ export class FollowRepository {
         this.follows = dataHandler.model<IFollow>("follows", followSchema);
     }
 
-    add = async (followerUserName: string, followingUserName: string, followRequestState: FollowRequestState = FollowRequestState.ACCEPTED) => {
-        const createdFollow = await this.follows.create({followerUserName, followingUserName, followRequestState});
+    add = async (follow: Partial<Follow>) => {
+        const createdFollow = await this.follows.create(follow);
         if (!createdFollow) {
             return undefined;
         }
@@ -81,37 +81,12 @@ export class FollowRepository {
         return await this.follows.find({followingUserName, isCloseFriend: true}).lean();
     }
 
-    setFollowAsPending = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false, followRequestState: FollowRequestState.PENDING});
-        return updateResult.acknowledged;
-    }
-
-    undeleteFollow = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false, followRequestState: FollowRequestState.ACCEPTED})
-        return updateResult.acknowledged;
-    }
-
-    declineFollow = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: false, followRequestState: FollowRequestState.DECLINED});
+    update = async (followerUserName: string, followingUserName: string, follow: Partial<Follow>) => {
+        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, follow);
         return updateResult.acknowledged;
     }
 
     acceptPendingRequests = async (followingUserName: string) => {
         const updateResult = await this.follows.updateMany({followingUserName, followRequestState: FollowRequestState.PENDING}, {followRequestState: FollowRequestState.ACCEPTED});
-    }
-
-    addCloseFriend = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isCloseFriend: true})
-        return     updateResult.acknowledged;
-    }
-
-    removeCloseFriend = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isCloseFriend: false});
-        return     updateResult.acknowledged;
-    }
-
-    deleteFollow = async (followerUserName: string, followingUserName: string) => {
-        const updateResult = await this.follows.updateOne({followerUserName, followingUserName}, {isDeleted: true, followRequestState: FollowRequestState.NONE, isCloseFriend: false});
-        return updateResult.acknowledged;
     }
 }

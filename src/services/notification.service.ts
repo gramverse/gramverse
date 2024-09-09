@@ -1,8 +1,6 @@
 import {NotificationRepository} from "../repository/notification.repository";
-import {PostRepository} from "../repository/post.repository";
+import {PostRepService} from "./post.rep.service";
 import {CommentRepository} from "../repository/comment.repository";
-import {FollowRepository} from "../repository/follow.repository";
-import {UserRepository} from "../repository/user.repository";
 import {EventService} from "./event.service";
 import { FollowService } from "./follow.service";
 import {Event} from "../models/notification/event";
@@ -12,10 +10,11 @@ import {HttpError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {FollowRequestState} from "../models/follow/follow-request-state";
 import { Post } from "../models/post/post";
-
+import { UserRepService } from "./userRep.service";
+import {FollowRepService} from "./follow.rep.service";
 
 export class NotificationService {
-    constructor(private eventService: EventService, private notificationRepository: NotificationRepository, private postRepository: PostRepository, private commentRepository: CommentRepository, private followRepository: FollowRepository, private userRepository: UserRepository) {}
+    constructor(private notificationRepository: NotificationRepository, private eventService: EventService, private userRepService: UserRepService, private followRepService: FollowRepService, private postRepService: PostRepService, private commentRepository: CommentRepository) {}
 
     getNotifications = async (userName: string, isMine: boolean, page: number, limit: number) => {
         const skip = (page-1) * limit;
@@ -57,7 +56,7 @@ export class NotificationService {
     getLikeDto = async (event: Event, notification: Notification) => {
         const {performerUserName, targetId: postId, type, creationDate} = event;
         const {seen, isMine} = notification;
-        const post = await this.postRepository.getPostById(postId);
+        const post = await this.postRepService.getPostById(postId);
         if (!post) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
@@ -85,7 +84,7 @@ export class NotificationService {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         const {comment, postId} = commentObject;
-        const post = await this.postRepository.getPostById(postId);
+        const post = await this.postRepService.getPostById(postId);
         if (!post) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
@@ -108,7 +107,7 @@ export class NotificationService {
     getMentionDto = async (event: Event, notification: Notification) => {
         const {performerUserName, targetId: postId, type, creationDate} = event;
         const {seen, isMine} = notification;
-        const post = await this.postRepository.getPostById(postId);
+        const post = await this.postRepService.getPostById(postId);
         if (!post) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
@@ -158,7 +157,7 @@ export class NotificationService {
     }
 
     addLike = async(userName: string,postId:string) => {
-        const post = await this.postRepository.getPostById(postId)
+        const post = await this.postRepService.getPostById(postId)
         if(!post){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Post does not excites");
         }
@@ -168,7 +167,7 @@ export class NotificationService {
         }
         await this.createNotification(post.userName,eventId,true)
         
-        const followers = (await this.followRepository.getAllFollowers(userName)).map(f => f.followerUserName);
+        const followers = await this.followRepService.getAllFollowers(userName);
     
         followers.forEach(async (follower) => {
                 const hasAccess = await this.checkPostAccessForNotification(follower, postId);
@@ -186,7 +185,7 @@ export class NotificationService {
         if (!comment) {
             return;
         }
-        const post = await this.postRepository.getPostById(comment.postId)
+        const post = await this.postRepService.getPostById(comment.postId)
         if(!post){
             return;
         }
@@ -196,7 +195,7 @@ export class NotificationService {
         }
         await this.createNotification(post.userName,eventId,true)
         
-        const followers = (await this.followRepository.getAllFollowers(userName)).map(f=> f.followerUserName);
+        const followers = await this.followRepService.getAllFollowers(userName);
     
         followers.forEach(async (follower) => {
                 const hasAccess = await this.checkPostAccessForNotification(follower, comment.postId);
@@ -224,7 +223,7 @@ export class NotificationService {
         }
         await this.createNotification(isAccept ? followerUserName : followingUserName, eventId, true);
 
-        const followers = (await this.followRepository.getAllFollowers(followerUserName)).map(f=> f.followerUserName);
+        const followers = await this.followRepService.getAllFollowers(followerUserName);
 
         followers.forEach(async (follower) => {
             const hasAccess = await this.checkUserAccessForFollowNotification(followingUserName, follower);
@@ -244,22 +243,22 @@ export class NotificationService {
     }
 
     checkPostAccessForNotification = async (userName: string, postId: string) => {
-        const post = await this.postRepository.getPostById(postId);
+        const post = await this.postRepService.getPostById(postId);
         if (!post) {
             return false
         }
         if (userName == post.userName) {
             return true
         }
-        const visitorFollow = await this.followRepository.getFollow(userName, post.userName);
-        const creatorFollow = await this.followRepository.getFollow(post.userName, userName);
+        const visitorFollow = await this.followRepService.getFollow(userName, post.userName);
+        const creatorFollow = await this.followRepService.getFollow(post.userName, userName);
         if (visitorFollow && visitorFollow.isBlocked) {
             return false
         }
         if (creatorFollow && creatorFollow.isBlocked) {
             return false
         }
-        const creatorUser = await this.userRepository.getUserByUserName(post.userName);
+        const creatorUser = await this.userRepService.getUser(post.userName);
         if (!creatorUser) {
             return false
         }   
@@ -270,8 +269,8 @@ export class NotificationService {
     }
 
     checkUserAccessForFollowNotification = async (followingUserName: string, friendUserName: string) => {
-        const following = await this.followRepository.getFollow(followingUserName, friendUserName);
-        const friend = await this.followRepository.getFollow(friendUserName, followingUserName);
+        const following = await this.followRepService.getFollow(followingUserName, friendUserName);
+        const friend = await this.followRepService.getFollow(friendUserName, followingUserName);
         if (following && following.isBlocked) {
             return false;
         }

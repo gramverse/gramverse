@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import jwtDecode from "jwt-decode";
-import {followService, jwtSecret, postService, userService} from "../config"
-import e, {Router, Request, Response, NextFunction} from "express";
+import {followRepService, followService, jwtSecret, postRepService, postService, userService, userRepService} from "../config"
+import {Router, Request, Response, NextFunction} from "express";
 import { zodLoginRequest } from "../models/login/login-request";
 import {zodRegisterRequest} from "../models/register/register-request";
 import { HttpError } from "../errors/http-error";
@@ -65,7 +65,7 @@ userRouter.get("/check-username/:userName", async (req: Request, res: Response, 
     try {
         const { userName } = req.params;
 
-        const exists = await userService.checkUserNameExistance(userName);
+        const exists = await userRepService.checkUserNameExistance(userName);
 
         res.status(200).json({ exists });
     } catch (err) {
@@ -132,9 +132,9 @@ userRouter.get("/followingers", async (req: Request, res: Response, next: NextFu
         const {userName, page, limit, isFollowing} = zodFollowingersRequest.parse(req.query);
         let followingers: {followingers: Followinger[], totalCount: number};
         if (isFollowing == "true") {
-            followingers = await followService.getFollowings(userName,req.user.userName, page,limit);
+            followingers = await followRepService.getFollowings(userName,req.user.userName, page,limit);
         } else {
-            followingers = await followService.getFollowers(userName,req.user.userName, page,limit);
+            followingers = await followRepService.getFollowers(userName,req.user.userName, page,limit);
         }
         res.status(200).send(followingers);
     }catch (err) {
@@ -148,7 +148,7 @@ userRouter.get("/closeFriends", async (req: Request, res, next) => {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const {page, limit} = zodGetCloseFriendsRequest.parse(req.query);
-        const closeFriends = await followService.getCloseFriends(req.user.userName, page, limit);
+        const closeFriends = await followRepService.getCloseFriends(req.user.userName, page, limit);
         res.status(200).send(closeFriends);
     } catch (err) {
         next(err);
