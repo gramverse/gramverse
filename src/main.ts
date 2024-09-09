@@ -1,12 +1,8 @@
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { buildApp } from "./startup";
 
-
-dotenv.config();
-
 export const app = buildApp();
-const port = process.env.port || 3000;
+const port = process.env.PORT || 3000;
 
 
 const connectionString = process.env.DB_CONNECTION_STRING;
@@ -19,7 +15,7 @@ mongoose.connect(connectionString)
         console.log("Connected to MongoDB");
         app.listen(port, () => {
             console.log(`Listening on port ${port}`);
-            console.log(`Swagger UI available at http://5.34.193.118:${port}/api/api-docs`);
+            console.log(`Swagger UI available at http://${process.env.APP_DOMAIN}:${port}/api/api-docs`);
         });
     })
     .catch(err => {

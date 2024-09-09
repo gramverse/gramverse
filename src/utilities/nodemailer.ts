@@ -5,18 +5,18 @@ export class EmailService {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host:"smtp.gmail.com",
+            host: process.env.MAILER_HOST,
             auth: {
-                user: "blindsidesmh@gmail.com",
-                pass: "ckei cbbh hzcl fvqj",
+                user: process.env.MAILER_USER,
+                pass: process.env.MAILER_PASS,
             },
         });
     }
 
     async sendResetPasswordEmail(email: string, token: string) {
-        const resetLink = `http://5.34.193.118/reset-password/${token}`;
+        const resetLink = `http://${process.env.APP_DOMAIN}/reset-password/${token}`;
         const mailOptions = {
-            from: "blindsidesmh@gmail.com",
+            from: process.env.MAILER_USER,
             to: email,
             subject: "Password Reset",
             text: `Click the link to reset your password: ${resetLink}`,
@@ -34,4 +34,3 @@ export class EmailService {
 //       console.log("Server is ready to take our messages");
 //     }
 //   });
-  
