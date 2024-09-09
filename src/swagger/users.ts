@@ -219,7 +219,6 @@
  *         description: Internal server error.
  */
 
-
 /**
  * @swagger
  * /api/users/acceptRequest:
@@ -278,7 +277,6 @@
  *         description: Internal server error
  */
 
-
 /**
  * @swagger
  * /api/users/blackList:
@@ -329,13 +327,13 @@
 /**
  * @swagger
  * /api/users/removeFollow:
- *   post: 
+ *   post:
  *     summary: remove a user from followers
  *     tags:
  *       - users
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -349,10 +347,9 @@
  *           description: Unauthorized, token is missing or invalid
  *        400:
  *           description: Missing follower username
- *        500: 
+ *        500:
  *           description: internal server error
- */ 
-
+ */
 
 /**
  * @swagger

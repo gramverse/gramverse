@@ -7,12 +7,9 @@ describe("user", () => {
             const testUser = {
                 email: "ali@gmail.com",
                 userName: "ali12345",
-                password: "a1b2c3d4"
+                password: "a1b2c3d4",
             };
-            await request(app)
-            .post("/users/signup")
-            .send(testUser)
-            .expect(200);
-        })
+            await request(app).post("/users/signup").send(testUser).expect(200);
+        });
     });
 });

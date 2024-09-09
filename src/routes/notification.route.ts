@@ -1,8 +1,8 @@
-import { HttpError } from "../errors/http-error";
-import { ErrorCode } from "../errors/error-codes";
-import { authMiddleware } from "../middlewares/auth-middleware";
+import {HttpError} from "../errors/http-error";
+import {ErrorCode} from "../errors/error-codes";
+import {authMiddleware} from "../middlewares/auth-middleware";
 import {Router, Request, Response, NextFunction} from "express";
-import { zodNotificationRequest} from "../models/notification/notification-request";
+import {zodNotificationRequest} from "../models/notification/notification-request";
 import {notificationService} from "../config";
 
 export const notificationRouter = Router();
@@ -15,7 +15,12 @@ notificationRouter.get("/mine", async (req: Request, res, next) => {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const {page, limit} = zodNotificationRequest.parse(req.query);
-        const notifications = await notificationService.getNotifications(req.user.userName, true, page, limit);
+        const notifications = await notificationService.getNotifications(
+            req.user.userName,
+            true,
+            page,
+            limit,
+        );
         res.status(200).send(notifications);
     } catch (err) {
         next(err);
@@ -28,7 +33,12 @@ notificationRouter.get("/followings", async (req: Request, res, next) => {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
         const {page, limit} = zodNotificationRequest.parse(req.query);
-        const notifications = await notificationService.getNotifications(req.user.userName, false, page, limit);
+        const notifications = await notificationService.getNotifications(
+            req.user.userName,
+            false,
+            page,
+            limit,
+        );
         res.status(200).send(notifications);
     } catch (err) {
         next(err);
@@ -40,9 +50,11 @@ notificationRouter.get("/unreadCount", async (req: Request, res, next) => {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
         }
-        const unreadCount = await notificationService.getUnreadCount(req.user.userName);
+        const unreadCount = await notificationService.getUnreadCount(
+            req.user.userName,
+        );
         res.status(200).send({unreadCount});
     } catch (err) {
         next(err);
     }
-})
+});

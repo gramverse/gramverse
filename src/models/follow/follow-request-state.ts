@@ -3,4 +3,4 @@ export enum FollowRequestState {
     DECLINED = "declined",
     PENDING = "pending",
     ACCEPTED = "accepted",
-};
+}

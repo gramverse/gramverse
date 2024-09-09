@@ -1,10 +1,10 @@
 import {AuthorizedUser} from "../models/profile/authorized-user";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 import jwtDecode from "jwt-decode";
-import {jwtSecret} from "../config"
-import{Request, Response, NextFunction} from "express";
+import {jwtSecret} from "../config";
+import {Request, Response, NextFunction} from "express";
 import {HttpError} from "../errors/http-error";
-import { ErrorCode} from "../errors/error-codes";
+import {ErrorCode} from "../errors/error-codes";
 
 declare module "express" {
     interface Request {
@@ -12,7 +12,11 @@ declare module "express" {
     }
 }
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
     try {
         const token = req.cookies["bearer"];
         if (!token) {
@@ -24,4 +28,4 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     } catch (err) {
         next(err);
     }
-}
+};

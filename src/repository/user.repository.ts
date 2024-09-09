@@ -1,17 +1,16 @@
-import mongoose, { Model } from "mongoose";
+import mongoose, {Model} from "mongoose";
 import {usersSchemaObject} from "../models/profile/users-schema";
-import { User, IUser } from "../models/login/login-response";
-import { object } from "zod";
-import { convertType } from "../utilities/convert-type";
-
+import {User, IUser} from "../models/login/login-response";
+import {object} from "zod";
+import {convertType} from "../utilities/convert-type";
 
 export interface IUserRepository {
     add: (user: User) => Promise<string>;
     update: (_id: string, user: Partial<User>) => Promise<void>;
     checkEmailExistance: (email: string) => Promise<boolean>;
     checkUserNameExistance: (userName: string) => Promise<boolean>;
-    getUserByEmail: (email: string) => Promise<User|undefined>;
-    getUserByUserName: (userName: string) => Promise<User|undefined>;
+    getUserByEmail: (email: string) => Promise<User | undefined>;
+    getUserByUserName: (userName: string) => Promise<User | undefined>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -24,29 +23,29 @@ export class UserRepository implements IUserRepository {
     add = async (user: Partial<User>) => {
         const createdUser = await this.users.create(user);
         return createdUser._id;
-    }
+    };
 
-    getUserByUserName = async (userName : string) => {
-        const user = (await this.users.findOne({userName}))||undefined;
+    getUserByUserName = async (userName: string) => {
+        const user = (await this.users.findOne({userName})) || undefined;
         return convertType<User, IUser>(user);
-    }
+    };
 
-    getUserByEmail = async (email : string) =>{
-        const user = await this.users.findOne({email})||undefined;
+    getUserByEmail = async (email: string) => {
+        const user = (await this.users.findOne({email})) || undefined;
         return convertType<User, IUser>(user);
-    }
+    };
 
-    checkUserNameExistance = async (userName : string) => {
+    checkUserNameExistance = async (userName: string) => {
         const user = await this.users.findOne({userName});
-        return !!user;     
-    }
+        return !!user;
+    };
 
-    checkEmailExistance = async (email : string) =>{
+    checkEmailExistance = async (email: string) => {
         const user = await this.users.findOne({email});
         return !!user;
-    }
+    };
 
     update = async (_id: string, user: Partial<User>) => {
         await this.users.updateOne({_id}, user);
-    }
+    };
 }

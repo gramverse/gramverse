@@ -1,4 +1,4 @@
-import { z } from "zod";
+import {z} from "zod";
 
 export const zodMyBookMarkRequest = z.object({
     page: z.coerce.number(),
