@@ -20,34 +20,21 @@ import {Followinger} from "../models/follow/followinger";
 import { FollowRequestState } from "../models/follow/follow-request-state";
 import {PostService} from "./post.service";
 import { NotificationService } from "./notification.service";
+import { UserRepService } from "./userRep.service";
 
 export interface IUserService {
     signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
-    checkEmailExistance: (email: string) => Promise<boolean>;
-    checkUserNameExistance: (userName: string) => Promise<boolean>;
     validateInfo: (user: Partial<UserToValidate>, isForSignup: boolean) => void;
     login: (loginRequest: LoginRequest) => Promise<LoginResponse|undefined>;
-    getUser: (userNameOrPassword: string) => Promise<User|undefined>;
     // ... reset password functions
     // editProfile: (profile: Profile) => Promise<Profile>;
 }
 
 export class UserService implements IUserService {
-    constructor(private postService: PostService, private userRepository: UserRepository, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository,private notificationService:NotificationService) {}
-
-    getUser = async (userNameOrEmail : string) =>{
-        const isEmail = userNameOrEmail.includes("@");
-        let user ;
-        if (isEmail) {
-            user = await this.userRepository.getUserByEmail(userNameOrEmail);
-        } else {
-            user = await this.userRepository.getUserByUserName(userNameOrEmail);
-        }
-        return user;
-    } 
+    constructor(private postService: PostService, private userRepService: UserRepService, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository,private notificationService:NotificationService) {}
     
     login = async (loginRequest : LoginRequest) => {
-        const user = await this.getUser(loginRequest.userName);
+        const user = await this.userRepService.getUser(loginRequest.userName);
         
         if (!user){
             return undefined;
@@ -89,14 +76,6 @@ export class UserService implements IUserService {
         }
     }
 
-    checkEmailExistance = async (email: string) => {
-        return await this.userRepository.checkEmailExistance(email);
-    }
-
-    checkUserNameExistance = async (userName: string) => {
-        return await this.userRepository.checkUserNameExistance(userName);
-    }
-
     signup = async (registerRequest: RegisterRequest) => {
         const userToValidate: Partial<UserToValidate> = {
             userName: registerRequest.userName,
@@ -104,11 +83,11 @@ export class UserService implements IUserService {
             password: registerRequest.password
         };
         this.validateInfo(userToValidate, true);
-        const emailExists = await this.checkEmailExistance(registerRequest.email);
+        const emailExists = await this.userRepService.checkEmailExistance(registerRequest.email);
         if (emailExists) {
             throw new HttpError(400, ErrorCode.EMAIL_EXISTS, "Email Exists");
         }
-        const userNameExists = await this.checkUserNameExistance(registerRequest.userName);
+        const userNameExists = await this.userRepService.checkUserNameExistance(registerRequest.userName);
         if (userNameExists) {
             throw new HttpError(400, ErrorCode.USERNAME_EXISTS, "Username exists");
         }
@@ -123,7 +102,7 @@ export class UserService implements IUserService {
             isPrivate: false,
             bio: "",
         }
-        const createdUser = await this.userRepository.add(newUser);
+        const createdUser = await this.userRepService.createUser(newUser);
         if (!createdUser) {
             throw new HttpError(400, ErrorCode.UNSUCCESSFUL_SIGNUP, "Signup unsuccessful due to an unknown reason");
         }
@@ -137,7 +116,7 @@ export class UserService implements IUserService {
     }
 
     getMyProfile = async (userName: string) => {
-        const user = await this.getUser(userName);
+        const user = await this.userRepService.getUser(userName);
         if (!user) {
             return undefined;
         }
@@ -161,7 +140,7 @@ export class UserService implements IUserService {
     }
 
     getProfile = async (userName: string, myUserName: string) => {
-        const user = await this.getUser(userName);
+        const user = await this.userRepService.getUser(userName);
         if (!user) {
             return undefined;
         }
@@ -198,16 +177,16 @@ export class UserService implements IUserService {
         const passwordIsUpdated = !!profileDto.password;
         this.validateInfo(profileDto, passwordIsUpdated);
         if (profileDto.userName != user.userName) {
-            if (await this.checkUserNameExistance(profileDto.userName)) {
+            if (await this.userRepService.checkUserNameExistance(profileDto.userName)) {
                 throw new HttpError(400, ErrorCode.USERNAME_EXISTS, "Username exists");
             }
         }
         if (profileDto.email != user.email) {
-            if (await this.checkEmailExistance(profileDto.email)) {
+            if (await this.userRepService.checkEmailExistance(profileDto.email)) {
                 throw new HttpError(400, ErrorCode.EMAIL_EXISTS, "Email exists");
             }
         }
-        const oldUser = await this.userRepository.getUserByEmail(user.email);
+        const oldUser = await this.userRepService.getUser(user.email);
         if (!oldUser) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "An error occurred reading database.");
         }
@@ -216,14 +195,12 @@ export class UserService implements IUserService {
         }
         const passwordHash = passwordIsUpdated ? await bcrypt.hash(profileDto.password, 10) : oldUser.passwordHash;
         const userToBeUpdated = {
-            _id: user._id,
             ... profileDto,
             passwordHash,
         };
-        const updatedUser = await this.userRepository.update(userToBeUpdated);
+        const updatedUser = await this.userRepService.updateUser(user._id, userToBeUpdated);
         return updatedUser;
     }
-
 
     checkMentionAccess = async (myUserName: string, userName: string) => {
         if (userName == myUserName) {
@@ -237,7 +214,7 @@ export class UserService implements IUserService {
         if (mentionedFollow && mentionedFollow.isBlocked) {
             return false;
         }
-        const mentionedUser = await this.userRepository.getUserByUserName(userName);
+        const mentionedUser = await this.userRepService.getUser(userName);
         if (!mentionedUser) {
             return false;
         }

@@ -1,5 +1,4 @@
 import { PostRequest } from '../models/post/post-request'
-import { PostRepository } from '../repository/post.repository';
 import { Post } from '../models/post/post';
 import {UserRepository} from "../repository/user.repository";
 import { TagRepository } from '../repository/tag.repository'
@@ -7,7 +6,7 @@ import {CommentRepository} from "../repository/comment.repository";
 import {BookmarksRepository} from "../repository/bookmarks.repository";
 import {LikesRepository} from "../repository/likes.repository";
 import { CommentslikeRepository} from "../repository/commentslike.repository";
-import {FollowRepository} from "../repository/follow.repository";
+import {FollowRepService} from "./follow.rep.service";
 import { Tag } from '../models/tag/tag';
 import { PostDto } from '../models/post/post-dto';
 import {PostDetailDto} from "../models/post/post-detail-dto";
@@ -28,9 +27,11 @@ import {FollowService} from "./follow.service";
 import { userService } from '../config';
 import { NotificationRepository } from '../repository/notification.repository';
 import { NotificationService } from './notification.service';
+import { PostRepService } from './post.rep.service';
+import { UserRepService } from './userRep.service';
 
 export class PostService {
-    constructor(private followService: FollowService, private postRepository : PostRepository, private userRepository: UserRepository, private tagRepository : TagRepository, private commentRepository: CommentRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository, private followRepository: FollowRepository,private notificationService:NotificationService ) {}
+    constructor(private followRepService: FollowRepService, private postRepService: PostRepService, private userRepService: UserRepService, private tagRepository : TagRepository, private commentRepository: CommentRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository, private notificationService:NotificationService ) {}
 
     extractHashtags =  (text : string) => {
         const regex = /#[\w]+/g;
@@ -67,7 +68,7 @@ export class PostService {
             throw new HttpError(400, ErrorCode.PHOTO_COUNT_EXCEDED, "Maximum photo count = 10");
         }
         await this.checkMentions(postRequest.userName, [], postRequest.mentions);
-        const createdPost = await this.postRepository.add(postRequest);
+        const createdPost = await this.postRepService.createPost(postRequest);
         if (!createdPost){
             return;
         } 
@@ -85,7 +86,7 @@ export class PostService {
     }
 
     editPost = async (editPostRequest: EditPostRequest, userName: string) => {
-        const post = await this.postRepository.getPostById(editPostRequest._id);
+        const post = await this.postRepService.getPostById(editPostRequest._id);
         if (!post) {
             throw new HttpError(404, ErrorCode.POST_NOT_FOUND, "Post not found");
         }
@@ -120,11 +121,11 @@ export class PostService {
                 await this.tagRepository.add(newTagRequest);
             }
         });
-        const success = await this.postRepository.update(editPostRequest);
+        const success = await this.postRepService.updatePost(editPostRequest);
         if (!success) {
             return;
         }
-        const updatedPost = await this.postRepository.getPostById(editPostRequest._id);
+        const updatedPost = await this.postRepService.getPostById(editPostRequest._id);
         if (!updatedPost) {
             return;
         }
@@ -137,17 +138,17 @@ export class PostService {
     }
 
     getPosts = async (userName: string, myUserName: string, page: number, limit: number) => {
-        await this.followService.checkUserAccess(myUserName, userName);
+        await this.followRepService.checkUserAccess(myUserName, userName);
         const skip = (page-1) * limit;
-        let notForCloseFriends: boolean;
+        let forCloseFriends: boolean;
         if (userName == myUserName) {
-            notForCloseFriends = false;
+            forCloseFriends = true;
         }else {
-            const follow = await this.followRepository.getFollow(userName, myUserName);
-            notForCloseFriends = (!follow || !follow.isCloseFriend) ? true: false;
+            const follow = await this.followRepService.getFollow(userName, myUserName);
+            forCloseFriends = (!follow || !follow.isCloseFriend) ? false: true;
         }
-        const posts = await this.postRepository.getPostsByUserName(userName, notForCloseFriends, skip, limit);
-        const totalCount = await this.postRepository.getPostCount(userName, notForCloseFriends);
+        const posts = await this.postRepService.getPostsByUserName(userName, forCloseFriends, skip, limit);
+        const totalCount = await this.postRepService.getPostCount(userName, forCloseFriends);
         const postDtos : PostDto[] = [];
         posts.forEach(p => {
             const postDto : PostDto = {
@@ -213,7 +214,7 @@ export class PostService {
 
     getPostById = async (_id: string, userName: string) => {
         await this.checkPostAccess(userName, _id);
-        const post = await this.postRepository.getPostById(_id);
+        const post = await this.postRepService.getPostById(_id);
         if (!post) {
             return;
         }
@@ -350,22 +351,22 @@ export class PostService {
     }
 
     checkPostAccess = async (userName: string, postId: string) => {
-        const post = await this.postRepository.getPostById(postId);
+        const post = await this.postRepService.getPostById(postId);
         if (!post) {
             throw new HttpError(400, ErrorCode.INVALID_POST_ID, "Post doesn't exist");
         }
         if (userName == post.userName) {
             return;
         }
-        const visitorFollow = await this.followRepository.getFollow(userName, post.userName);
-        const creatorFollow = await this.followRepository.getFollow(post.userName, userName);
+        const visitorFollow = await this.followRepService.getFollow(userName, post.userName);
+        const creatorFollow = await this.followRepService.getFollow(post.userName, userName);
         if (visitorFollow && visitorFollow.isBlocked) {
             throw new HttpError(403, ErrorCode.CREATOR_IS_BLOCKED_BY_YOU, "You have blocked this user");
         }
         if (creatorFollow && creatorFollow.isBlocked) {
             throw new HttpError(403, ErrorCode.YOU_ARE_BLOCKED, "This user has blocked you");
         }
-        const creatorUser = await this.userRepository.getUserByUserName(post.userName);
+        const creatorUser = await this.userRepService.getUser(post.userName);
         if (!creatorUser) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "post username doesn't exist in users");
         }
@@ -378,36 +379,35 @@ export class PostService {
         if (mentioner== mentioned) {
             return;
         }
-        const mentionerFollow = await this.followRepository.getFollow(mentioner, mentioned);
-        const mentionedFollow = await this.followRepository.getFollow(mentioned, mentioner);
+        const mentionerFollow = await this.followRepService.getFollow(mentioner, mentioned);
+        const mentionedFollow = await this.followRepService.getFollow(mentioned, mentioner);
         if (mentionerFollow && mentionerFollow.isBlocked) {
             throw new HttpError(403, ErrorCode.CREATOR_IS_BLOCKED_BY_YOU, "You have blocked this user");
         }
         if (mentionedFollow && mentionedFollow.isBlocked) {
             throw new HttpError(403, ErrorCode.YOU_ARE_BLOCKED, "This user has blocked you");
         }
-        const mentionedUser = await this.userRepository.getUserByUserName(mentioned);
+        const mentionedUser = await this.userRepService.getUser(mentioned);
         if (!mentionedUser) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "post username doesn't exist in users");
         }
     }
 
     getExplorePosts = async (userName: string, page: number, limit: number) => {
-        const skip = (page-1) * limit;
-        const allFollows = await this.followRepository.getAllFollowings(userName);
+        const allFollows = await this.followRepService.getAllFollowings(userName);
         const followingsList = allFollows.map(f => f.followingUserName);
         const closeFriendsList = allFollows.filter(f => f.isCloseFriend).map(f => f.followingUserName);
-        const posts = await this.postRepository.getExplorePosts(closeFriendsList, followingsList, skip, limit);
-        const totalCount = await this.postRepository.getExplorePostCount(closeFriendsList, followingsList);
+        const posts = await this.postRepService.getExplorePosts(closeFriendsList, followingsList, page, limit);
+        const totalCount = await this.postRepService.getExplorePostCount(closeFriendsList, followingsList);
         const postDtos: ExplorePostDto[] = [];
         for (const p of posts) {
             const postDto = await this.getPostDto(userName, p);
-            const user = await userService.getUser(p.userName);
+            const user = await this.userRepService.getUser(p.userName);
             if (!user) {
                 throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
             }
             const {profileImage} = user;
-            const followerCount = await this.followRepository.getFollowerCount(p.userName);
+            const followerCount = await this.followRepService.getFollowerCount(p.userName);
             const explorePostDto: ExplorePostDto = {
                 ...postDto,
                 profileImage,
@@ -417,5 +417,4 @@ export class PostService {
         }
         return {postDtos, totalCount};
     }
-        
 }

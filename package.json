@@ -35,6 +35,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --testMatch **/*.test.ts",
+    "build": "tsc && node dist/src/main.js",
     "start": "ts-node src/main.ts",
     "dev" : "nodemon src/main.ts"
   },

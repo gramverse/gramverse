@@ -19,9 +19,9 @@ export class PostRepository {
         return newPost;
     }
 
-    getPostsByUserName = async (userName: string, notForCloseFriends: boolean, skip: number, limit: number): Promise<Post[]> => {
+    getPostsByUserName = async (userName: string, forCloseFriends: boolean, skip: number, limit: number): Promise<Post[]> => {
         let posts: Post[]  = [];
-        if (notForCloseFriends) {
+        if (!forCloseFriends) {
             posts = (await this.posts.find({userName, forCloseFriends: false})
             .skip(skip)
             .limit(limit)
@@ -37,9 +37,9 @@ export class PostRepository {
         return posts;
     }
 
-    getPostCount = async (userName: string, notForCloseFriends: boolean) => {
+    getPostCount = async (userName: string, forCloseFriends: boolean) => {
         let count: number;
-        if (notForCloseFriends) {
+        if (!forCloseFriends) {
             count = await this.posts.countDocuments({userName, forCloseFriends: false});
         } else {
             count = await this.posts.countDocuments({userName});

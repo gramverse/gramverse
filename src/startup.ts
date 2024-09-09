@@ -2,13 +2,15 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import {userRouter} from "./routes/user.route";
-import {tokenRouter} from "./routes/reset.route";
+import {resetRouter} from "./routes/reset.route";
 import {postRouter} from "./routes/post.route"
 import {fileRouter} from "./routes/file.route";
 import swaggerUi from "swagger-ui-express";
 import { swaggerDocs } from "./swagger";
 import {errorHandler} from "./middlewares/error-handler-middleware";
 import {notificationRouter} from "./routes/notification.route";
+import { HttpError } from "./errors/http-error";
+import {ErrorCode} from "./errors/error-codes";
 
 export const buildApp = () => {
     const app = express();
@@ -20,14 +22,15 @@ export const buildApp = () => {
     
     app.use("/api/users",userRouter);
     app.use("/api/posts", postRouter);
-    app.use("/api/reset", tokenRouter);
+    app.use("/api/reset", resetRouter);
     app.use("/api/notifications", notificationRouter);
     app.use("/api/api-docs",swaggerUi.serve, swaggerUi.setup(swaggerDocs))
-    app.use(errorHandler);
 
     app.use((req, res, next) => {
-        res.status(404).send({messge: "Not found"});
+        throw new HttpError(404, ErrorCode.PAGE_NOT_FOUND, "Page not found");
     });
+    
+    app.use(errorHandler);
 
     return app;
 }

@@ -10,23 +10,23 @@ import { User } from "../models/login/login-response";
 import { ResetPasswordRequest } from "../models/reset-password/resetpassword-request";
 import { EmailService } from "../utilities/nodemailer"; 
 import { UserService } from "./user.service";
+import { UserRepService } from "./userRep.service";
 
-export interface ITokenService {
+export interface IResetService {
     generateResetPasswordToken: (email: string) => Promise<void>;
     validateResetPasswordToken: (token: string) => Promise<void>;
     resetPassword: (resetPasswordRequest: ResetPasswordRequest) => Promise<void>;
 }
 
-export class TokenService implements ITokenService {
+export class ResetService implements IResetService {
     constructor(
         private tokenRepository: ITokenRepository,
-        private userRepository: IUserRepository,
-        private userService: UserService,
+        private userRepService: UserRepService,
         private emailService: EmailService
     ) {}
 
     generateResetPasswordToken = async (userName: string) => {
-        const user = await this.userService.getUser(userName);
+        const user = await this.userRepService.getUser(userName);
         if (!user) {
             throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
         }
@@ -64,7 +64,10 @@ export class TokenService implements ITokenService {
         await this.validateResetPasswordToken(token);
 
         const tokenData = await this.tokenRepository.getTokenByValue(token);
-        const user = await this.userRepository.getUserByUserName(tokenData!.userName);
+        if (!tokenData) {
+            throw new HttpError(400, ErrorCode.INVALID_OR_EXPIRED_TOKEN, "Token is not valid");
+        }
+        const user = await this.userRepService.getUser(tokenData.userName);
 
         if (!user) {
             throw new HttpError(404, ErrorCode.USER_NOT_FOUND, "User not found");
@@ -73,9 +76,8 @@ export class TokenService implements ITokenService {
         const passwordHash = await bcrypt.hash(newPassword, 10);
         
         user.passwordHash = passwordHash
-        const updatedUser: User = user;
 
-        await this.userRepository.updatePassword(updatedUser);
+        await this.userRepService.updateUser(user._id, user);
         await this.tokenRepository.markTokenAsUsed(token);
     }
 }

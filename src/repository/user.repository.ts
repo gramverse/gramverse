@@ -6,7 +6,7 @@ import { object } from "zod";
 
 export interface IUserRepository {
     add: (user: User) => Promise<User|undefined>;
-    update: (user: Partial<User>) => Promise<Partial<User>|undefined>;
+    update: (_id: string, user: Partial<User>) => Promise<Partial<User>|undefined>;
     updatePassword: (user: User) => Promise<User|undefined>;
     checkEmailExistance: (email: string) => Promise<boolean>;
     checkUserNameExistance: (userName: string) => Promise<boolean>;
@@ -30,8 +30,8 @@ export class UserRepository implements IUserRepository {
         return newUser;
     }
 
-    update = async (user: Partial<User>) => {
-        const updatedDocument = await this.users.updateOne({_id: user._id}, user);
+    update = async (_id: string, user: Partial<User>) => {
+        const updatedDocument = await this.users.updateOne({_id}, user);
         if (!updatedDocument.acknowledged) {
             return undefined;
         }
