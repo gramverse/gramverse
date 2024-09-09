@@ -3,7 +3,7 @@ import { PostRepository } from '../repository/post.repository';
 import { Post } from '../models/post/post';
 import {UserRepository} from "../repository/user.repository";
 import { TagRepository } from '../repository/tag.repository'
-import {CommentsRepository} from "../repository/comments.repository";
+import {CommentRepository} from "../repository/comment.repository";
 import {BookmarksRepository} from "../repository/bookmarks.repository";
 import {LikesRepository} from "../repository/likes.repository";
 import { CommentslikeRepository} from "../repository/commentslike.repository";
@@ -17,7 +17,6 @@ import {EditPostRequest} from "../models/post/edit-post-request";
 import {TagRequest} from "../models/tag/tag-request";
 import {CommentDto} from "../models/comment/comment-dto";
 import {Comment} from "../models/comment/comment";
-import {unflattener} from "../utilities/unflattener";
 import { LikeDto, LikeRequest } from '../models/like/like-request'
 import { CommentsLikeRequest, zodCommentslikeRequest, CommentsLikeDto } from '../models/commentslike/commentslike-request';
 import { CommentRequest } from '../models/comment/comment-request';
@@ -25,12 +24,13 @@ import { BookmarkDto, BookmarkRequest } from '../models/bookmark/bookmark-reques
 import { forEachChild, getModeForFileReference, hasRestParameter } from 'typescript';
 import {FollowRequestState} from "../models/follow/follow-request-state";
 import {ExplorePostDto} from "../models/post/explore-post-dto";
+import {FollowService} from "./follow.service";
 import { userService } from '../config';
 import { NotificationRepository } from '../repository/notification.repository';
 import { NotificationService } from './notification.service';
 
 export class PostService {
-    constructor(private postRepository : PostRepository, private userRepository: UserRepository, private tagRepository : TagRepository, private commentsRepository: CommentsRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository, private followRepository: FollowRepository,private notificationService:NotificationService ) {}
+    constructor(private followService: FollowService, private postRepository : PostRepository, private userRepository: UserRepository, private tagRepository : TagRepository, private commentRepository: CommentRepository, private bookmarksRepository: BookmarksRepository, private likesRepository: LikesRepository, private commentslikeRepository: CommentslikeRepository, private bookmarkRepository: BookmarksRepository, private followRepository: FollowRepository,private notificationService:NotificationService ) {}
 
     extractHashtags =  (text : string) => {
         const regex = /#[\w]+/g;
@@ -55,7 +55,7 @@ export class PostService {
             this.notificationService.addMention(myUserName, mention, postId);
         }
         for (const mention of mentionsToBeRemoved) {
-            this.notificationService.deleteNotif(myUserName, mention);
+            this.notificationService.deleteNotification(myUserName, mention);
         }
     }
 
@@ -137,7 +137,7 @@ export class PostService {
     }
 
     getPosts = async (userName: string, myUserName: string, page: number, limit: number) => {
-        await this.checkUserAccess(myUserName, userName);
+        await this.followService.checkUserAccess(myUserName, userName);
         const skip = (page-1) * limit;
         let notForCloseFriends: boolean;
         if (userName == myUserName) {
@@ -182,19 +182,19 @@ export class PostService {
     getComments = async (userName: string, postId: string, page: number, limit: number) => {
         await this.checkPostAccess(userName, postId);
         const skip = (page-1) * limit;
-        const parentComments = await this.commentsRepository.getByPostId(postId, skip, limit);
+        const parentComments = await this.commentRepository.getByPostId(postId, skip, limit);
         const allDtos: CommentDto[] = [];
         for (const c of parentComments) {
             const dto: CommentDto = await this.getCommentDto(userName, "", c);
             allDtos.push(dto);
         }
-        const commentsCount = await this.commentsRepository.getRootCountByPostId(postId);
+        const commentsCount = await this.commentRepository.getRootCountByPostId(postId);
         return {comments: allDtos, totalCount: commentsCount};
     }
 
     getPostDto = async (userName: string, post: Post) => {
         const tags = this.extractHashtags(post.caption);
-        const commentsCount = await this.commentsRepository.getCountByPostId(post._id);
+        const commentsCount = await this.commentRepository.getCountByPostId(post._id);
         const likesCount = await this.likesRepository.getCountByPostId(post._id);
         const bookmarksCount = await this.bookmarksRepository.getCountByPostId(post._id);
         const isLiked = await this.likesRepository.likeExists(userName, post._id);
@@ -225,7 +225,7 @@ export class PostService {
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId)
         if  (existingLike){
             if (!existingLike.isDeleted){
-                this.notificationService.like(likeRequest.userName,likeRequest.postId)
+                this.notificationService.addLike(likeRequest.userName,likeRequest.postId)
                 return true;
             }
             const undeleteResult = await this.likesRepository.undeleteLike(likeRequest.userName, likeRequest.postId)
@@ -239,7 +239,7 @@ export class PostService {
         if (!insertDto){
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown problem occurred")
         }
-        this.notificationService.like(likeRequest.userName,likeRequest.postId)
+        this.notificationService.addLike(likeRequest.userName,likeRequest.postId)
         return true;
     }
 
@@ -248,7 +248,7 @@ export class PostService {
         const likeDto: LikeDto = {userName: likeRequest.userName, postId: likeRequest.postId, isDeleted: true}
         const existingLike = await this.likesRepository.getLike(likeRequest.userName, likeRequest.postId);
         if (!existingLike || existingLike.isDeleted) {
-            this.notificationService.deleteNotif(likeRequest.userName,likeRequest.postId)
+            this.notificationService.deleteNotification(likeRequest.userName,likeRequest.postId)
             return true
 
         }
@@ -257,12 +257,12 @@ export class PostService {
             return false;
         }
         
-        this.notificationService.deleteNotif(likeRequest.userName,likeRequest.postId)
+        this.notificationService.deleteNotification(likeRequest.userName,likeRequest.postId)
         return true;
     }
     
     likeComment = async (commentslikeRequest: CommentsLikeRequest) => {
-        const comment = await this.commentsRepository.getById(commentslikeRequest.commentId);
+        const comment = await this.commentRepository.getById(commentslikeRequest.commentId);
         if (!comment) {
             throw new HttpError(404, ErrorCode.COMMENT_NOT_FOUND, "Comment not found");
         }
@@ -287,7 +287,7 @@ export class PostService {
     }
 
     unlikeComment = async (commentslikeRequest: CommentsLikeRequest) => {
-        const comment = await this.commentsRepository.getById(commentslikeRequest.commentId);
+        const comment = await this.commentRepository.getById(commentslikeRequest.commentId);
         if (!comment) {
             throw new HttpError(404, ErrorCode.COMMENT_NOT_FOUND, "Comment not found");
         }
@@ -304,13 +304,13 @@ export class PostService {
     }
 
     addComment = async (commentRequest: CommentRequest) => {
-        if (commentRequest.parentCommentId != "" && !(await this.commentsRepository.getById(commentRequest.parentCommentId))) {
+        if (commentRequest.parentCommentId != "" && !(await this.commentRepository.getById(commentRequest.parentCommentId))) {
             throw new HttpError(400, ErrorCode.COMMENT_INVALID_PARENT_ID, "Parent comment doesn't exist");
         }
         await this.checkPostAccess(commentRequest.userName, commentRequest.postId);
-        const createdComment = await this.commentsRepository.add(commentRequest);
+        const createdComment = await this.commentRepository.add(commentRequest);
         if (createdComment) {
-            this.notificationService.comment(commentRequest.userName,createdComment._id);
+            this.notificationService.addComment(commentRequest.userName,createdComment._id);
         }
         return createdComment||undefined;
     }
@@ -366,27 +366,6 @@ export class PostService {
             throw new HttpError(403, ErrorCode.YOU_ARE_BLOCKED, "This user has blocked you");
         }
         const creatorUser = await this.userRepository.getUserByUserName(post.userName);
-        if (!creatorUser) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "post username doesn't exist in users");
-        }
-        if (creatorUser.isPrivate && (!visitorFollow || visitorFollow.followRequestState != FollowRequestState.ACCEPTED)) {
-            throw new HttpError(403, ErrorCode.USER_IS_PRIVATE, "User is private");
-        }
-    }
-
-    checkUserAccess = async (myUserName: string, userName: string) => {
-        if (userName == myUserName) {
-            return;
-        }
-        const visitorFollow = await this.followRepository.getFollow(myUserName, userName);
-        const creatorFollow = await this.followRepository.getFollow(userName, myUserName);
-        if (visitorFollow && visitorFollow.isBlocked) {
-            throw new HttpError(403, ErrorCode.CREATOR_IS_BLOCKED_BY_YOU, "You have blocked this user");
-        }
-        if (creatorFollow && creatorFollow.isBlocked) {
-            throw new HttpError(403, ErrorCode.YOU_ARE_BLOCKED, "This user has blocked you");
-        }
-        const creatorUser = await this.userRepository.getUserByUserName(userName);
         if (!creatorUser) {
             throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "post username doesn't exist in users");
         }

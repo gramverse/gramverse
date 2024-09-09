@@ -59,8 +59,11 @@ export class UserRepository implements IUserRepository {
     }
 
     getUserByUserName = async (userName : string) => {
-        const user: User|undefined = await this.users.findOne({userName})||undefined;
-        return user;     
+        const user = await this.users.findOne({userName})||undefined;
+        const modifiedUser = JSON.parse(JSON.stringify(user));
+        delete modifiedUser["__v"];
+        console.log(modifiedUser);
+        return user;
     }
 
     getUserByEmail = async (email : string) =>{

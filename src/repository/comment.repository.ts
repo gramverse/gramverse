@@ -3,7 +3,7 @@ import { commentSchema } from "../models/comment/comment-schema";
 import { IComment, Comment } from "../models/comment/comment";
 import { CommentRequest } from "../models/comment/comment-request";
 
-export class CommentsRepository {
+export class CommentRepository {
     private comments: Model<IComment>;
     constructor(private datahandler: typeof import ("mongoose")) {
         this.comments = datahandler.model<IComment>("comments", commentSchema);
