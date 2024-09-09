@@ -5,7 +5,7 @@ export type LoginResponse = {
 } ;
 
 export interface IUser extends Document {
-    _id?: string;
+    _id: string;
     userName: string;
     firstName: string;
     lastName: string;
@@ -17,7 +17,7 @@ export interface IUser extends Document {
 }
 
 export type User = {
-    _id?: string,
+    _id: string,
     userName: string,
     firstName: string,
     lastName: string,
@@ -29,7 +29,7 @@ export type User = {
 };
 
 export type UserToValidate = {
-    _id?: string,
+    _id: string,
     userName: string,
     firstName: string,
     lastName: string,

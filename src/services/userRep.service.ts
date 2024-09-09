@@ -4,10 +4,10 @@ import { UserRepository } from "../repository/user.repository";
 export class UserRepService {
     constructor(private userRepository: UserRepository) {}
 
-    createUser = async (user: User) => {
+    createUser = async (user: Partial<User>) => {
         return await this.userRepository.add(user);
     }
-    
+
     getUser = async (userNameOrEmail : string) =>{
         const isEmail = userNameOrEmail.includes("@");
         let user ;
@@ -28,6 +28,6 @@ export class UserRepService {
     }
 
     updateUser = async (_id: string, user: Partial<User>) => {
-        return await this.userRepository.update(_id, user);
+        await this.userRepository.update(_id, user);
     }
 }

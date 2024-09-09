@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jwtSecret, userService } from "../config";
 import { ErrorCode } from "../errors/error-codes";
-import { HttpError } from "../errors/http-error";
+import { HttpError, LoginError, NotFoundError, UnknownError } from "../errors/http-error";
 import {AuthorizedUser} from "../models/profile/authorized-user";
 import { LoginRequest } from "../models/login/login-request";
 import { LoginResponse, User, UserToValidate } from "../models/login/login-response";
@@ -37,14 +37,14 @@ export class UserService implements IUserService {
         const user = await this.userRepService.getUser(loginRequest.userName);
         
         if (!user){
-            return undefined;
+            throw new LoginError();
         }
         const passwordMatch = await bcrypt.compare(loginRequest.password, user.passwordHash);
         if (!passwordMatch){
-            return undefined;
+            throw new LoginError();
         }
         const tokenPayload: AuthorizedUser = {
-            _id: user._id||"",
+            _id: user._id,
             userName: user.userName,
             email: user.email
         };
@@ -77,12 +77,7 @@ export class UserService implements IUserService {
     }
 
     signup = async (registerRequest: RegisterRequest) => {
-        const userToValidate: Partial<UserToValidate> = {
-            userName: registerRequest.userName,
-            email: registerRequest.email,
-            password: registerRequest.password
-        };
-        this.validateInfo(userToValidate, true);
+        this.validateInfo(registerRequest, true);
         const emailExists = await this.userRepService.checkEmailExistance(registerRequest.email);
         if (emailExists) {
             throw new HttpError(400, ErrorCode.EMAIL_EXISTS, "Email Exists");
@@ -92,24 +87,20 @@ export class UserService implements IUserService {
             throw new HttpError(400, ErrorCode.USERNAME_EXISTS, "Username exists");
         }
         const passwordHash = await bcrypt.hash(registerRequest.password, 10);
-        const newUser: User = {
+        const newUser: Partial<User> = {
             userName: registerRequest.userName,
-            firstName: "",
-            lastName: "",
             email: registerRequest.email,
             passwordHash,
-            profileImage: "",
             isPrivate: false,
-            bio: "",
         }
         const createdUser = await this.userRepService.createUser(newUser);
         if (!createdUser) {
-            throw new HttpError(400, ErrorCode.UNSUCCESSFUL_SIGNUP, "Signup unsuccessful due to an unknown reason");
+            throw new UnknownError();
         }
         const loginRequest: LoginRequest = {
             userName: registerRequest.userName,
             password: registerRequest.password,
-            rememberMe: false
+            rememberMe: false,
         }
         const loginResponse = await this.login(loginRequest);
         return loginResponse;
@@ -118,14 +109,14 @@ export class UserService implements IUserService {
     getMyProfile = async (userName: string) => {
         const user = await this.userRepService.getUser(userName);
         if (!user) {
-            return undefined;
+            throw new UnknownError();
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
         const followerCount = await this.followRepository.getFollowerCount(user.userName);
         const followingCount = await this.followRepository.getFollowingCount(user.userName);
         const postCount = await this.postRepository.getPostCount(user.userName, false);
         const profile: MyProfileDto = {
-            userName: user.userName,
+            userName,
             email,
             firstName,
             lastName,
@@ -142,7 +133,7 @@ export class UserService implements IUserService {
     getProfile = async (userName: string, myUserName: string) => {
         const user = await this.userRepService.getUser(userName);
         if (!user) {
-            return undefined;
+            throw new NotFoundError("user");
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
         const {followRequestState, isBlocked, isCloseFriend} = await this.followRepository.getFollow(myUserName, userName)|| {
@@ -176,11 +167,6 @@ export class UserService implements IUserService {
     editProfile = async (profileDto: EditProfileDto, user: AuthorizedUser) => {
         const passwordIsUpdated = !!profileDto.password;
         this.validateInfo(profileDto, passwordIsUpdated);
-        if (profileDto.userName != user.userName) {
-            if (await this.userRepService.checkUserNameExistance(profileDto.userName)) {
-                throw new HttpError(400, ErrorCode.USERNAME_EXISTS, "Username exists");
-            }
-        }
         if (profileDto.email != user.email) {
             if (await this.userRepService.checkEmailExistance(profileDto.email)) {
                 throw new HttpError(400, ErrorCode.EMAIL_EXISTS, "Email exists");
@@ -188,18 +174,17 @@ export class UserService implements IUserService {
         }
         const oldUser = await this.userRepService.getUser(user.email);
         if (!oldUser) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "An error occurred reading database.");
+            throw new UnknownError();
         }
         if (oldUser.isPrivate && !profileDto.isPrivate) {
-            this.followRepository.acceptPendingRequests(profileDto.userName);
+            this.followRepository.acceptPendingRequests(user.userName);
         }
         const passwordHash = passwordIsUpdated ? await bcrypt.hash(profileDto.password, 10) : oldUser.passwordHash;
         const userToBeUpdated = {
             ... profileDto,
             passwordHash,
         };
-        const updatedUser = await this.userRepService.updateUser(user._id, userToBeUpdated);
-        return updatedUser;
+        await this.userRepService.updateUser(user._id, userToBeUpdated);
     }
 
     checkMentionAccess = async (myUserName: string, userName: string) => {

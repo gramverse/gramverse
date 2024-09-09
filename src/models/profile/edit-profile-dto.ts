@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const zodProfileDto = z.object({
-    userName: z.string().nonempty(),
     email: z.string().nonempty(),
     password: z.string(),
     firstName: z.string(),
