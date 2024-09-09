@@ -67,4 +67,3 @@
  *       500:
  *         description: Internal server error.
  */
-

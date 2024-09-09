@@ -1,5 +1,5 @@
 export type TagRequest = {
-    postId: string,
-    tag: string,
-    isDeleted: boolean,
+    postId: string;
+    tag: string;
+    isDeleted: boolean;
 };

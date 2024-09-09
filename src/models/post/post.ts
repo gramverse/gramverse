@@ -1,4 +1,4 @@
-import z from 'zod'
+import z from "zod";
 
 export interface IPost extends Document {
     _id: string;
@@ -7,7 +7,7 @@ export interface IPost extends Document {
     caption: string;
     mentions: string[];
     forCloseFriends: boolean;
-    creationDate: Date,
+    creationDate: Date;
 }
 
 export interface Post {
@@ -17,15 +17,15 @@ export interface Post {
     caption: string;
     mentions: string[];
     forCloseFriends: boolean;
-    creationDate: Date,
+    creationDate: Date;
 }
 
 export const zodPostDto = z.object({
-    userName : z.string().nonempty(),
+    userName: z.string().nonempty(),
     photoUrls: z.array(z.string()).nonempty(),
-    caption : z.string(),
+    caption: z.string(),
     mention: z.string().nonempty(),
     forCloseFriends: z.boolean(),
 });
 
-export type PostDto = z.infer<typeof zodPostDto>  
+export type PostDto = z.infer<typeof zodPostDto>;

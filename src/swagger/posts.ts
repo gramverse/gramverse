@@ -270,7 +270,7 @@
  *   get:
  *     summary: Retrieve saved posts (bookmarks) for the current user
  *     description: This route allows the current authenticated user to retrieve a list of posts they have saved as bookmarks.
- *     tags: 
+ *     tags:
  *       - Bookmarks
  *     parameters:
  *       - in: query
@@ -301,5 +301,3 @@
  *       500:
  *         description: Internal server error
  */
-
-

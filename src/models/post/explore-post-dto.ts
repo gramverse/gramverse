@@ -1,6 +1,6 @@
 import {PostDetailDto} from "./post-detail-dto";
 
-export type ExplorePostDto = PostDetailDto&{
-    profileImage: string,
-    followerCount: number,
-}
+export type ExplorePostDto = PostDetailDto & {
+    profileImage: string;
+    followerCount: number;
+};

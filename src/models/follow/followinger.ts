@@ -1,5 +1,5 @@
 export type Followinger = {
-    userName: string,
-    followerCount: number,
-    profileImage: string,
-}
+    userName: string;
+    followerCount: number;
+    profileImage: string;
+};

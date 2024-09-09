@@ -1,4 +1,4 @@
-import { z } from "zod";
+import {z} from "zod";
 
 export const zodRegisterRequest = z.object({
     userName: z.string().nonempty(),

@@ -10,6 +10,6 @@ export interface Follow {
     isCloseFriend: boolean;
     isBlocked: boolean;
     isDeleted: boolean;
-    created_time: Date
-    updated_time: Date
+    created_time: Date;
+    updated_time: Date;
 }

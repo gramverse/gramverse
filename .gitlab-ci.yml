@@ -1,21 +1,21 @@
-stages:         
-  - build
-  - deploy
+stages:
+    - build
+    - deploy
 
-build-job:      
-  stage: build
-  script:
-    - cd ~/projects/collegegram-back-end
-    - git pull
-    - cd /home/ubuntu/projects
-    - sudo docker-compose build
-  only:
-    - main
+build-job:
+    stage: build
+    script:
+        - cd ~/projects/collegegram-back-end
+        - git pull
+        - cd /home/ubuntu/projects
+        - sudo docker-compose build
+    only:
+        - main
 
-deploy-job:     
-  stage: deploy
-  script:
-    - cd /home/ubuntu/projects
-    - sudo docker-compose up -d
-  only:
-    - main
+deploy-job:
+    stage: deploy
+    script:
+        - cd /home/ubuntu/projects
+        - sudo docker-compose up -d
+    only:
+        - main

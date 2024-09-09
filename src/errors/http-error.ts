@@ -1,7 +1,11 @@
-import { ErrorCode } from "./error-codes";
+import {ErrorCode} from "./error-codes";
 
 export class HttpError extends Error {
-    constructor(public statusCode: number, public errorCode: number, public message: string) {
+    constructor(
+        public statusCode: number,
+        public errorCode: number,
+        public message: string,
+    ) {
         super();
     }
 }
@@ -19,7 +23,7 @@ export class UnknownError extends HttpError {
 }
 
 export class NotFoundError extends HttpError {
-    constructor(public objectType: "page"|"user"|"post") {
+    constructor(public objectType: "page" | "user" | "post") {
         let tempErrorCode: ErrorCode;
         switch (objectType) {
             case "user":

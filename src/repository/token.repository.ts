@@ -1,6 +1,6 @@
-import mongoose, { Model } from "mongoose";
-import { tokenSchema } from "../models/reset-password/token-schema";
-import { IToken, Token } from "../models/reset-password/token";
+import mongoose, {Model} from "mongoose";
+import {tokenSchema} from "../models/reset-password/token-schema";
+import {IToken, Token} from "../models/reset-password/token";
 
 export interface ITokenRepository {
     addToken: (token: Token) => Promise<Token | undefined>;
@@ -12,7 +12,7 @@ export interface ITokenRepository {
 
 export class TokenRepository implements ITokenRepository {
     private tokens: Model<IToken>;
-    
+
     constructor(private dataHandler: typeof mongoose) {
         this.tokens = dataHandler.model<IToken>("tokens", tokenSchema);
     }
@@ -23,24 +23,29 @@ export class TokenRepository implements ITokenRepository {
             return undefined;
         }
         return createdDocument.toObject();
-    }
+    };
 
     updateToken = async (tokenData: Token) => {
-        const updatedDocument = await this.tokens.updateOne({ token: tokenData.token }, tokenData);
+        const updatedDocument = await this.tokens.updateOne(
+            {token: tokenData.token},
+            tokenData,
+        );
         if (!updatedDocument.acknowledged) {
             return undefined;
         }
         return tokenData;
-    }
+    };
 
     getTokenByValue = async (tokenValue: string) => {
-        const token: Token | undefined = await this.tokens.findOne({ token: tokenValue }).lean() || undefined;
+        const token: Token | undefined =
+            (await this.tokens.findOne({token: tokenValue}).lean()) ||
+            undefined;
         return token;
-    }
+    };
 
     markTokenAsUsed = async (tokenValue: string) => {
-        await this.tokens.updateOne({ token: tokenValue }, { isUsed: true });
-    }
+        await this.tokens.updateOne({token: tokenValue}, {isUsed: true});
+    };
 
     // deleteExpiredTokens = async () => {
     //     await this.tokens.deleteMany({ expireTime: { $lt: new Date() }, isUsed: false });
