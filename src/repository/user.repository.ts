@@ -2,12 +2,12 @@ import mongoose, { Model } from "mongoose";
 import {usersSchemaObject} from "../models/profile/users-schema";
 import { User, IUser } from "../models/login/login-response";
 import { object } from "zod";
+import { convertType } from "../utilities/convert-type";
 
 
 export interface IUserRepository {
-    add: (user: User) => Promise<User|undefined>;
-    update: (_id: string, user: Partial<User>) => Promise<Partial<User>|undefined>;
-    updatePassword: (user: User) => Promise<User|undefined>;
+    add: (user: User) => Promise<string>;
+    update: (_id: string, user: Partial<User>) => Promise<void>;
     checkEmailExistance: (email: string) => Promise<boolean>;
     checkUserNameExistance: (userName: string) => Promise<boolean>;
     getUserByEmail: (email: string) => Promise<User|undefined>;
@@ -21,55 +21,19 @@ export class UserRepository implements IUserRepository {
         this.users = dataHandler.model<IUser>("users", usersSchema);
     }
 
-    add = async (user: User) => {
-        const createdDocument = await this.users.create(user);
-        if (!createdDocument) {
-            return undefined;
-        }
-        const newUser: User = createdDocument;
-        return newUser;
-    }
-
-    update = async (_id: string, user: Partial<User>) => {
-        const updatedDocument = await this.users.updateOne({_id}, user);
-        if (!updatedDocument.acknowledged) {
-            return undefined;
-        }
-        return user;
-    }
-
-    updatePassword = async (myuser: User) => {
-
-        
-        const MUser = await this.users.findOne({userName: myuser.userName}) || undefined;
-
-        if (!MUser) {
-            throw new Error(`User with username ${myuser.userName} not found`);
-        }
-        
-        MUser.passwordHash = myuser.passwordHash;
-    
-        const updatedDocument = await this.users.updateOne({_id: myuser._id}, MUser);
-    
-        if (!updatedDocument.acknowledged) {
-            return undefined;
-        }
-    
-        return myuser;
+    add = async (user: Partial<User>) => {
+        const createdUser = await this.users.create(user);
+        return createdUser._id;
     }
 
     getUserByUserName = async (userName : string) => {
-        const user = await this.users.findOne({userName})||undefined;
-        const modifiedUser = JSON.parse(JSON.stringify(user));
-        delete modifiedUser["__v"];
-        console.log(modifiedUser);
-        return user;
+        const user = (await this.users.findOne({userName}))||undefined;
+        return convertType<User, IUser>(user);
     }
 
     getUserByEmail = async (email : string) =>{
         const user = await this.users.findOne({email})||undefined;
-
-        return user;
+        return convertType<User, IUser>(user);
     }
 
     checkUserNameExistance = async (userName : string) => {
@@ -80,5 +44,9 @@ export class UserRepository implements IUserRepository {
     checkEmailExistance = async (email : string) =>{
         const user = await this.users.findOne({email});
         return !!user;
+    }
+
+    update = async (_id: string, user: Partial<User>) => {
+        await this.users.updateOne({_id}, user);
     }
 }

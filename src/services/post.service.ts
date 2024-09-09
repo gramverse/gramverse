@@ -147,7 +147,7 @@ export class PostService {
             const follow = await this.followRepService.getFollow(userName, myUserName);
             forCloseFriends = (!follow || !follow.isCloseFriend) ? false: true;
         }
-        const posts = await this.postRepService.getPostsByUserName(userName, forCloseFriends, skip, limit);
+        const posts = await this.postRepService.getPostsByUserName(userName, forCloseFriends, page, limit);
         const totalCount = await this.postRepService.getPostCount(userName, forCloseFriends);
         const postDtos : PostDto[] = [];
         posts.forEach(p => {
