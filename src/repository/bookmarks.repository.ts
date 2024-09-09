@@ -46,4 +46,14 @@ export  class BookmarksRepository {
         const bookmark: Bookmark|undefined = await this.bookmarks.findOne({userName, postId})||undefined;
         return bookmark;
     }
+    getBookmarks = async (userName: string,skip: number, limit: number) => {
+        const postIds = await this.bookmarks
+        .distinct('postId', { userName })            
+        .skip(skip)
+        .limit(limit)
+        .sort({creationDate: -1})
+        .lean(); ;
+        return postIds;
+    }
+
 }
