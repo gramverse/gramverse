@@ -89,3 +89,6 @@ GET api/check-username/:userName؟
 
 ### 
 GET http://localhost:3000/api/users/blackList?userName=hawmidak&page=1&limit=10
+
+###
+GET http://localhost:3000/api/posts/myBookMarks?page=1&limit=10

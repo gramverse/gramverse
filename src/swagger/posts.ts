@@ -264,4 +264,42 @@
  *       500:
  *         description: Internal server error.
  */
+/**
+ * @swagger
+ * /api/posts/myBookMarks:
+ *   get:
+ *     summary: Retrieve saved posts (bookmarks) for the current user
+ *     description: This route allows the current authenticated user to retrieve a list of posts they have saved as bookmarks.
+ *     tags: 
+ *       - Bookmarks
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: Successfully returned the list of saved posts.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Post'
+ *       401:
+ *         description: Unauthorized access (user is not logged in)
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
+
 

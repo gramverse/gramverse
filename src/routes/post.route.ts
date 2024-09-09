@@ -11,7 +11,7 @@ import { BookmarkRequest, zodBookmarkRequest } from "../models/bookmark/bookmark
 import { authMiddleware } from "../middlewares/auth-middleware";
 import {zodGetCommentsRequest} from "../models/comment/get-comments-request";
 import {zodGetPostsRequest} from "../models/post/get-posts-request";
-
+import {zodMyBookMarkRequest} from "../models/bookmark/mybookmark-request"
 declare module "express" {
     interface Request {
         user?: AuthorizedUser;
@@ -190,4 +190,17 @@ postRouter.get("/comments", async (req: Request, res, next) => {
     } catch (err) {
         next(err);
     }
+})
+
+postRouter.get("/myBookMarks",async(req:Request,res,next) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {page, limit} = zodMyBookMarkRequest.parse(req.query);
+        const posts = await postService.getMyBookMarks(req.user.userName, page, limit);
+        res.status(200).send(posts);
+    } catch (err) {
+        next(err);
+    }   
 })
