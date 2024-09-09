@@ -50,7 +50,7 @@ export class NotificationService {
         }
         const idList = notifications.map(n => n._id.toString());
         this.notificationRepository.markAsRead(idList);
-        return {notifications: dtos, totalCount: dtos.length};
+        return {notifications: dtos, totalCount};
     }
 
     getLikeDto = async (event: Event, notification: Notification) => {
