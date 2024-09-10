@@ -61,14 +61,16 @@ export class BookmarksRepository {
         return bookmark;
     };
     getBookmarks = async (userName: string, skip: number, limit: number) => {
-        const postIds = await this.bookmarks
-            .distinct("postId", {userName})
-            .skip(skip)
-            .limit(limit)
-            .sort({creationDate: -1})
-            .lean();
-        return postIds;
-    }
+        const bookmarks = await this.bookmarks
+            .find({ userName }) 
+            .sort({ creationDate: -1 })  
+            .skip(skip)  
+            .limit(limit)  
+            .select("postId")  
+            .lean();  
+    
+        return bookmarks.map(bookmark => bookmark.postId);  
+    }    
     getCountBookmarks = async (userName: string) => {
         return await this.bookmarks.countDocuments({userName});
    }
