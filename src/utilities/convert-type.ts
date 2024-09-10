@@ -1,5 +1,5 @@
 export const convertType = <T, D extends Document & T>(
-    objectWithDocument: D | undefined|null,
+    objectWithDocument: D | undefined | null,
 ): T | undefined => {
     if (!objectWithDocument) {
         return;

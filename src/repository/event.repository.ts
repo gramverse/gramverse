@@ -2,7 +2,7 @@ import {Model} from "mongoose";
 import {Event, IEvent} from "../models/notification/event";
 import {eventSchema} from "../models/notification/event-schema";
 import {AddEventRequest} from "../models/notification/add-event-request";
-import { convertType } from "../utilities/convert-type";
+import {convertType} from "../utilities/convert-type";
 
 export class EventRepository {
     private events: Model<IEvent>;

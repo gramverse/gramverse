@@ -3,7 +3,7 @@ import {postSchema} from "../models/post/post-schema";
 import {IPost, Post, PostDto} from "../models/post/post";
 import {PostRequest} from "../models/post/post-request";
 import {EditPostRequest} from "../models/post/edit-post-request";
-import { convertType, convertTypeForArray } from "../utilities/convert-type";
+import {convertType, convertTypeForArray} from "../utilities/convert-type";
 
 export class PostRepository {
     private posts: Model<IPost>;
@@ -24,19 +24,17 @@ export class PostRepository {
     ): Promise<Post[]> => {
         let posts: Post[] = [];
         if (!forCloseFriends) {
-            posts = 
-                await this.posts
-                    .find({userName, forCloseFriends: false})
-                    .skip(skip)
-                    .limit(limit)
-                    .sort({creationDate: -1})
+            posts = await this.posts
+                .find({userName, forCloseFriends: false})
+                .skip(skip)
+                .limit(limit)
+                .sort({creationDate: -1});
         } else {
-            posts = 
-                await this.posts
-                    .find({userName})
-                    .skip(skip)
-                    .limit(limit)
-                    .sort({creationDate: -1})
+            posts = await this.posts
+                .find({userName})
+                .skip(skip)
+                .limit(limit)
+                .sort({creationDate: -1});
         }
         return posts;
     };
@@ -55,10 +53,7 @@ export class PostRepository {
     };
 
     update = async (editPostRequest: EditPostRequest) => {
-        await this.posts.updateOne(
-            {_id: editPostRequest._id},
-            editPostRequest,
-        );
+        await this.posts.updateOne({_id: editPostRequest._id}, editPostRequest);
     };
 
     getPostById = async (_id: string): Promise<Post | undefined> => {
@@ -81,7 +76,7 @@ export class PostRepository {
             })
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1})
+            .sort({creationDate: -1});
         return posts;
     };
 

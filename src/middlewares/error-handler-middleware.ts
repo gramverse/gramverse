@@ -21,14 +21,10 @@ export const errorHandler: ErrorRequestHandler = (
         return;
     } else if (err instanceof multer.MulterError) {
         if (err.code === "LIMIT_FILE_SIZE") {
-            res.status(400).send(
-                new UploadFileError("large file size")
-            );
+            res.status(400).send(new UploadFileError("large file size"));
             return;
         } else {
-            res.status(400).send(
-                new UploadFileError("unknown")
-            );
+            res.status(400).send(new UploadFileError("unknown"));
             return;
         }
     }

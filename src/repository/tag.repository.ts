@@ -2,7 +2,7 @@ import {Model} from "mongoose";
 import {tagSchema} from "../models/tag/tag-schema";
 import {ITag, Tag} from "../models/tag/tag";
 import {TagRequest} from "../models/tag/tag-request";
-import { convertTypeForArray } from "../utilities/convert-type";
+import {convertTypeForArray} from "../utilities/convert-type";
 
 export class TagRepository {
     private tags: Model<ITag>;

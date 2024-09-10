@@ -31,8 +31,8 @@ import {FollowRequestState} from "../models/follow/follow-request-state";
 import {PostService} from "./post.service";
 import {NotificationService} from "./notification.service";
 import {UserRepService} from "./user.rep.service";
-import { PostRepService } from "./post.rep.service";
-import { FollowRepService } from "./follow.rep.service";
+import {PostRepService} from "./post.rep.service";
+import {FollowRepService} from "./follow.rep.service";
 
 export interface IUserService {
     signup: (

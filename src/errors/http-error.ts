@@ -17,7 +17,7 @@ export class LoginError extends HttpError {
 }
 
 export class AuthorizationError extends HttpError {
-    constructor (public message: string = "Not authorized") {
+    constructor(public message: string = "Not authorized") {
         super(401, ErrorCode.UNAUTHORIZED, message);
     }
 }
@@ -28,7 +28,7 @@ export class UnknownError extends HttpError {
     }
 }
 
-type NotFoundObjectType = "page" | "user" | "post"|"comment";
+type NotFoundObjectType = "page" | "user" | "post" | "comment";
 export class NotFoundError extends HttpError {
     constructor(public objectType: NotFoundObjectType) {
         let tempErrorCode: ErrorCode;
@@ -51,7 +51,11 @@ export class NotFoundError extends HttpError {
     }
 }
 
-type MissingFieldName = "followingUserName"|"followerUserName"|"postId"|"commentId";
+type MissingFieldName =
+    | "followingUserName"
+    | "followerUserName"
+    | "postId"
+    | "commentId";
 export class MissingFieldError extends HttpError {
     constructor(public fieldName: MissingFieldName) {
         let errorCode: number;
@@ -73,7 +77,14 @@ export class MissingFieldError extends HttpError {
     }
 }
 
-type InvalidFieldName = "userName"|"password"|"email"|"followingUserName"|"parentCommentId"|"accepted"|"postId";
+type InvalidFieldName =
+    | "userName"
+    | "password"
+    | "email"
+    | "followingUserName"
+    | "parentCommentId"
+    | "accepted"
+    | "postId";
 export class ValidationError extends HttpError {
     constructor(public fieldName: InvalidFieldName) {
         let errorCode: number;
@@ -105,7 +116,7 @@ export class ValidationError extends HttpError {
 }
 
 export class UploadFileError extends HttpError {
-    constructor (public errorType: "large file size"|"unknown") {
+    constructor(public errorType: "large file size" | "unknown") {
         let errorCode: number;
         let message: string;
         switch (errorType) {
@@ -122,9 +133,14 @@ export class UploadFileError extends HttpError {
     }
 }
 
-type ForbiddenErrorType = "You are blocked"|"User is blocked by you"|"Edit post access denied"|"User is private"|"User is not followed";
+type ForbiddenErrorType =
+    | "You are blocked"
+    | "User is blocked by you"
+    | "Edit post access denied"
+    | "User is private"
+    | "User is not followed";
 export class ForbiddenError extends HttpError {
-    constructor (public errorType: ForbiddenErrorType) {
+    constructor(public errorType: ForbiddenErrorType) {
         let errorCode: number;
         let message: string;
         switch (errorType) {

@@ -20,9 +20,9 @@ import {FollowRequestState} from "../models/follow/follow-request-state";
 import {Post} from "../models/post/post";
 import {UserRepService} from "./user.rep.service";
 import {FollowRepService} from "./follow.rep.service";
-import { unknown } from "zod";
-import { CommentService } from "./comment.service";
-import { CommentRepService } from "./comment.rep.service";
+import {unknown} from "zod";
+import {CommentService} from "./comment.service";
+import {CommentRepService} from "./comment.rep.service";
 
 export class NotificationService {
     constructor(

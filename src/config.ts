@@ -21,9 +21,9 @@ import dotenv from "dotenv";
 import {UserRepService} from "./services/user.rep.service";
 import {FollowRepService} from "./services/follow.rep.service";
 import {PostRepService} from "./services/post.rep.service";
-import { CommentService } from "./services/comment.service";
-import { CommentRepService } from "./services/comment.rep.service";
-import { LikesRepository as LikeRepository } from "./repository/like.repository";
+import {CommentService} from "./services/comment.service";
+import {CommentRepService} from "./services/comment.rep.service";
+import {LikesRepository as LikeRepository} from "./repository/like.repository";
 
 dotenv.config();
 
@@ -46,19 +46,51 @@ export const followRepService = new FollowRepService(
     followRepository,
     userRepService,
 );
-export const commentRepService = new CommentRepService(commentRepository, commentslikeRepository);
-export const postRepService = new PostRepService(userRepService, followRepService, postRepository);
+export const commentRepService = new CommentRepService(
+    commentRepository,
+    commentslikeRepository,
+);
+export const postRepService = new PostRepService(
+    userRepService,
+    followRepService,
+    postRepository,
+);
 export const eventService = new EventService(eventRepository);
-export const notificationService = new NotificationService(notificationRepository, eventService, userRepService, followRepService, postRepService, commentRepService);
+export const notificationService = new NotificationService(
+    notificationRepository,
+    eventService,
+    userRepService,
+    followRepService,
+    postRepService,
+    commentRepService,
+);
 export const followService = new FollowService(
     followRepService,
     userRepService,
     notificationService,
     blockRepository,
 );
-export const commentService = new CommentService(commentRepService, postRepService, notificationService);
-export const postService = new PostService(followRepService, postRepService, userRepService, notificationService, commentRepService, tagRepository, likeRepository, bookmarkRepository);
-export const userService = new UserService(postRepService, userRepService, followRepService, notificationService);
+export const commentService = new CommentService(
+    commentRepService,
+    postRepService,
+    notificationService,
+);
+export const postService = new PostService(
+    followRepService,
+    postRepService,
+    userRepService,
+    notificationService,
+    commentRepService,
+    tagRepository,
+    likeRepository,
+    bookmarkRepository,
+);
+export const userService = new UserService(
+    postRepService,
+    userRepService,
+    followRepService,
+    notificationService,
+);
 export const resetService = new ResetService(
     tokenRepository,
     userRepService,

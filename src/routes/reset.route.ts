@@ -7,7 +7,11 @@ import {
 } from "express";
 import {resetService} from "../config";
 import {zodResetPasswordRequest} from "../models/reset-password/resetpassword-request";
-import {HttpError, MissingFieldError, ValidationError} from "../errors/http-error";
+import {
+    HttpError,
+    MissingFieldError,
+    ValidationError,
+} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {ZodError} from "zod";
 

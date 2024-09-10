@@ -2,7 +2,7 @@ import {Model} from "mongoose";
 import {followSchema} from "../models/follow/follow-schema";
 import {IFollow, Follow} from "../models/follow/follow";
 import {FollowRequestState} from "../models/follow/follow-request-state";
-import { convertTypeForArray } from "../utilities/convert-type";
+import {convertTypeForArray} from "../utilities/convert-type";
 
 export class BlockRepository {
     private blocks: Model<IFollow>;
@@ -30,7 +30,10 @@ export class BlockRepository {
     };
 
     getBlocks = async (followerUserName: string) => {
-        const blocks = await this.blocks.find({followerUserName, isBlocked: true})
+        const blocks = await this.blocks.find({
+            followerUserName,
+            isBlocked: true,
+        });
         return blocks;
     };
 
@@ -43,7 +46,7 @@ export class BlockRepository {
             .find({followerUserName, isBlocked: true})
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1})
+            .sort({creationDate: -1});
         return blockList;
     };
 

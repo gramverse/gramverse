@@ -1,7 +1,13 @@
 import jwt, {JwtPayload} from "jsonwebtoken";
 import {AuthorizedUser} from "../models/profile/authorized-user";
 import {Router, Request, Response, NextFunction} from "express";
-import {AuthorizationError, HttpError, MissingFieldError, NotFoundError, UnknownError} from "../errors/http-error";
+import {
+    AuthorizationError,
+    HttpError,
+    MissingFieldError,
+    NotFoundError,
+    UnknownError,
+} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {commentService, jwtSecret, postService} from "../config";
 import {zodLikeRequest, LikeRequest} from "../models/like/like-request";

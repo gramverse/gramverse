@@ -9,7 +9,7 @@ import {ResetPasswordRequest} from "../models/reset-password/resetpassword-reque
 import {EmailService} from "../utilities/nodemailer";
 import {UserService} from "./user.service";
 import {UserRepService} from "./user.rep.service";
-import { TokenRepository } from "../repository/token.repository";
+import {TokenRepository} from "../repository/token.repository";
 
 export interface IResetService {
     generateResetPasswordToken: (email: string) => Promise<void>;

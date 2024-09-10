@@ -1,13 +1,21 @@
-import { ForbiddenError, UnknownError, ValidationError } from "../errors/http-error";
+import {
+    ForbiddenError,
+    UnknownError,
+    ValidationError,
+} from "../errors/http-error";
 import {EditPostRequest} from "../models/post/edit-post-request";
 import {PostRequest} from "../models/post/post-request";
-import { FollowRepService } from "./follow.rep.service";
+import {FollowRepService} from "./follow.rep.service";
 import {PostRepository} from "../repository/post.repository";
-import { UserRepService } from "./user.rep.service";
-import { FollowRequestState } from "../models/follow/follow-request-state";
+import {UserRepService} from "./user.rep.service";
+import {FollowRequestState} from "../models/follow/follow-request-state";
 
 export class PostRepService {
-    constructor(private userRepService: UserRepService, private followRepService: FollowRepService, private postRepository: PostRepository) {}
+    constructor(
+        private userRepService: UserRepService,
+        private followRepService: FollowRepService,
+        private postRepository: PostRepository,
+    ) {}
 
     createPost = async (postRequest: PostRequest) => {
         return await this.postRepository.add(postRequest);
@@ -85,7 +93,7 @@ export class PostRepService {
             userName,
         );
         if (visitorFollow && visitorFollow.isBlocked) {
-            throw new ForbiddenError("User is blocked by you")
+            throw new ForbiddenError("User is blocked by you");
         }
         if (creatorFollow && creatorFollow.isBlocked) {
             throw new ForbiddenError("You are blocked");
@@ -99,7 +107,7 @@ export class PostRepService {
             (!visitorFollow ||
                 visitorFollow.followRequestState != FollowRequestState.ACCEPTED)
         ) {
-            throw new ForbiddenError("User is private")
+            throw new ForbiddenError("User is private");
         }
     };
 }

@@ -12,7 +12,13 @@ import {
 import {Router, Request, Response, NextFunction} from "express";
 import {zodLoginRequest} from "../models/login/login-request";
 import {zodRegisterRequest} from "../models/register/register-request";
-import {AuthorizationError, HttpError, LoginError, MissingFieldError, UnknownError} from "../errors/http-error";
+import {
+    AuthorizationError,
+    HttpError,
+    LoginError,
+    MissingFieldError,
+    UnknownError,
+} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {LoginResponse} from "../models/login/login-response";
 import {AuthorizedUser} from "../models/profile/authorized-user";
@@ -114,10 +120,7 @@ userRouter.post("/profile", async (req: Request, res, next) => {
             throw new AuthorizationError();
         }
         const profileDto = zodProfileDto.parse(req.body);
-        await userService.editProfile(
-            profileDto,
-            req.user,
-        );
+        await userService.editProfile(profileDto, req.user);
         res.status(200).send();
     } catch (err) {
         next(err);
@@ -131,19 +134,13 @@ userRouter.post("/follow", async (req: Request, res, next) => {
         }
         const {followingUserName, isFollow} = req.body;
         if (!followingUserName) {
-            throw new MissingFieldError("followingUserName")
+            throw new MissingFieldError("followingUserName");
         }
         const followerUserName = req.user.userName;
         if (isFollow) {
-            await followService.follow(
-                followerUserName,
-                followingUserName,
-            );
+            await followService.follow(followerUserName, followingUserName);
         } else {
-            await followService.unfollow(
-                followerUserName,
-                followingUserName,
-            );
+            await followService.unfollow(followerUserName, followingUserName);
         }
         res.status(200).send();
     } catch (err) {
@@ -207,15 +204,9 @@ userRouter.post("/closeFriend", async (req: Request, res, next) => {
         }
         const {userName, isAdd} = zodCloseFriendRequest.parse(req.body);
         if (isAdd) {
-            await followService.addCloseFriend(
-                req.user.userName,
-                userName,
-            );
+            await followService.addCloseFriend(req.user.userName, userName);
         } else {
-            await followService.removeCloseFriend(
-                req.user.userName,
-                userName,
-            );
+            await followService.removeCloseFriend(req.user.userName, userName);
         }
         res.status(200).send();
     } catch (err) {
@@ -257,15 +248,9 @@ userRouter.post("/block", async (req: Request, res, next) => {
                 followerUserName: req.user.userName,
             });
         if (isBlock) {
-            await followService.block(
-                followerUserName,
-                followingUserName,
-            );
+            await followService.block(followerUserName, followingUserName);
         } else {
-            await followService.unBlock(
-                followerUserName,
-                followingUserName,
-            );
+            await followService.unBlock(followerUserName, followingUserName);
         }
         res.status(200).send();
     } catch (err) {
@@ -311,10 +296,7 @@ userRouter.post("/removeFollow", async (req: Request, res, next) => {
             throw new MissingFieldError("followerUserName");
         }
         const followingUserName = req.user.userName;
-        await followService.removeFollow(
-            followerUserName,
-            followingUserName,
-        );
+        await followService.removeFollow(followerUserName, followingUserName);
         res.status(200).send();
     } catch (err) {
         next(err);

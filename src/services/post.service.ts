@@ -8,7 +8,13 @@ import {FollowRepService} from "./follow.rep.service";
 import {Tag} from "../models/tag/tag";
 import {PostDto} from "../models/post/post-dto";
 import {PostDetailDto} from "../models/post/post-detail-dto";
-import {ForbiddenError, HttpError, NotFoundError, UnknownError, ValidationError} from "../errors/http-error";
+import {
+    ForbiddenError,
+    HttpError,
+    NotFoundError,
+    UnknownError,
+    ValidationError,
+} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {EditPostRequest} from "../models/post/edit-post-request";
 import {TagRequest} from "../models/tag/tag-request";
@@ -36,8 +42,8 @@ import {NotificationRepository} from "../repository/notification.repository";
 import {NotificationService} from "./notification.service";
 import {PostRepService} from "./post.rep.service";
 import {UserRepService} from "./user.rep.service";
-import { CommentService } from "./comment.service";
-import { CommentRepService } from "./comment.rep.service";
+import {CommentService} from "./comment.service";
+import {CommentRepService} from "./comment.rep.service";
 
 export class PostService {
     constructor(
@@ -276,7 +282,10 @@ export class PostService {
     };
 
     likePost = async (likeRequest: LikeRequest) => {
-        await this.postRepService.checkPostAccess(likeRequest.userName, likeRequest.postId);
+        await this.postRepService.checkPostAccess(
+            likeRequest.userName,
+            likeRequest.postId,
+        );
         const existingLike = await this.likesRepository.getLike(
             likeRequest.userName,
             likeRequest.postId,
@@ -308,7 +317,10 @@ export class PostService {
     };
 
     unlikePost = async (likeRequest: LikeRequest) => {
-        await this.postRepService.checkPostAccess(likeRequest.userName, likeRequest.postId);
+        await this.postRepService.checkPostAccess(
+            likeRequest.userName,
+            likeRequest.postId,
+        );
         const likeDto: LikeDto = {
             userName: likeRequest.userName,
             postId: likeRequest.postId,
@@ -441,17 +453,26 @@ export class PostService {
             postDtos.push(explorePostDto);
         }
         return {postDtos, totalCount};
-    }
+    };
     getMyBookMarks = async (userName: string, page: number, limit: number) => {
         const skip = (page - 1) * limit;
-        const totalCount = await this.bookmarkRepository.getCountBookmarks(userName);
-        const postIds = await this.bookmarkRepository.getBookmarks(userName, skip, limit);
-        
+        const totalCount =
+            await this.bookmarkRepository.getCountBookmarks(userName);
+        const postIds = await this.bookmarkRepository.getBookmarks(
+            userName,
+            skip,
+            limit,
+        );
+
         const posts = [];
-    
+
         for (const postId of postIds) {
-            const hasAccess = await this.notificationService.checkPostAccessForNotification(userName, postId);
-    
+            const hasAccess =
+                await this.notificationService.checkPostAccessForNotification(
+                    userName,
+                    postId,
+                );
+
             if (hasAccess) {
                 const post = await this.postRepService.getPostById(postId);
                 if (post) {
@@ -462,11 +483,10 @@ export class PostService {
                 }
             }
         }
-    
+
         return {
             posts,
             totalCount,
         };
     };
-    
 }
