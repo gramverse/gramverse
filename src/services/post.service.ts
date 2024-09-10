@@ -419,13 +419,14 @@ export class PostService {
     }
         getMyBookMarks = async(userName: string, page: number, limit: number)=>{
         const skip = (page-1) * limit;
+        const totalCount = await this.bookmarkRepository.getCountBookmarks(userName)
         const postIds = await this.bookmarksRepository.getBookmarks(userName,skip,limit)
         for (const postId of postIds) {
             const hasAccess = await this.notificationService.checkPostAccessForNotification(userName, postId);
         
             if (hasAccess) {
                 const post = await this.postRepService.getPostById(postId);
-                return post?.photoUrls[0],post?._id               
+                return post?.photoUrls[0],post?._id,totalCount               
             }
         }
             
