@@ -1,8 +1,11 @@
 import {Model} from "mongoose";
 import {commentsLikeSchema} from "../models/commentslike/commentslike-schema";
-import {ICommentslike as ICommentLike, Commentslike as CommentLike} from "../models/commentslike/commentslike";
+import {
+    ICommentslike as ICommentLike,
+    Commentslike as CommentLike,
+} from "../models/commentslike/commentslike";
 import {CommentsLikeDto} from "../models/commentslike/commentslike-request";
-import { convertType } from "../utilities/convert-type";
+import {convertType} from "../utilities/convert-type";
 
 export class CommentLikeRepository {
     private commentslikes: Model<ICommentLike>;
@@ -36,8 +39,10 @@ export class CommentLikeRepository {
     };
 
     getCommentLike = async (userName: string, commentId: string) => {
-        const commentLike =
-            (await this.commentslikes.findOne({userName, commentId}));
+        const commentLike = await this.commentslikes.findOne({
+            userName,
+            commentId,
+        });
         return convertType<CommentLike, ICommentLike>(commentLike);
     };
 

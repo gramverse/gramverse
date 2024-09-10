@@ -60,10 +60,7 @@ fileRouter.post(
                     userName: req.user.userName,
                 });
             }
-            await userService.editProfile(
-                profileDto,
-                req.user,
-            );
+            await userService.editProfile(profileDto, req.user);
             res.status(200).send();
         } catch (err) {
             next(err);
@@ -123,10 +120,7 @@ fileRouter.post(
                     postRequest.photoUrls.push(`/api/files/${f.filename}`);
                 });
             }
-            await postService.editPost(
-                postRequest,
-                req.user.userName,
-            );
+            await postService.editPost(postRequest, req.user.userName);
             res.status(200).send();
         } catch (err) {
             next(err);

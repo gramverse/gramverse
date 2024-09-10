@@ -1,5 +1,10 @@
 import {ErrorCode} from "../errors/error-codes";
-import {ForbiddenError, HttpError, NotFoundError, UnknownError} from "../errors/http-error";
+import {
+    ForbiddenError,
+    HttpError,
+    NotFoundError,
+    UnknownError,
+} from "../errors/http-error";
 import {UserRepository} from "../repository/user.repository";
 import {FollowRepService} from "./follow.rep.service";
 import {FollowRequestState} from "../models/follow/follow-request-state";
@@ -29,10 +34,7 @@ export class FollowService {
             throw new NotFoundError("user");
         }
         if (user.isPrivate) {
-            await this.sendFollowRequest(
-                followerUserName,
-                followingUserName,
-            );
+            await this.sendFollowRequest(followerUserName, followingUserName);
         }
         const existingFollow = await this.followRepService.getFollow(
             followerUserName,
@@ -292,16 +294,14 @@ export class FollowService {
                 followingUserName,
             );
         }
-        await this.followRepService.createFollow(
-            {
-                followerUserName,
-                followingUserName,
-                isBlocked: true,
-                followRequestState: FollowRequestState.NONE,
-                isCloseFriend: false,
-                isDeleted: true,
-            }
-        );
+        await this.followRepService.createFollow({
+            followerUserName,
+            followingUserName,
+            isBlocked: true,
+            followRequestState: FollowRequestState.NONE,
+            isCloseFriend: false,
+            isDeleted: true,
+        });
     };
 
     unBlock = async (followerUserName: string, followingUserName: string) => {
@@ -319,10 +319,7 @@ export class FollowService {
         if (!existingBlock) {
             return;
         }
-        await this.blockRepository.unblock(
-            followerUserName,
-            followingUserName,
-        );
+        await this.blockRepository.unblock(followerUserName, followingUserName);
     };
 
     getBlackList = async (userName: string, page: number, limit: number) => {

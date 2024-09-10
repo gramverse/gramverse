@@ -2,7 +2,7 @@ import {Model} from "mongoose";
 import {commentSchema} from "../models/comment/comment-schema";
 import {IComment, Comment} from "../models/comment/comment";
 import {CommentRequest} from "../models/comment/comment-request";
-import { convertType, convertTypeForArray } from "../utilities/convert-type";
+import {convertType, convertTypeForArray} from "../utilities/convert-type";
 
 export class CommentRepository {
     private comments: Model<IComment>;

@@ -1,15 +1,26 @@
-import { CommentRepService } from "./comment.rep.service";
+import {CommentRepService} from "./comment.rep.service";
 import {CommentLikeRepository} from "../repository/commentlike.repository";
 import {CommentDto} from "../models/comment/comment-dto";
 import {Comment} from "../models/comment/comment";
-import { PostRepService } from "./post.rep.service";
-import { CommentsLikeDto, CommentsLikeRequest } from "../models/commentslike/commentslike-request";
-import { CommentRequest } from "../models/comment/comment-request";
-import { NotFoundError, UnknownError, ValidationError } from "../errors/http-error";
-import { NotificationService } from "./notification.service";
+import {PostRepService} from "./post.rep.service";
+import {
+    CommentsLikeDto,
+    CommentsLikeRequest,
+} from "../models/commentslike/commentslike-request";
+import {CommentRequest} from "../models/comment/comment-request";
+import {
+    NotFoundError,
+    UnknownError,
+    ValidationError,
+} from "../errors/http-error";
+import {NotificationService} from "./notification.service";
 
 export class CommentService {
-    constructor (private commentRepService: CommentRepService, private postRepService: PostRepService, private notificationService: NotificationService) {}
+    constructor(
+        private commentRepService: CommentRepService,
+        private postRepService: PostRepService,
+        private notificationService: NotificationService,
+    ) {}
 
     addComment = async (commentRequest: CommentRequest) => {
         if (
@@ -24,7 +35,8 @@ export class CommentService {
             commentRequest.userName,
             commentRequest.postId,
         );
-        const createdComment = await this.commentRepService.createComment(commentRequest);
+        const createdComment =
+            await this.commentRepService.createComment(commentRequest);
         if (createdComment) {
             this.notificationService.addComment(
                 commentRequest.userName,
@@ -113,11 +125,11 @@ export class CommentService {
             if (!existingCommentsLike.isDeleted) {
                 return;
             }
-            
-                await this.commentRepService.undeleteCommentLike(
-                    commentslikeRequest.userName,
-                    commentslikeRequest.commentId,
-                );
+
+            await this.commentRepService.undeleteCommentLike(
+                commentslikeRequest.userName,
+                commentslikeRequest.commentId,
+            );
             return;
         }
         const commentsLikeDto: CommentsLikeDto = {
@@ -147,11 +159,10 @@ export class CommentService {
         if (!existingCommentsLike || existingCommentsLike.isDeleted) {
             return;
         }
-        
-            await this.commentRepService.deleteCommentLike(
-                commentslikeRequest.userName,
-                commentslikeRequest.commentId,
-            );
-    };
 
+        await this.commentRepService.deleteCommentLike(
+            commentslikeRequest.userName,
+            commentslikeRequest.commentId,
+        );
+    };
 }

@@ -2,7 +2,7 @@ import {Model} from "mongoose";
 import {bookmarkSchema} from "../models/bookmark/bookmark-schema";
 import {IBookmark, Bookmark} from "../models/bookmark/bookmark";
 import {BookmarkDto} from "../models/bookmark/bookmark-request";
-import { convertType } from "../utilities/convert-type";
+import {convertType} from "../utilities/convert-type";
 
 export class BookmarkRepository {
     private bookmarks: Model<IBookmark>;
@@ -32,17 +32,11 @@ export class BookmarkRepository {
     };
 
     deleteBookmark = async (userName: string, postId: string) => {
-        await this.bookmarks.updateOne(
-            {userName, postId},
-            {isDeleted: true},
-        );
+        await this.bookmarks.updateOne({userName, postId}, {isDeleted: true});
     };
 
     undeleteBookmark = async (userName: string, postId: string) => {
-        await this.bookmarks.updateOne(
-            {userName, postId},
-            {isDeleted: false},
-        );
+        await this.bookmarks.updateOne({userName, postId}, {isDeleted: false});
     };
 
     getBookmark = async (userName: string, postId: string) => {
@@ -52,17 +46,17 @@ export class BookmarkRepository {
 
     getBookmarks = async (userName: string, skip: number, limit: number) => {
         const bookmarks = await this.bookmarks
-            .find({ userName }) 
-            .sort({ creationDate: -1 })  
-            .skip(skip)  
-            .limit(limit)  
-            .select("postId")  
-            .lean();  
-    
-        return bookmarks.map(bookmark => bookmark.postId);  
-    }    
+            .find({userName})
+            .sort({creationDate: -1})
+            .skip(skip)
+            .limit(limit)
+            .select("postId")
+            .lean();
+
+        return bookmarks.map((bookmark) => bookmark.postId);
+    };
 
     getCountBookmarks = async (userName: string) => {
         return await this.bookmarks.countDocuments({userName});
-    }
+    };
 }

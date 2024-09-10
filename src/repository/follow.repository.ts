@@ -2,7 +2,7 @@ import {Model} from "mongoose";
 import {followSchema} from "../models/follow/follow-schema";
 import {IFollow, Follow} from "../models/follow/follow";
 import {FollowRequestState} from "../models/follow/follow-request-state";
-import { convertType, convertTypeForArray } from "../utilities/convert-type";
+import {convertType, convertTypeForArray} from "../utilities/convert-type";
 
 export class FollowRepository {
     private follows: Model<IFollow>;
@@ -43,10 +43,9 @@ export class FollowRepository {
     };
 
     getFollow = async (followerUserName: string, followingUserName: string) => {
-        const follow =
-            await this.follows.findOne({
-                followerUserName,
-                followingUserName,
+        const follow = await this.follows.findOne({
+            followerUserName,
+            followingUserName,
         });
         return convertType<Follow, IFollow>(follow);
     };
@@ -65,7 +64,7 @@ export class FollowRepository {
             .skip(skip)
             .limit(limit)
             .sort({creationDate: -1});
-        return (followers);
+        return followers;
     };
 
     getFollowings = async (
@@ -81,7 +80,7 @@ export class FollowRepository {
             })
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1})
+            .sort({creationDate: -1});
         return followings;
     };
 
@@ -94,7 +93,7 @@ export class FollowRepository {
             .find({followerUserName, isDeleted: false, isCloseFriend: true})
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1})
+            .sort({creationDate: -1});
         return closeFriends;
     };
 
@@ -106,27 +105,27 @@ export class FollowRepository {
     };
 
     getAllFollowers = async (followingUserName: string) => {
-        const followers = await this.follows
-            .find({
-                followingUserName,
-                isDeleted: false,
-                followRequestState: FollowRequestState.ACCEPTED,
-            });
+        const followers = await this.follows.find({
+            followingUserName,
+            isDeleted: false,
+            followRequestState: FollowRequestState.ACCEPTED,
+        });
         return followers;
     };
 
     getAllFollowings = async (followerUserName: string) => {
-        const followings = await this.follows
-            .find({
-                followerUserName,
-                followRequestState: FollowRequestState.ACCEPTED,
-            });
+        const followings = await this.follows.find({
+            followerUserName,
+            followRequestState: FollowRequestState.ACCEPTED,
+        });
         return followings;
     };
 
     getAllCloseFriends = async (followingUserName: string) => {
-        const closeFriends = await this.follows
-            .find({followingUserName, isCloseFriend: true})
+        const closeFriends = await this.follows.find({
+            followingUserName,
+            isCloseFriend: true,
+        });
         return closeFriends;
     };
 

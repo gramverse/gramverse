@@ -39,7 +39,7 @@ export class FollowRepService {
 
     getFollowingCount = async (userName: string) => {
         return await this.followRepository.getFollowingCount(userName);
-    }
+    };
 
     getFollowers = async (
         userName: string,
@@ -148,10 +148,10 @@ export class FollowRepService {
             myUserName,
         );
         if (visitorFollow && visitorFollow.isBlocked) {
-            throw new ForbiddenError("User is blocked by you")
+            throw new ForbiddenError("User is blocked by you");
         }
         if (creatorFollow && creatorFollow.isBlocked) {
-            throw new ForbiddenError("You are blocked")
+            throw new ForbiddenError("You are blocked");
         }
         const creatorUser = await this.userRepService.getUser(userName);
         if (!creatorUser) {
@@ -180,5 +180,5 @@ export class FollowRepService {
 
     acceptPendingRequests = async (userName: string) => {
         await this.followRepository.acceptPendingRequests(userName);
-    }
+    };
 }

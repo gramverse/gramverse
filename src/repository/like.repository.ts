@@ -2,7 +2,7 @@ import {Model} from "mongoose";
 import {likeSchema} from "../models/like/like-schema";
 import {ILike, Like} from "../models/like/like";
 import {LikeDto} from "../models/like/like-request";
-import { convertType } from "../utilities/convert-type";
+import {convertType} from "../utilities/convert-type";
 
 export class LikesRepository {
     private likes: Model<ILike>;
@@ -22,17 +22,11 @@ export class LikesRepository {
     };
 
     undeleteLike = async (userName: string, postId: string) => {
-        await this.likes.updateOne(
-            {userName, postId},
-            {isDeleted: false},
-        );
+        await this.likes.updateOne({userName, postId}, {isDeleted: false});
     };
 
     deleteLike = async (userName: string, postId: string) => {
-        await this.likes.updateOne(
-            {userName, postId},
-            {isDeleted: true},
-        );
+        await this.likes.updateOne({userName, postId}, {isDeleted: true});
     };
 
     getCountByPostId = async (postId: string) => {

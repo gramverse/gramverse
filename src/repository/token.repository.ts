@@ -1,7 +1,7 @@
 import mongoose, {Model} from "mongoose";
 import {tokenSchema} from "../models/reset-password/token-schema";
 import {IToken, Token} from "../models/reset-password/token";
-import { convertType } from "../utilities/convert-type";
+import {convertType} from "../utilities/convert-type";
 
 export class TokenRepository {
     private tokens: Model<IToken>;
@@ -16,15 +16,11 @@ export class TokenRepository {
     };
 
     updateToken = async (tokenData: Token) => {
-        await this.tokens.updateOne(
-            {token: tokenData.token},
-            tokenData,
-        );
+        await this.tokens.updateOne({token: tokenData.token}, tokenData);
     };
 
     getTokenByValue = async (tokenValue: string) => {
-        const token =
-            await this.tokens.findOne({token: tokenValue});
+        const token = await this.tokens.findOne({token: tokenValue});
         return convertType<Token, IToken>(token);
     };
 
