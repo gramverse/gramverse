@@ -277,14 +277,12 @@
  *         name: page
  *         schema:
  *           type: integer
- *           default: 1
- *         description: Page number for pagination
+ *           format: int32
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *           default: 10
- *         description: Number of items per page
+ *           format: int32
  *     responses:
  *       200:
  *         description: Posts retrieved successfully.
