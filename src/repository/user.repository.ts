@@ -4,16 +4,7 @@ import {User, IUser} from "../models/login/login-response";
 import {object} from "zod";
 import {convertType} from "../utilities/convert-type";
 
-export interface IUserRepository {
-    add: (user: User) => Promise<string>;
-    update: (_id: string, user: Partial<User>) => Promise<void>;
-    checkEmailExistance: (email: string) => Promise<boolean>;
-    checkUserNameExistance: (userName: string) => Promise<boolean>;
-    getUserByEmail: (email: string) => Promise<User | undefined>;
-    getUserByUserName: (userName: string) => Promise<User | undefined>;
-}
-
-export class UserRepository implements IUserRepository {
+export class UserRepository {
     private users: Model<IUser>;
     constructor(private dataHandler: typeof import("mongoose")) {
         const usersSchema = new mongoose.Schema(usersSchemaObject);

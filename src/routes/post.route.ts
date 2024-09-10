@@ -1,9 +1,9 @@
 import jwt, {JwtPayload} from "jsonwebtoken";
 import {AuthorizedUser} from "../models/profile/authorized-user";
 import {Router, Request, Response, NextFunction} from "express";
-import {HttpError} from "../errors/http-error";
+import {AuthorizationError, HttpError, MissingFieldError, NotFoundError, UnknownError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
-import {jwtSecret, postService} from "../config";
+import {commentService, jwtSecret, postService} from "../config";
 import {zodLikeRequest, LikeRequest} from "../models/like/like-request";
 import {
     CommentsLikeRequest,
@@ -30,31 +30,22 @@ postRouter.use(authMiddleware);
 
 postRouter.post("/like", async (req: Request, res, next) => {
     try {
-        let success;
-
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const likeePostId = req.body.postId;
         if (!likeePostId) {
-            throw new HttpError(
-                400,
-                ErrorCode.MISSING_LIKE_POSTID,
-                "Missing likee postId",
-            );
+            throw new MissingFieldError("postId");
         }
         const likeRequest: LikeRequest = zodLikeRequest.parse({
             ...req.body,
             userName: req.user.userName,
         });
         if (likeRequest.isLike) {
-            success = await postService.likePost(likeRequest);
+            await postService.likePost(likeRequest);
         }
         if (!likeRequest.isLike) {
-            success = await postService.unlikePost(likeRequest);
-        }
-        if (!success) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+            await postService.unlikePost(likeRequest);
         }
         res.status(200).send();
     } catch (err) {
@@ -64,17 +55,12 @@ postRouter.post("/like", async (req: Request, res, next) => {
 
 postRouter.post("/likeComment", async (req: Request, res, next) => {
     try {
-        let success;
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const likeeCommentId = req.body.commentId;
         if (!likeeCommentId) {
-            throw new HttpError(
-                400,
-                ErrorCode.MISSING_LIKE_COMMENTID,
-                "Missing likee commentId",
-            );
+            throw new MissingFieldError("commentId");
         }
         const commentsLikeRequest: CommentsLikeRequest =
             zodCommentslikeRequest.parse({
@@ -82,13 +68,10 @@ postRouter.post("/likeComment", async (req: Request, res, next) => {
                 userName: req.user.userName,
             });
         if (commentsLikeRequest.isLike) {
-            success = await postService.likeComment(commentsLikeRequest);
+            await commentService.likeComment(commentsLikeRequest);
         }
         if (!commentsLikeRequest.isLike) {
-            success = await postService.unlikeComment(commentsLikeRequest);
-        }
-        if (!success) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+            await commentService.unlikeComment(commentsLikeRequest);
         }
         res.status(200).send();
     } catch (err) {
@@ -98,30 +81,22 @@ postRouter.post("/likeComment", async (req: Request, res, next) => {
 
 postRouter.post("/bookmark", async (req: Request, res, next) => {
     try {
-        let success;
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const bookmarkPostId = req.body.postId;
         if (!bookmarkPostId) {
-            throw new HttpError(
-                400,
-                ErrorCode.MISSING_BOOKMARK_POSTID,
-                "Missing bookmark postId",
-            );
+            throw new MissingFieldError("postId");
         }
         const bookmarkRequest: BookmarkRequest = zodBookmarkRequest.parse({
             ...req.body,
             userName: req.user.userName,
         });
         if (bookmarkRequest.isBookmark) {
-            success = await postService.bookmark(bookmarkRequest);
+            await postService.bookmark(bookmarkRequest);
         }
         if (!bookmarkRequest.isBookmark) {
-            success = await postService.unbookmark(bookmarkRequest);
-        }
-        if (!success) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+            await postService.unbookmark(bookmarkRequest);
         }
         res.status(200).send();
     } catch (err) {
@@ -132,19 +107,12 @@ postRouter.post("/bookmark", async (req: Request, res, next) => {
 postRouter.get("/post/:postId", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const postDetailDto = await postService.getPostById(
             req.params.postId,
             req.user.userName,
         );
-        if (!postDetailDto) {
-            throw new HttpError(
-                404,
-                ErrorCode.POST_NOT_FOUND,
-                "Post not found",
-            );
-        }
         res.status(200).send(postDetailDto);
     } catch (err) {
         next(err);
@@ -154,7 +122,7 @@ postRouter.get("/post/:postId", async (req: Request, res, next) => {
 postRouter.get("/explorePosts", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const userName = req.user.userName;
         const {page, limit} = zodGetPostsRequest.parse(req.query);
@@ -172,7 +140,7 @@ postRouter.get("/explorePosts", async (req: Request, res, next) => {
 postRouter.get("/myPosts", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const userName = req.user.userName;
         const {page, limit} = zodGetPostsRequest.parse(req.query);
@@ -191,7 +159,7 @@ postRouter.get("/myPosts", async (req: Request, res, next) => {
 postRouter.get("/userName/:userName", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const userName = req.params.userName;
         const {page, limit} = zodGetPostsRequest.parse(req.query);
@@ -210,18 +178,14 @@ postRouter.get("/userName/:userName", async (req: Request, res, next) => {
 postRouter.post("/addComment", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const commentRequest = zodCommentRequest.parse({
             ...req.body,
             userName: req.user.userName,
         });
-        const createdComment = await postService.addComment(commentRequest);
-        if (!createdComment) {
-            res.status(500).send();
-            return;
-        }
-        res.status(200).send(createdComment);
+        await commentService.addComment(commentRequest);
+        res.status(200).send();
     } catch (err) {
         next(err);
     }
@@ -230,10 +194,10 @@ postRouter.post("/addComment", async (req: Request, res, next) => {
 postRouter.get("/comments", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {postId, page, limit} = zodGetCommentsRequest.parse(req.query);
-        const comments = await postService.getComments(
+        const comments = await commentService.getComments(
             req.user.userName,
             postId,
             page,
@@ -248,7 +212,7 @@ postRouter.get("/comments", async (req: Request, res, next) => {
 postRouter.get("/myBookMarks", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {page, limit} = zodMyBookMarkRequest.parse(req.query);
         const posts = await postService.getMyBookMarks(

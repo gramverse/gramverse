@@ -1,7 +1,7 @@
 import {FollowRepository} from "../repository/follow.repository";
 import {ErrorCode} from "../errors/error-codes";
-import {HttpError} from "../errors/http-error";
-import {UserRepService} from "./userRep.service";
+import {ForbiddenError, HttpError, UnknownError} from "../errors/http-error";
+import {UserRepService} from "./user.rep.service";
 import {FollowRequestState} from "../models/follow/follow-request-state";
 import {Followinger} from "../models/follow/followinger";
 import {Follow} from "../models/follow/follow";
@@ -37,6 +37,10 @@ export class FollowRepService {
         return await this.followRepository.getFollowerCount(userName);
     };
 
+    getFollowingCount = async (userName: string) => {
+        return await this.followRepository.getFollowingCount(userName);
+    }
+
     getFollowers = async (
         userName: string,
         myUserName: string,
@@ -56,11 +60,7 @@ export class FollowRepService {
         const processes = followers.map(async (f) => {
             const user = await this.userRepService.getUser(f.followerUserName);
             if (!user) {
-                throw new HttpError(
-                    500,
-                    ErrorCode.UNKNOWN_ERROR,
-                    "Database integrity error",
-                );
+                throw new UnknownError();
             }
             const followinger: Followinger = {
                 userName: user.userName,
@@ -94,11 +94,7 @@ export class FollowRepService {
         for (const f of followings) {
             const user = await this.userRepService.getUser(f.followingUserName);
             if (!user) {
-                throw new HttpError(
-                    500,
-                    ErrorCode.UNKNOWN_ERROR,
-                    "Database integrity error",
-                );
+                throw new UnknownError();
             }
             const followinger: Followinger = {
                 userName: user.userName,
@@ -125,11 +121,7 @@ export class FollowRepService {
         for (const f of closeFriends) {
             const user = await this.userRepService.getUser(f.followingUserName);
             if (!user) {
-                throw new HttpError(
-                    500,
-                    ErrorCode.UNKNOWN_ERROR,
-                    "Database integrity error",
-                );
+                throw new UnknownError();
             }
             const followinger: Followinger = {
                 userName: user.userName,
@@ -156,37 +148,21 @@ export class FollowRepService {
             myUserName,
         );
         if (visitorFollow && visitorFollow.isBlocked) {
-            throw new HttpError(
-                403,
-                ErrorCode.CREATOR_IS_BLOCKED_BY_YOU,
-                "You have blocked this user",
-            );
+            throw new ForbiddenError("User is blocked by you")
         }
         if (creatorFollow && creatorFollow.isBlocked) {
-            throw new HttpError(
-                403,
-                ErrorCode.YOU_ARE_BLOCKED,
-                "This user has blocked you",
-            );
+            throw new ForbiddenError("You are blocked")
         }
         const creatorUser = await this.userRepService.getUser(userName);
         if (!creatorUser) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "post username doesn't exist in users",
-            );
+            throw new UnknownError();
         }
         if (
             creatorUser.isPrivate &&
             (!visitorFollow ||
                 visitorFollow.followRequestState != FollowRequestState.ACCEPTED)
         ) {
-            throw new HttpError(
-                403,
-                ErrorCode.USER_IS_PRIVATE,
-                "User is private",
-            );
+            throw new ForbiddenError("User is private");
         }
     };
 
@@ -201,4 +177,8 @@ export class FollowRepService {
             follow,
         );
     };
+
+    acceptPendingRequests = async (userName: string) => {
+        await this.followRepository.acceptPendingRequests(userName);
+    }
 }

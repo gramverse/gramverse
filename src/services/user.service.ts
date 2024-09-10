@@ -7,6 +7,7 @@ import {
     LoginError,
     NotFoundError,
     UnknownError,
+    ValidationError,
 } from "../errors/http-error";
 import {AuthorizedUser} from "../models/profile/authorized-user";
 import {LoginRequest} from "../models/login/login-request";
@@ -29,7 +30,9 @@ import {Followinger} from "../models/follow/followinger";
 import {FollowRequestState} from "../models/follow/follow-request-state";
 import {PostService} from "./post.service";
 import {NotificationService} from "./notification.service";
-import {UserRepService} from "./userRep.service";
+import {UserRepService} from "./user.rep.service";
+import { PostRepService } from "./post.rep.service";
+import { FollowRepService } from "./follow.rep.service";
 
 export interface IUserService {
     signup: (
@@ -43,11 +46,9 @@ export interface IUserService {
 
 export class UserService implements IUserService {
     constructor(
-        private postService: PostService,
+        private postRepService: PostRepService,
         private userRepService: UserRepService,
-        private postRepository: PostRepository,
-        private tokenRepository: TokenRepository,
-        private followRepository: FollowRepository,
+        private followRepService: FollowRepService,
         private notificationService: NotificationService,
     ) {}
 
@@ -90,15 +91,11 @@ export class UserService implements IUserService {
     validateInfo = (user: Partial<UserToValidate>, hasNewPassword: boolean) => {
         const userNamePattern = /^(?!.{33})[a-zA-Z0-9_.]{6,}$/;
         if (!user.userName || !userNamePattern.test(user.userName)) {
-            throw new HttpError(
-                400,
-                ErrorCode.INVALID_USERNAME,
-                "Invalid username",
-            );
+            throw new ValidationError("userName");
         }
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!user.email || !emailPattern.test(user.email)) {
-            throw new HttpError(400, ErrorCode.INVALID_EMAIL, "Invalid email");
+            throw new ValidationError("email");
         }
         if (
             hasNewPassword &&
@@ -106,11 +103,7 @@ export class UserService implements IUserService {
                 user.password.length < 8 ||
                 user.password.length > 32)
         ) {
-            throw new HttpError(
-                400,
-                ErrorCode.INVALID_PASSWORD,
-                "Invalid password",
-            );
+            throw new ValidationError("password");
         }
     };
 
@@ -158,13 +151,13 @@ export class UserService implements IUserService {
             throw new UnknownError();
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const followerCount = await this.followRepository.getFollowerCount(
+        const followerCount = await this.followRepService.getFollowerCount(
             user.userName,
         );
-        const followingCount = await this.followRepository.getFollowingCount(
+        const followingCount = await this.followRepService.getFollowingCount(
             user.userName,
         );
-        const postCount = await this.postRepository.getPostCount(
+        const postCount = await this.postRepService.getPostCount(
             user.userName,
             false,
         );
@@ -190,23 +183,23 @@ export class UserService implements IUserService {
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
         const {followRequestState, isBlocked, isCloseFriend} =
-            (await this.followRepository.getFollow(myUserName, userName)) || {
+            (await this.followRepService.getFollow(myUserName, userName)) || {
                 followRequestState: FollowRequestState.NONE,
                 isBlocked: false,
                 isCloseFriend: false,
             };
         const {isBlocked: hasBlockedUs, followRequestState: requestState} =
-            (await this.followRepository.getFollow(userName, myUserName)) || {
+            (await this.followRepService.getFollow(userName, myUserName)) || {
                 isBlocked: false,
                 followRequestState: FollowRequestState.NONE,
             };
-        const followerCount = await this.followRepository.getFollowerCount(
+        const followerCount = await this.followRepService.getFollowerCount(
             user.userName,
         );
-        const followingCount = await this.followRepository.getFollowingCount(
+        const followingCount = await this.followRepService.getFollowingCount(
             user.userName,
         );
-        const postCount = await this.postRepository.getPostCount(
+        const postCount = await this.postRepService.getPostCount(
             user.userName,
             false,
         );
@@ -248,7 +241,7 @@ export class UserService implements IUserService {
             throw new UnknownError();
         }
         if (oldUser.isPrivate && !profileDto.isPrivate) {
-            this.followRepository.acceptPendingRequests(user.userName);
+            this.followRepService.acceptPendingRequests(user.userName);
         }
         const passwordHash = passwordIsUpdated
             ? await bcrypt.hash(profileDto.password, 10)
@@ -264,11 +257,11 @@ export class UserService implements IUserService {
         if (userName == myUserName) {
             return false;
         }
-        const mentionerFollow = await this.followRepository.getFollow(
+        const mentionerFollow = await this.followRepService.getFollow(
             myUserName,
             userName,
         );
-        const mentionedFollow = await this.followRepository.getFollow(
+        const mentionedFollow = await this.followRepService.getFollow(
             userName,
             myUserName,
         );

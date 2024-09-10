@@ -2,6 +2,7 @@ import {Model} from "mongoose";
 import {Event, IEvent} from "../models/notification/event";
 import {eventSchema} from "../models/notification/event-schema";
 import {AddEventRequest} from "../models/notification/add-event-request";
+import { convertType } from "../utilities/convert-type";
 
 export class EventRepository {
     private events: Model<IEvent>;
@@ -10,27 +11,25 @@ export class EventRepository {
     }
 
     getEventById = async (_id: string) => {
-        return (await this.events.findById(_id)) || undefined;
+        const event = await this.events.findById(_id);
+        return convertType<Event, IEvent>(event);
     };
+
     add = async (performerUserName: string, targetId: string, type: string) => {
         const createdEvent = await this.events.create({
             performerUserName,
             targetId,
             type,
         });
-        if (!createdEvent) {
-            return undefined;
-        }
         return createdEvent._id;
     };
+
     deleteEvent = async (eventId: string) => {
-        const deleteResult = await this.events.deleteOne({_id: eventId});
-        return deleteResult.acknowledged;
+        await this.events.deleteOne({_id: eventId});
     };
+
     getEvent = async (performerUserName: string, targetId: string) => {
-        return (
-            (await this.events.findOne({performerUserName, targetId})) ||
-            undefined
-        );
+        const event = await this.events.findOne({performerUserName, targetId});
+        return convertType<Event, IEvent>(event);
     };
 }

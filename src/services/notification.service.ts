@@ -14,12 +14,15 @@ import {
     MentionNotification,
 } from "../models/notification/notification";
 import {EventType} from "../models/notification/event-type";
-import {HttpError} from "../errors/http-error";
+import {HttpError, UnknownError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {FollowRequestState} from "../models/follow/follow-request-state";
 import {Post} from "../models/post/post";
-import {UserRepService} from "./userRep.service";
+import {UserRepService} from "./user.rep.service";
 import {FollowRepService} from "./follow.rep.service";
+import { unknown } from "zod";
+import { CommentService } from "./comment.service";
+import { CommentRepService } from "./comment.rep.service";
 
 export class NotificationService {
     constructor(
@@ -28,7 +31,7 @@ export class NotificationService {
         private userRepService: UserRepService,
         private followRepService: FollowRepService,
         private postRepService: PostRepService,
-        private commentRepository: CommentRepository,
+        private commentRepService: CommentRepService,
     ) {}
 
     getNotifications = async (
@@ -56,11 +59,7 @@ export class NotificationService {
                 notification.eventId,
             );
             if (!event) {
-                throw new HttpError(
-                    500,
-                    ErrorCode.UNKNOWN_ERROR,
-                    "Event not found",
-                );
+                throw new UnknownError();
             }
             let dto: BaseNotification | undefined = undefined;
             switch (event.type) {
@@ -94,7 +93,7 @@ export class NotificationService {
         const {seen, isMine} = notification;
         const post = await this.postRepService.getPostById(postId);
         if (!post) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+            throw new UnknownError();
         }
         const postImage = post.photoUrls[0];
         const postCreator = post.userName;
@@ -119,15 +118,14 @@ export class NotificationService {
             creationDate,
         } = event;
         const {seen, isMine} = notification;
-        const commentObject = await this.commentRepository.getById(commentId);
+        const commentObject = await this.commentRepService.getById(commentId);
         if (!commentObject) {
-            console.log(commentId);
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+            throw new UnknownError();
         }
         const {comment, postId} = commentObject;
         const post = await this.postRepService.getPostById(postId);
         if (!post) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+            throw new UnknownError();
         }
         const postImage = post.photoUrls[0];
         const postCreator = post.userName;
@@ -150,7 +148,7 @@ export class NotificationService {
         const {seen, isMine} = notification;
         const post = await this.postRepService.getPostById(postId);
         if (!post) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
+            throw new UnknownError();
         }
         const postImage = post.photoUrls[0];
         const dto: MentionNotification = {
@@ -210,11 +208,7 @@ export class NotificationService {
     addLike = async (userName: string, postId: string) => {
         const post = await this.postRepService.getPostById(postId);
         if (!post) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "Post does not excites",
-            );
+            throw new UnknownError();
         }
         const eventId = await this.eventService.addEvent(
             userName,
@@ -241,7 +235,7 @@ export class NotificationService {
     };
 
     addComment = async (userName: string, commentId: string) => {
-        const comment = await this.commentRepository.getById(commentId);
+        const comment = await this.commentRepService.getById(commentId);
         if (!comment) {
             return;
         }
