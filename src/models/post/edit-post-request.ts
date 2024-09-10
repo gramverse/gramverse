@@ -1,4 +1,4 @@
-import z from "zod"
+import z from "zod";
 
 export const zodEditPostRequest = z.object({
     _id: z.string(),
@@ -9,4 +9,4 @@ export const zodEditPostRequest = z.object({
     forCloseFriends: z.boolean(),
 });
 
-export type EditPostRequest = z.infer<typeof zodEditPostRequest>
+export type EditPostRequest = z.infer<typeof zodEditPostRequest>;

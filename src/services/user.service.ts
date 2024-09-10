@@ -1,90 +1,136 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { jwtSecret, userService } from "../config";
-import { ErrorCode } from "../errors/error-codes";
-import { HttpError, LoginError, NotFoundError, UnknownError } from "../errors/http-error";
+import {jwtSecret, userService} from "../config";
+import {ErrorCode} from "../errors/error-codes";
+import {
+    HttpError,
+    LoginError,
+    NotFoundError,
+    UnknownError,
+} from "../errors/http-error";
 import {AuthorizedUser} from "../models/profile/authorized-user";
-import { LoginRequest } from "../models/login/login-request";
-import { LoginResponse, User, UserToValidate } from "../models/login/login-response";
+import {LoginRequest} from "../models/login/login-request";
+import {
+    LoginResponse,
+    User,
+    UserToValidate,
+} from "../models/login/login-response";
 import {EditProfileDto} from "../models/profile/edit-profile-dto";
-import { RegisterRequest } from "../models/register/register-request";
+import {RegisterRequest} from "../models/register/register-request";
 import {UserRepository} from "../repository/user.repository";
 import {TokenRepository} from "../repository/token.repository";
 import {Token} from "../models/reset-password/token";
-import { FollowRepository } from "../repository/follow.repository";
-import { PostRepository } from "../repository/post.repository";
+import {FollowRepository} from "../repository/follow.repository";
+import {PostRepository} from "../repository/post.repository";
 import {MyProfileDto} from "../models/profile/my-profile-dto";
 import {ProfileDto} from "../models/profile/profile-dto";
-import { Follow } from "../models/follow/follow";
+import {Follow} from "../models/follow/follow";
 import {Followinger} from "../models/follow/followinger";
-import { FollowRequestState } from "../models/follow/follow-request-state";
+import {FollowRequestState} from "../models/follow/follow-request-state";
 import {PostService} from "./post.service";
-import { NotificationService } from "./notification.service";
-import { UserRepService } from "./userRep.service";
+import {NotificationService} from "./notification.service";
+import {UserRepService} from "./userRep.service";
 
 export interface IUserService {
-    signup: (registerRequest: RegisterRequest) => Promise<LoginResponse|undefined>;
+    signup: (
+        registerRequest: RegisterRequest,
+    ) => Promise<LoginResponse | undefined>;
     validateInfo: (user: Partial<UserToValidate>, isForSignup: boolean) => void;
-    login: (loginRequest: LoginRequest) => Promise<LoginResponse|undefined>;
+    login: (loginRequest: LoginRequest) => Promise<LoginResponse | undefined>;
     // ... reset password functions
     // editProfile: (profile: Profile) => Promise<Profile>;
 }
 
 export class UserService implements IUserService {
-    constructor(private postService: PostService, private userRepService: UserRepService, private postRepository: PostRepository, private tokenRepository: TokenRepository, private followRepository: FollowRepository,private notificationService:NotificationService) {}
-    
-    login = async (loginRequest : LoginRequest) => {
+    constructor(
+        private postService: PostService,
+        private userRepService: UserRepService,
+        private postRepository: PostRepository,
+        private tokenRepository: TokenRepository,
+        private followRepository: FollowRepository,
+        private notificationService: NotificationService,
+    ) {}
+
+    login = async (loginRequest: LoginRequest) => {
         const user = await this.userRepService.getUser(loginRequest.userName);
-        
-        if (!user){
+
+        if (!user) {
             throw new LoginError();
         }
-        const passwordMatch = await bcrypt.compare(loginRequest.password, user.passwordHash);
-        if (!passwordMatch){
+        const passwordMatch = await bcrypt.compare(
+            loginRequest.password,
+            user.passwordHash,
+        );
+        if (!passwordMatch) {
             throw new LoginError();
         }
         const tokenPayload: AuthorizedUser = {
             _id: user._id,
             userName: user.userName,
-            email: user.email
+            email: user.email,
         };
-        let token : string;
+        let token: string;
         let expireTime: number;
         if (loginRequest.rememberMe) {
-            token = await jwt.sign({ data: tokenPayload }, jwtSecret, { expiresIn: "168h" });
-            expireTime = 7*24*3600*1000;
+            token = await jwt.sign({data: tokenPayload}, jwtSecret, {
+                expiresIn: "168h",
+            });
+            expireTime = 7 * 24 * 3600 * 1000;
         } else {
-            token = await jwt.sign({ data: tokenPayload }, jwtSecret, { expiresIn: "72h"});
-            expireTime = 3*24*3600*1000;
+            token = await jwt.sign({data: tokenPayload}, jwtSecret, {
+                expiresIn: "72h",
+            });
+            expireTime = 3 * 24 * 3600 * 1000;
         }
-        
-        const loginResponse : LoginResponse = {user, token, expireTime};
+
+        const loginResponse: LoginResponse = {user, token, expireTime};
         return loginResponse;
-    }
+    };
 
     validateInfo = (user: Partial<UserToValidate>, hasNewPassword: boolean) => {
         const userNamePattern = /^(?!.{33})[a-zA-Z0-9_.]{6,}$/;
         if (!user.userName || !userNamePattern.test(user.userName)) {
-            throw new HttpError(400, ErrorCode.INVALID_USERNAME, "Invalid username");
+            throw new HttpError(
+                400,
+                ErrorCode.INVALID_USERNAME,
+                "Invalid username",
+            );
         }
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!user.email || !emailPattern.test(user.email)) {
             throw new HttpError(400, ErrorCode.INVALID_EMAIL, "Invalid email");
         }
-        if (hasNewPassword && (!user.password || user.password.length < 8 || user.password.length > 32)) {
-            throw new HttpError(400, ErrorCode.INVALID_PASSWORD, "Invalid password");
+        if (
+            hasNewPassword &&
+            (!user.password ||
+                user.password.length < 8 ||
+                user.password.length > 32)
+        ) {
+            throw new HttpError(
+                400,
+                ErrorCode.INVALID_PASSWORD,
+                "Invalid password",
+            );
         }
-    }
+    };
 
     signup = async (registerRequest: RegisterRequest) => {
         this.validateInfo(registerRequest, true);
-        const emailExists = await this.userRepService.checkEmailExistance(registerRequest.email);
+        const emailExists = await this.userRepService.checkEmailExistance(
+            registerRequest.email,
+        );
         if (emailExists) {
             throw new HttpError(400, ErrorCode.EMAIL_EXISTS, "Email Exists");
         }
-        const userNameExists = await this.userRepService.checkUserNameExistance(registerRequest.userName);
+        const userNameExists = await this.userRepService.checkUserNameExistance(
+            registerRequest.userName,
+        );
         if (userNameExists) {
-            throw new HttpError(400, ErrorCode.USERNAME_EXISTS, "Username exists");
+            throw new HttpError(
+                400,
+                ErrorCode.USERNAME_EXISTS,
+                "Username exists",
+            );
         }
         const passwordHash = await bcrypt.hash(registerRequest.password, 10);
         const newUser: Partial<User> = {
@@ -92,7 +138,7 @@ export class UserService implements IUserService {
             email: registerRequest.email,
             passwordHash,
             isPrivate: false,
-        }
+        };
         const createdUser = await this.userRepService.createUser(newUser);
         if (!createdUser) {
             throw new UnknownError();
@@ -101,10 +147,10 @@ export class UserService implements IUserService {
             userName: registerRequest.userName,
             password: registerRequest.password,
             rememberMe: false,
-        }
+        };
         const loginResponse = await this.login(loginRequest);
         return loginResponse;
-    }
+    };
 
     getMyProfile = async (userName: string) => {
         const user = await this.userRepService.getUser(userName);
@@ -112,9 +158,16 @@ export class UserService implements IUserService {
             throw new UnknownError();
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const followerCount = await this.followRepository.getFollowerCount(user.userName);
-        const followingCount = await this.followRepository.getFollowingCount(user.userName);
-        const postCount = await this.postRepository.getPostCount(user.userName, false);
+        const followerCount = await this.followRepository.getFollowerCount(
+            user.userName,
+        );
+        const followingCount = await this.followRepository.getFollowingCount(
+            user.userName,
+        );
+        const postCount = await this.postRepository.getPostCount(
+            user.userName,
+            false,
+        );
         const profile: MyProfileDto = {
             userName,
             email,
@@ -125,10 +178,10 @@ export class UserService implements IUserService {
             bio,
             followerCount,
             followingCount,
-            postCount
+            postCount,
         };
         return profile;
-    }
+    };
 
     getProfile = async (userName: string, myUserName: string) => {
         const user = await this.userRepService.getUser(userName);
@@ -136,15 +189,27 @@ export class UserService implements IUserService {
             throw new NotFoundError("user");
         }
         const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const {followRequestState, isBlocked, isCloseFriend} = await this.followRepository.getFollow(myUserName, userName)|| {
-            followRequestState: FollowRequestState.NONE, isBlocked: false, isCloseFriend: false
-        };
-        const {isBlocked: hasBlockedUs, followRequestState: requestState} = await this.followRepository.getFollow(userName, myUserName)|| {
-            isBlocked: false, followRequestState: FollowRequestState.NONE
-        };
-        const followerCount = await this.followRepository.getFollowerCount(user.userName);
-        const followingCount = await this.followRepository.getFollowingCount(user.userName);
-        const postCount = await this.postRepository.getPostCount(user.userName, false);
+        const {followRequestState, isBlocked, isCloseFriend} =
+            (await this.followRepository.getFollow(myUserName, userName)) || {
+                followRequestState: FollowRequestState.NONE,
+                isBlocked: false,
+                isCloseFriend: false,
+            };
+        const {isBlocked: hasBlockedUs, followRequestState: requestState} =
+            (await this.followRepository.getFollow(userName, myUserName)) || {
+                isBlocked: false,
+                followRequestState: FollowRequestState.NONE,
+            };
+        const followerCount = await this.followRepository.getFollowerCount(
+            user.userName,
+        );
+        const followingCount = await this.followRepository.getFollowingCount(
+            user.userName,
+        );
+        const postCount = await this.postRepository.getPostCount(
+            user.userName,
+            false,
+        );
         const profile: ProfileDto = {
             userName: user.userName,
             firstName,
@@ -159,17 +224,23 @@ export class UserService implements IUserService {
             requestState,
             followerCount,
             followingCount,
-            postCount
+            postCount,
         };
         return profile;
-    }
+    };
 
     editProfile = async (profileDto: EditProfileDto, user: AuthorizedUser) => {
         const passwordIsUpdated = !!profileDto.password;
         this.validateInfo(profileDto, passwordIsUpdated);
         if (profileDto.email != user.email) {
-            if (await this.userRepService.checkEmailExistance(profileDto.email)) {
-                throw new HttpError(400, ErrorCode.EMAIL_EXISTS, "Email exists");
+            if (
+                await this.userRepService.checkEmailExistance(profileDto.email)
+            ) {
+                throw new HttpError(
+                    400,
+                    ErrorCode.EMAIL_EXISTS,
+                    "Email exists",
+                );
             }
         }
         const oldUser = await this.userRepService.getUser(user.email);
@@ -179,20 +250,28 @@ export class UserService implements IUserService {
         if (oldUser.isPrivate && !profileDto.isPrivate) {
             this.followRepository.acceptPendingRequests(user.userName);
         }
-        const passwordHash = passwordIsUpdated ? await bcrypt.hash(profileDto.password, 10) : oldUser.passwordHash;
+        const passwordHash = passwordIsUpdated
+            ? await bcrypt.hash(profileDto.password, 10)
+            : oldUser.passwordHash;
         const userToBeUpdated = {
-            ... profileDto,
+            ...profileDto,
             passwordHash,
         };
         await this.userRepService.updateUser(user._id, userToBeUpdated);
-    }
+    };
 
     checkMentionAccess = async (myUserName: string, userName: string) => {
         if (userName == myUserName) {
             return false;
         }
-        const mentionerFollow = await this.followRepository.getFollow(myUserName, userName);
-        const mentionedFollow = await this.followRepository.getFollow(userName, myUserName);
+        const mentionerFollow = await this.followRepository.getFollow(
+            myUserName,
+            userName,
+        );
+        const mentionedFollow = await this.followRepository.getFollow(
+            userName,
+            myUserName,
+        );
         if (mentionerFollow && mentionerFollow.isBlocked) {
             return false;
         }
@@ -203,9 +282,14 @@ export class UserService implements IUserService {
         if (!mentionedUser) {
             return false;
         }
-        if (mentionedUser.isPrivate && (!mentionerFollow || mentionerFollow.followRequestState != FollowRequestState.ACCEPTED)) {
+        if (
+            mentionedUser.isPrivate &&
+            (!mentionerFollow ||
+                mentionerFollow.followRequestState !=
+                    FollowRequestState.ACCEPTED)
+        ) {
             return false;
         }
         return true;
-    }
+    };
 }

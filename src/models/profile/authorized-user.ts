@@ -1,5 +1,5 @@
 export type AuthorizedUser = {
-    _id: string,
-    userName: string,
-    email: string,
-}
+    _id: string;
+    userName: string;
+    email: string;
+};
