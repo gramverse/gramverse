@@ -1,16 +1,15 @@
 import bcrypt from "bcrypt";
 import {v4 as uuidv4} from "uuid";
-import {ITokenRepository} from "../repository/token.repository";
-import {IUserRepository} from "../repository/user.repository";
 import {IToken} from "../models/reset-password/token";
-import {HttpError} from "../errors/http-error";
+import {HttpError, NotFoundError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {Token} from "../models/reset-password/token";
 import {User} from "../models/login/login-response";
 import {ResetPasswordRequest} from "../models/reset-password/resetpassword-request";
 import {EmailService} from "../utilities/nodemailer";
 import {UserService} from "./user.service";
-import {UserRepService} from "./userRep.service";
+import {UserRepService} from "./user.rep.service";
+import { TokenRepository } from "../repository/token.repository";
 
 export interface IResetService {
     generateResetPasswordToken: (email: string) => Promise<void>;
@@ -22,7 +21,7 @@ export interface IResetService {
 
 export class ResetService implements IResetService {
     constructor(
-        private tokenRepository: ITokenRepository,
+        private tokenRepository: TokenRepository,
         private userRepService: UserRepService,
         private emailService: EmailService,
     ) {}
@@ -30,11 +29,7 @@ export class ResetService implements IResetService {
     generateResetPasswordToken = async (userName: string) => {
         const user = await this.userRepService.getUser(userName);
         if (!user) {
-            throw new HttpError(
-                404,
-                ErrorCode.USER_NOT_FOUND,
-                "User not found",
-            );
+            throw new NotFoundError("user");
         }
 
         const tokenValue = uuidv4();
@@ -82,11 +77,7 @@ export class ResetService implements IResetService {
         const user = await this.userRepService.getUser(tokenData.userName);
 
         if (!user) {
-            throw new HttpError(
-                404,
-                ErrorCode.USER_NOT_FOUND,
-                "User not found",
-            );
+            throw new NotFoundError("user");
         }
 
         const passwordHash = await bcrypt.hash(newPassword, 10);

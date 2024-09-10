@@ -1,6 +1,6 @@
 import {ErrorRequestHandler} from "express";
 import {ZodError} from "zod";
-import {HttpError} from "../errors/http-error";
+import {HttpError, UploadFileError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import multer from "multer";
 
@@ -22,20 +22,12 @@ export const errorHandler: ErrorRequestHandler = (
     } else if (err instanceof multer.MulterError) {
         if (err.code === "LIMIT_FILE_SIZE") {
             res.status(400).send(
-                new HttpError(
-                    400,
-                    ErrorCode.FILE_TOO_LARGE,
-                    "Max file size = 4 MB",
-                ),
+                new UploadFileError("large file size")
             );
             return;
         } else {
             res.status(400).send(
-                new HttpError(
-                    400,
-                    ErrorCode.FILE_UPLOAD_ERROR,
-                    "an error occurred uploading file",
-                ),
+                new UploadFileError("unknown")
             );
             return;
         }

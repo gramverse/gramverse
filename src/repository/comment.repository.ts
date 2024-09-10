@@ -2,6 +2,7 @@ import {Model} from "mongoose";
 import {commentSchema} from "../models/comment/comment-schema";
 import {IComment, Comment} from "../models/comment/comment";
 import {CommentRequest} from "../models/comment/comment-request";
+import { convertType, convertTypeForArray } from "../utilities/convert-type";
 
 export class CommentRepository {
     private comments: Model<IComment>;
@@ -10,11 +11,7 @@ export class CommentRepository {
     }
     add = async (commentRequest: CommentRequest) => {
         const createdComment = await this.comments.create(commentRequest);
-        if (!createdComment) {
-            return undefined;
-        }
-        const newComment: Comment = createdComment;
-        return newComment;
+        return createdComment._id;
     };
 
     getByPostId = async (
@@ -29,10 +26,9 @@ export class CommentRepository {
                 .limit(limit)
                 .sort({creationDate: -1})
         ).map((c) => c.toObject());
-        const promises = parents.map(async (p) => {
-            p.childComments = await this.getByParentId(p._id);
-        });
-        await Promise.all(promises);
+        for (const parent of parents) {
+            parent.childComments = await this.getByParentId(parent._id);
+        }
         return parents;
     };
 
@@ -40,10 +36,9 @@ export class CommentRepository {
         const parents: Comment[] = (
             await this.comments.find({parentCommentId}).sort({creationDate: -1})
         ).map((c) => c.toObject());
-        const promises = parents.map(async (p) => {
-            p.childComments = await this.getByParentId(p._id);
-        });
-        await Promise.all(promises);
+        for (const parent of parents) {
+            parent.childComments = await this.getByParentId(parent._id);
+        }
         return parents;
     };
 
@@ -60,6 +55,6 @@ export class CommentRepository {
 
     getById = async (_id: string) => {
         const comment = await this.comments.findById(_id);
-        return comment || undefined;
+        return convertType<Comment, IComment>(comment);
     };
 }

@@ -1,9 +1,13 @@
+import { ForbiddenError, UnknownError, ValidationError } from "../errors/http-error";
 import {EditPostRequest} from "../models/post/edit-post-request";
 import {PostRequest} from "../models/post/post-request";
+import { FollowRepService } from "./follow.rep.service";
 import {PostRepository} from "../repository/post.repository";
+import { UserRepService } from "./user.rep.service";
+import { FollowRequestState } from "../models/follow/follow-request-state";
 
 export class PostRepService {
-    constructor(private postRepository: PostRepository) {}
+    constructor(private userRepService: UserRepService, private followRepService: FollowRepService, private postRepository: PostRepository) {}
 
     createPost = async (postRequest: PostRequest) => {
         return await this.postRepository.add(postRequest);
@@ -61,6 +65,41 @@ export class PostRepService {
     };
 
     updatePost = async (editPostRequest: EditPostRequest) => {
-        return await this.postRepository.update(editPostRequest);
+        await this.postRepository.update(editPostRequest);
+    };
+
+    checkPostAccess = async (userName: string, postId: string) => {
+        const post = await this.getPostById(postId);
+        if (!post) {
+            throw new ValidationError("postId");
+        }
+        if (userName == post.userName) {
+            return;
+        }
+        const visitorFollow = await this.followRepService.getFollow(
+            userName,
+            post.userName,
+        );
+        const creatorFollow = await this.followRepService.getFollow(
+            post.userName,
+            userName,
+        );
+        if (visitorFollow && visitorFollow.isBlocked) {
+            throw new ForbiddenError("User is blocked by you")
+        }
+        if (creatorFollow && creatorFollow.isBlocked) {
+            throw new ForbiddenError("You are blocked");
+        }
+        const creatorUser = await this.userRepService.getUser(post.userName);
+        if (!creatorUser) {
+            throw new UnknownError();
+        }
+        if (
+            creatorUser.isPrivate &&
+            (!visitorFollow ||
+                visitorFollow.followRequestState != FollowRequestState.ACCEPTED)
+        ) {
+            throw new ForbiddenError("User is private")
+        }
     };
 }

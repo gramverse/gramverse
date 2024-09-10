@@ -1,4 +1,4 @@
-import {HttpError} from "../errors/http-error";
+import {AuthorizationError, HttpError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {authMiddleware} from "../middlewares/auth-middleware";
 import {Router, Request, Response, NextFunction} from "express";
@@ -12,7 +12,7 @@ notificationRouter.use(authMiddleware);
 notificationRouter.get("/mine", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {page, limit} = zodNotificationRequest.parse(req.query);
         const notifications = await notificationService.getNotifications(
@@ -30,7 +30,7 @@ notificationRouter.get("/mine", async (req: Request, res, next) => {
 notificationRouter.get("/followings", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {page, limit} = zodNotificationRequest.parse(req.query);
         const notifications = await notificationService.getNotifications(
@@ -48,7 +48,7 @@ notificationRouter.get("/followings", async (req: Request, res, next) => {
 notificationRouter.get("/unreadCount", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const unreadCount = await notificationService.getUnreadCount(
             req.user.userName,

@@ -2,20 +2,16 @@ import {PostRequest} from "../models/post/post-request";
 import {Post} from "../models/post/post";
 import {UserRepository} from "../repository/user.repository";
 import {TagRepository} from "../repository/tag.repository";
-import {CommentRepository} from "../repository/comment.repository";
-import {BookmarksRepository} from "../repository/bookmarks.repository";
-import {LikesRepository} from "../repository/likes.repository";
-import {CommentslikeRepository} from "../repository/commentslike.repository";
+import {BookmarkRepository} from "../repository/bookmark.repository";
+import {LikesRepository} from "../repository/like.repository";
 import {FollowRepService} from "./follow.rep.service";
 import {Tag} from "../models/tag/tag";
 import {PostDto} from "../models/post/post-dto";
 import {PostDetailDto} from "../models/post/post-detail-dto";
-import {HttpError} from "../errors/http-error";
+import {ForbiddenError, HttpError, NotFoundError, UnknownError, ValidationError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {EditPostRequest} from "../models/post/edit-post-request";
 import {TagRequest} from "../models/tag/tag-request";
-import {CommentDto} from "../models/comment/comment-dto";
-import {Comment} from "../models/comment/comment";
 import {LikeDto, LikeRequest} from "../models/like/like-request";
 import {
     CommentsLikeRequest,
@@ -39,20 +35,20 @@ import {userService} from "../config";
 import {NotificationRepository} from "../repository/notification.repository";
 import {NotificationService} from "./notification.service";
 import {PostRepService} from "./post.rep.service";
-import {UserRepService} from "./userRep.service";
+import {UserRepService} from "./user.rep.service";
+import { CommentService } from "./comment.service";
+import { CommentRepService } from "./comment.rep.service";
 
 export class PostService {
     constructor(
         private followRepService: FollowRepService,
         private postRepService: PostRepService,
         private userRepService: UserRepService,
-        private tagRepository: TagRepository,
-        private commentRepository: CommentRepository,
-        private bookmarksRepository: BookmarksRepository,
-        private likesRepository: LikesRepository,
-        private commentslikeRepository: CommentslikeRepository,
-        private bookmarkRepository: BookmarksRepository,
         private notificationService: NotificationService,
+        private commentRepService: CommentRepService,
+        private tagRepository: TagRepository,
+        private likesRepository: LikesRepository,
+        private bookmarkRepository: BookmarkRepository,
     ) {}
 
     extractHashtags = (text: string) => {
@@ -122,13 +118,10 @@ export class PostService {
             postRequest.mentions,
         );
         const createdPost = await this.postRepService.createPost(postRequest);
-        if (!createdPost) {
-            return;
-        }
-        const tags: Array<string> = this.extractHashtags(createdPost.caption);
+        const tags: Array<string> = this.extractHashtags(postRequest.caption);
         tags.forEach(async (t) => {
             const newTagRequest: TagRequest = {
-                postId: createdPost._id,
+                postId: createdPost,
                 tag: t,
                 isDeleted: false,
             };
@@ -136,28 +129,19 @@ export class PostService {
         });
         await this.updateMentions(
             postRequest.userName,
-            createdPost._id,
+            createdPost,
             [],
             postRequest.mentions,
         );
-        return createdPost;
     };
 
     editPost = async (editPostRequest: EditPostRequest, userName: string) => {
         const post = await this.postRepService.getPostById(editPostRequest._id);
         if (!post) {
-            throw new HttpError(
-                404,
-                ErrorCode.POST_NOT_FOUND,
-                "Post not found",
-            );
+            throw new NotFoundError("post");
         }
         if (post.userName != userName) {
-            throw new HttpError(
-                403,
-                ErrorCode.EDIT_POST_ACCESS_DENIED,
-                "Only post creator can edit post",
-            );
+            throw new ForbiddenError("Edit post access denied");
         }
         if (editPostRequest.photoUrls.length < 1) {
             throw new HttpError(
@@ -203,27 +187,13 @@ export class PostService {
                 await this.tagRepository.add(newTagRequest);
             }
         });
-        const success = await this.postRepService.updatePost(editPostRequest);
-        if (!success) {
-            return;
-        }
-        const updatedPost = await this.postRepService.getPostById(
-            editPostRequest._id,
-        );
-        if (!updatedPost) {
-            return;
-        }
-        const postDto: PostDto = {
-            ...updatedPost,
-            tags: newTags,
-        };
+        await this.postRepService.updatePost(editPostRequest);
         await this.updateMentions(
             editPostRequest.userName,
             editPostRequest._id,
             post.mentions,
             editPostRequest.mentions,
         );
-        return postDto;
     };
 
     getPosts = async (
@@ -265,83 +235,22 @@ export class PostService {
         return {posts: postDtos, totalCount};
     };
 
-    getCommentDto = async (
-        requestUserName: string,
-        parentCommentUserName: string,
-        comment: Comment,
-    ) => {
-        const {
-            _id,
-            userName,
-            postId,
-            comment: commentText,
-            parentCommentId,
-            creationDate,
-        } = comment;
-        const commentDto: CommentDto = {
-            _id,
-            userName,
-            postId,
-            comment: commentText,
-            parentCommentId,
-            parentCommentUserName,
-            creationDate,
-            isLiked: await this.commentslikeRepository.commentslikeExists(
-                requestUserName,
-                comment._id,
-            ),
-            likesCount: await this.commentslikeRepository.getCountByCommentId(
-                comment._id,
-            ),
-            childDtos: [],
-        };
-        for (const c of comment.childComments) {
-            commentDto.childDtos.push(
-                await this.getCommentDto(requestUserName, comment.userName, c),
-            );
-        }
-        return commentDto;
-    };
-
-    getComments = async (
-        userName: string,
-        postId: string,
-        page: number,
-        limit: number,
-    ) => {
-        await this.checkPostAccess(userName, postId);
-        const skip = (page - 1) * limit;
-        const parentComments = await this.commentRepository.getByPostId(
-            postId,
-            skip,
-            limit,
-        );
-        const allDtos: CommentDto[] = [];
-        for (const c of parentComments) {
-            const dto: CommentDto = await this.getCommentDto(userName, "", c);
-            allDtos.push(dto);
-        }
-        const commentsCount =
-            await this.commentRepository.getRootCountByPostId(postId);
-        return {comments: allDtos, totalCount: commentsCount};
-    };
-
     getPostDto = async (userName: string, post: Post) => {
         const tags = this.extractHashtags(post.caption);
-        const commentsCount = await this.commentRepository.getCountByPostId(
+        const commentsCount = await this.commentRepService.getCountByPostId(
             post._id,
         );
         const likesCount = await this.likesRepository.getCountByPostId(
             post._id,
         );
-        const bookmarksCount = await this.bookmarksRepository.getCountByPostId(
+        const bookmarksCount = await this.bookmarkRepository.getCountByPostId(
             post._id,
         );
         const isLiked = await this.likesRepository.likeExists(
             userName,
             post._id,
         );
-        const isBookmarked = await this.bookmarksRepository.bookmarkExists(
+        const isBookmarked = await this.bookmarkRepository.bookmarkExists(
             userName,
             post._id,
         );
@@ -358,16 +267,16 @@ export class PostService {
     };
 
     getPostById = async (_id: string, userName: string) => {
-        await this.checkPostAccess(userName, _id);
+        await this.postRepService.checkPostAccess(userName, _id);
         const post = await this.postRepService.getPostById(_id);
         if (!post) {
-            return;
+            throw new NotFoundError("post");
         }
-        return await this.getPostDto(userName, post);
+        await this.getPostDto(userName, post);
     };
 
     likePost = async (likeRequest: LikeRequest) => {
-        await this.checkPostAccess(likeRequest.userName, likeRequest.postId);
+        await this.postRepService.checkPostAccess(likeRequest.userName, likeRequest.postId);
         const existingLike = await this.likesRepository.getLike(
             likeRequest.userName,
             likeRequest.postId,
@@ -378,39 +287,28 @@ export class PostService {
                     likeRequest.userName,
                     likeRequest.postId,
                 );
-                return true;
+                return;
             }
-            const undeleteResult = await this.likesRepository.undeleteLike(
+            await this.likesRepository.undeleteLike(
                 likeRequest.userName,
                 likeRequest.postId,
             );
-            if (undeleteResult) {
-                return true;
-            }
-            return false;
+            return;
         }
         const likeDto: LikeDto = {
             userName: likeRequest.userName,
             postId: likeRequest.postId,
             isDeleted: false,
         };
-        const insertDto = await this.likesRepository.add(likeDto);
-        if (!insertDto) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "Unknown problem occurred",
-            );
-        }
+        await this.likesRepository.add(likeDto);
         this.notificationService.addLike(
             likeRequest.userName,
             likeRequest.postId,
         );
-        return true;
     };
 
     unlikePost = async (likeRequest: LikeRequest) => {
-        await this.checkPostAccess(likeRequest.userName, likeRequest.postId);
+        await this.postRepService.checkPostAccess(likeRequest.userName, likeRequest.postId);
         const likeDto: LikeDto = {
             userName: likeRequest.userName,
             postId: likeRequest.postId,
@@ -425,141 +323,25 @@ export class PostService {
                 likeRequest.userName,
                 likeRequest.postId,
             );
-            return true;
+            return;
         }
-        const deleteResult = await this.likesRepository.deleteLike(
+        await this.likesRepository.deleteLike(
             likeRequest.userName,
             likeRequest.postId,
         );
-        if (!deleteResult) {
-            return false;
-        }
 
         this.notificationService.deleteNotification(
             likeRequest.userName,
             likeRequest.postId,
         );
-        return true;
-    };
-
-    likeComment = async (commentslikeRequest: CommentsLikeRequest) => {
-        const comment = await this.commentRepository.getById(
-            commentslikeRequest.commentId,
-        );
-        if (!comment) {
-            throw new HttpError(
-                404,
-                ErrorCode.COMMENT_NOT_FOUND,
-                "Comment not found",
-            );
-        }
-        await this.checkPostAccess(
-            commentslikeRequest.userName,
-            comment.postId,
-        );
-        const existingCommentsLike =
-            await this.commentslikeRepository.getCommentsLike(
-                commentslikeRequest.userName,
-                commentslikeRequest.commentId,
-            );
-        if (existingCommentsLike) {
-            if (!existingCommentsLike.isDeleted) {
-                return true;
-            }
-            const undeleteResult =
-                await this.commentslikeRepository.undeleteCommentsLike(
-                    commentslikeRequest.userName,
-                    commentslikeRequest.commentId,
-                );
-            if (undeleteResult) {
-                return true;
-            }
-            return false;
-        }
-        const commentsLikeDto: CommentsLikeDto = {
-            userName: commentslikeRequest.userName,
-            commentId: commentslikeRequest.commentId,
-            isDeleted: false,
-        };
-        const insertDto =
-            await this.commentslikeRepository.add(commentsLikeDto);
-        if (!insertDto) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "Unknown problem occurred",
-            );
-        }
-        return true;
-    };
-
-    unlikeComment = async (commentslikeRequest: CommentsLikeRequest) => {
-        const comment = await this.commentRepository.getById(
-            commentslikeRequest.commentId,
-        );
-        if (!comment) {
-            throw new HttpError(
-                404,
-                ErrorCode.COMMENT_NOT_FOUND,
-                "Comment not found",
-            );
-        }
-        await this.checkPostAccess(
-            commentslikeRequest.userName,
-            comment.postId,
-        );
-        const existingCommentsLike =
-            await this.commentslikeRepository.getCommentsLike(
-                commentslikeRequest.userName,
-                commentslikeRequest.commentId,
-            );
-        if (!existingCommentsLike || existingCommentsLike.isDeleted) {
-            return true;
-        }
-        const deleteResult =
-            await this.commentslikeRepository.deleteCommentsLike(
-                commentslikeRequest.userName,
-                commentslikeRequest.commentId,
-            );
-        if (!deleteResult) {
-            return false;
-        }
-        return true;
-    };
-
-    addComment = async (commentRequest: CommentRequest) => {
-        if (
-            commentRequest.parentCommentId != "" &&
-            !(await this.commentRepository.getById(
-                commentRequest.parentCommentId,
-            ))
-        ) {
-            throw new HttpError(
-                400,
-                ErrorCode.COMMENT_INVALID_PARENT_ID,
-                "Parent comment doesn't exist",
-            );
-        }
-        await this.checkPostAccess(
-            commentRequest.userName,
-            commentRequest.postId,
-        );
-        const createdComment = await this.commentRepository.add(commentRequest);
-        if (createdComment) {
-            this.notificationService.addComment(
-                commentRequest.userName,
-                createdComment._id,
-            );
-        }
-        return createdComment || undefined;
     };
 
     bookmark = async (bookmarkRequest: BookmarkRequest) => {
-        await this.checkPostAccess(
+        await this.postRepService.checkPostAccess(
             bookmarkRequest.userName,
             bookmarkRequest.postId,
         );
-        const existingBookmark = await this.bookmarksRepository.getBookmark(
+        const existingBookmark = await this.bookmarkRepository.getBookmark(
             bookmarkRequest.userName,
             bookmarkRequest.postId,
         );
@@ -567,107 +349,36 @@ export class PostService {
             if (!existingBookmark.isDeleted) {
                 return true;
             }
-            const undeleteResult =
-                await this.bookmarksRepository.undeleteBookmark(
-                    bookmarkRequest.userName,
-                    bookmarkRequest.postId,
-                );
-            if (undeleteResult) {
-                return true;
-            }
-            return false;
+            await this.bookmarkRepository.undeleteBookmark(
+                bookmarkRequest.userName,
+                bookmarkRequest.postId,
+            );
+            return;
         }
         const bookmarkDto: BookmarkDto = {
             userName: bookmarkRequest.userName,
             postId: bookmarkRequest.postId,
             isDeleted: false,
         };
-        const insertDto = await this.bookmarksRepository.add(bookmarkDto);
-        if (!insertDto) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "Unknown problem occurred",
-            );
-        }
-        return true;
+        await this.bookmarkRepository.add(bookmarkDto);
     };
 
     unbookmark = async (bookmarkRequest: BookmarkRequest) => {
-        await this.checkPostAccess(
+        await this.postRepService.checkPostAccess(
             bookmarkRequest.userName,
             bookmarkRequest.postId,
         );
-        const existingBookmark = await this.bookmarksRepository.getBookmark(
+        const existingBookmark = await this.bookmarkRepository.getBookmark(
             bookmarkRequest.userName,
             bookmarkRequest.postId,
         );
         if (!existingBookmark || existingBookmark.isDeleted) {
-            return true;
+            return;
         }
-        const deleteResult = await this.bookmarksRepository.deleteBookmark(
+        await this.bookmarkRepository.deleteBookmark(
             bookmarkRequest.userName,
             bookmarkRequest.postId,
         );
-        if (!deleteResult) {
-            return false;
-        }
-        return true;
-    };
-
-    checkPostAccess = async (userName: string, postId: string) => {
-        const post = await this.postRepService.getPostById(postId);
-        if (!post) {
-            throw new HttpError(
-                400,
-                ErrorCode.INVALID_POST_ID,
-                "Post doesn't exist",
-            );
-        }
-        if (userName == post.userName) {
-            return;
-        }
-        const visitorFollow = await this.followRepService.getFollow(
-            userName,
-            post.userName,
-        );
-        const creatorFollow = await this.followRepService.getFollow(
-            post.userName,
-            userName,
-        );
-        if (visitorFollow && visitorFollow.isBlocked) {
-            throw new HttpError(
-                403,
-                ErrorCode.CREATOR_IS_BLOCKED_BY_YOU,
-                "You have blocked this user",
-            );
-        }
-        if (creatorFollow && creatorFollow.isBlocked) {
-            throw new HttpError(
-                403,
-                ErrorCode.YOU_ARE_BLOCKED,
-                "This user has blocked you",
-            );
-        }
-        const creatorUser = await this.userRepService.getUser(post.userName);
-        if (!creatorUser) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "post username doesn't exist in users",
-            );
-        }
-        if (
-            creatorUser.isPrivate &&
-            (!visitorFollow ||
-                visitorFollow.followRequestState != FollowRequestState.ACCEPTED)
-        ) {
-            throw new HttpError(
-                403,
-                ErrorCode.USER_IS_PRIVATE,
-                "User is private",
-            );
-        }
     };
 
     checkMentionAccess = async (mentioner: string, mentioned: string) => {
@@ -683,26 +394,14 @@ export class PostService {
             mentioner,
         );
         if (mentionerFollow && mentionerFollow.isBlocked) {
-            throw new HttpError(
-                403,
-                ErrorCode.CREATOR_IS_BLOCKED_BY_YOU,
-                "You have blocked this user",
-            );
+            throw new ForbiddenError("User is blocked by you");
         }
         if (mentionedFollow && mentionedFollow.isBlocked) {
-            throw new HttpError(
-                403,
-                ErrorCode.YOU_ARE_BLOCKED,
-                "This user has blocked you",
-            );
+            throw new ForbiddenError("You are blocked");
         }
         const mentionedUser = await this.userRepService.getUser(mentioned);
         if (!mentionedUser) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "post username doesn't exist in users",
-            );
+            throw new UnknownError();
         }
     };
 
@@ -728,11 +427,7 @@ export class PostService {
             const postDto = await this.getPostDto(userName, p);
             const user = await this.userRepService.getUser(p.userName);
             if (!user) {
-                throw new HttpError(
-                    500,
-                    ErrorCode.UNKNOWN_ERROR,
-                    "Unknown error",
-                );
+                throw new UnknownError();
             }
             const {profileImage} = user;
             const followerCount = await this.followRepService.getFollowerCount(
@@ -750,7 +445,7 @@ export class PostService {
     getMyBookMarks = async (userName: string, page: number, limit: number) => {
         const skip = (page - 1) * limit;
         const totalCount = await this.bookmarkRepository.getCountBookmarks(userName);
-        const postIds = await this.bookmarksRepository.getBookmarks(userName, skip, limit);
+        const postIds = await this.bookmarkRepository.getBookmarks(userName, skip, limit);
         
         const posts = [];
     

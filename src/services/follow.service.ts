@@ -1,9 +1,9 @@
 import {ErrorCode} from "../errors/error-codes";
-import {HttpError} from "../errors/http-error";
+import {ForbiddenError, HttpError, NotFoundError, UnknownError} from "../errors/http-error";
 import {UserRepository} from "../repository/user.repository";
 import {FollowRepService} from "./follow.rep.service";
 import {FollowRequestState} from "../models/follow/follow-request-state";
-import {UserRepService} from "./userRep.service";
+import {UserRepService} from "./user.rep.service";
 import {NotificationService} from "./notification.service";
 import {Followinger} from "../models/follow/followinger";
 import {BlockRepository} from "../repository/block.repository";
@@ -26,14 +26,10 @@ export class FollowService {
         }
         const user = await this.userRepService.getUser(followingUserName);
         if (!user) {
-            throw new HttpError(
-                404,
-                ErrorCode.USER_NOT_FOUND,
-                "User not found",
-            );
+            throw new NotFoundError("user");
         }
         if (user.isPrivate) {
-            return await this.sendFollowRequest(
+            await this.sendFollowRequest(
                 followerUserName,
                 followingUserName,
             );
@@ -46,26 +42,23 @@ export class FollowService {
             if (
                 existingFollow.followRequestState == FollowRequestState.ACCEPTED
             ) {
-                return true;
+                return;
             }
-            return await this.followRepService.update(
+            await this.followRepService.update(
                 followerUserName,
                 followingUserName,
                 {followRequestState: FollowRequestState.ACCEPTED},
             );
         }
-        const createdFollow = await this.followRepService.createFollow({
+        await this.followRepService.createFollow({
             followerUserName,
             followingUserName,
         });
-        if (createdFollow) {
-            this.notificationService.addFollow(
-                followerUserName,
-                followingUserName,
-                false,
-            );
-        }
-        return !!createdFollow;
+        this.notificationService.addFollow(
+            followerUserName,
+            followingUserName,
+            false,
+        );
     };
 
     sendFollowRequest = async (
@@ -82,33 +75,28 @@ export class FollowService {
                     FollowRequestState.ACCEPTED ||
                 existingFollow.followRequestState == FollowRequestState.PENDING
             ) {
-                return true;
+                return;
             }
-            const success = await this.followRepService.update(
+            await this.followRepService.update(
                 followerUserName,
                 followingUserName,
                 {followRequestState: FollowRequestState.PENDING},
             );
-            if (success) {
-                this.notificationService.addFollowRequest(
-                    followerUserName,
-                    followingUserName,
-                );
-            }
-            return success;
-        }
-        const createdFollow = await this.followRepService.createFollow({
-            followerUserName,
-            followingUserName,
-            followRequestState: FollowRequestState.PENDING,
-        });
-        if (createdFollow) {
             this.notificationService.addFollowRequest(
                 followerUserName,
                 followingUserName,
             );
         }
-        return !!createdFollow;
+
+        await this.followRepService.createFollow({
+            followerUserName,
+            followingUserName,
+            followRequestState: FollowRequestState.PENDING,
+        });
+        this.notificationService.addFollowRequest(
+            followerUserName,
+            followingUserName,
+        );
     };
 
     unfollow = async (followerUserName: string, followingUserName: string) => {
@@ -121,31 +109,24 @@ export class FollowService {
         }
         const user = await this.userRepService.getUser(followingUserName);
         if (!user) {
-            throw new HttpError(
-                404,
-                ErrorCode.USER_NOT_FOUND,
-                "User not found",
-            );
+            throw new NotFoundError("user");
         }
         const existingFollow = await this.followRepService.getFollow(
             followerUserName,
             followingUserName,
         );
         if (!existingFollow || existingFollow.isDeleted) {
-            return true;
+            return;
         }
-        const success = await this.followRepService.update(
+        await this.followRepService.update(
             followerUserName,
             followingUserName,
             {followRequestState: FollowRequestState.NONE, isCloseFriend: false},
         );
-        if (success) {
-            this.notificationService.deleteNotification(
-                followerUserName,
-                followingUserName,
-            );
-        }
-        return success;
+        this.notificationService.deleteNotification(
+            followerUserName,
+            followingUserName,
+        );
     };
 
     acceptRequest = async (
@@ -166,19 +147,16 @@ export class FollowService {
                 "You have no follow request from this username",
             );
         }
-        const success = await this.followRepService.update(
+        await this.followRepService.update(
             followerUserName,
             followingUserName,
             {followRequestState: FollowRequestState.ACCEPTED},
         );
-        if (success) {
-            this.notificationService.addFollow(
-                followerUserName,
-                followingUserName,
-                true,
-            );
-        }
-        return success;
+        this.notificationService.addFollow(
+            followerUserName,
+            followingUserName,
+            true,
+        );
     };
 
     declineRequest = async (
@@ -199,18 +177,15 @@ export class FollowService {
                 "You have no follow request from this username",
             );
         }
-        const success = await this.followRepService.update(
+        await this.followRepService.update(
             followerUserName,
             followingUserName,
             {followRequestState: FollowRequestState.DECLINED},
         );
-        if (success) {
-            this.notificationService.deleteNotification(
-                followerUserName,
-                followingUserName,
-            );
-        }
-        return success;
+        this.notificationService.deleteNotification(
+            followerUserName,
+            followingUserName,
+        );
     };
 
     addCloseFriend = async (
@@ -226,11 +201,7 @@ export class FollowService {
         }
         const user = await this.userRepService.getUser(followingUserName);
         if (!user) {
-            throw new HttpError(
-                404,
-                ErrorCode.USER_NOT_FOUND,
-                "User not found",
-            );
+            throw new NotFoundError("user");
         }
         const existingFollow = await this.followRepService.getFollow(
             followerUserName,
@@ -240,16 +211,12 @@ export class FollowService {
             !existingFollow ||
             existingFollow.followRequestState != FollowRequestState.ACCEPTED
         ) {
-            throw new HttpError(
-                403,
-                ErrorCode.USER_IS_NOT_FOLLOWED,
-                "Close friend must be your following",
-            );
+            throw new ForbiddenError("User is not followed");
         }
         if (existingFollow.isCloseFriend) {
-            return true;
+            return;
         }
-        return await this.followRepService.update(
+        await this.followRepService.update(
             followerUserName,
             followingUserName,
             {isCloseFriend: true},
@@ -269,11 +236,7 @@ export class FollowService {
         }
         const user = await this.userRepService.getUser(followingUserName);
         if (!user) {
-            throw new HttpError(
-                404,
-                ErrorCode.USER_NOT_FOUND,
-                "User not found",
-            );
+            throw new NotFoundError("user");
         }
         const existingFollow = await this.followRepService.getFollow(
             followerUserName,
@@ -283,16 +246,12 @@ export class FollowService {
             !existingFollow ||
             existingFollow.followRequestState != FollowRequestState.ACCEPTED
         ) {
-            throw new HttpError(
-                403,
-                ErrorCode.USER_IS_NOT_FOLLOWED,
-                "Close friend must be your following",
-            );
+            throw new ForbiddenError("User is not followed");
         }
         if (!existingFollow.isCloseFriend) {
-            return true;
+            return;
         }
-        return await this.followRepService.update(
+        await this.followRepService.update(
             followerUserName,
             followingUserName,
             {isCloseFriend: false},
@@ -314,15 +273,11 @@ export class FollowService {
         const userExists =
             await this.userRepService.checkUserNameExistance(followingUserName);
         if (!userExists) {
-            throw new HttpError(
-                400,
-                ErrorCode.USER_NOT_FOUND,
-                "Blocking UserName not exists",
-            );
+            throw new NotFoundError("user");
         }
         if (existingBlock) {
             if (existingBlock.isBlocked) {
-                return true;
+                return;
             }
             await this.followRepService.update(
                 followingUserName,
@@ -332,14 +287,20 @@ export class FollowService {
                     isCloseFriend: false,
                 },
             );
-            return await this.blockRepository.block(
+            await this.blockRepository.block(
                 followerUserName,
                 followingUserName,
             );
         }
-        return await this.blockRepository.blockNonFollowing(
-            followerUserName,
-            followingUserName,
+        await this.followRepService.createFollow(
+            {
+                followerUserName,
+                followingUserName,
+                isBlocked: true,
+                followRequestState: FollowRequestState.NONE,
+                isCloseFriend: false,
+                isDeleted: true,
+            }
         );
     };
 
@@ -356,13 +317,14 @@ export class FollowService {
             followingUserName,
         );
         if (!existingBlock) {
-            return true;
+            return;
         }
-        return await this.blockRepository.unblock(
+        await this.blockRepository.unblock(
             followerUserName,
             followingUserName,
         );
     };
+
     getBlackList = async (userName: string, page: number, limit: number) => {
         const skip = (page - 1) * limit;
         const totalCount =
@@ -376,11 +338,7 @@ export class FollowService {
         for (const f of blockList) {
             const user = await this.userRepService.getUser(f.followingUserName);
             if (!user) {
-                throw new HttpError(
-                    500,
-                    ErrorCode.UNKNOWN_ERROR,
-                    "Database integrity error",
-                );
+                throw new UnknownError();
             }
             const followinger: Followinger = {
                 userName: user.userName,
@@ -400,20 +358,16 @@ export class FollowService {
     ) => {
         const user = await this.userRepService.getUser(followerUserName);
         if (!user) {
-            throw new HttpError(
-                404,
-                ErrorCode.USER_NOT_FOUND,
-                "User not found",
-            );
+            throw new NotFoundError("user");
         }
         const existingFollow = await this.followRepService.getFollow(
             followerUserName,
             followingUserName,
         );
         if (!existingFollow || existingFollow.isDeleted) {
-            return true;
+            return;
         }
-        return await this.followRepService.update(
+        await this.followRepService.update(
             followerUserName,
             followingUserName,
             {followRequestState: FollowRequestState.NONE, isCloseFriend: false},

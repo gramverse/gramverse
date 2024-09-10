@@ -2,6 +2,7 @@ import {Model} from "mongoose";
 import {INotification} from "../models/notification/notification";
 import {notificationSchema} from "../models/notification/notification-schema";
 import {AddNotifRequest} from "../models/notification/add-notif-request";
+import { convertTypeForArray } from "../utilities/convert-type";
 
 export class NotificationRepository {
     private notifications: Model<INotification>;
@@ -13,16 +14,12 @@ export class NotificationRepository {
     }
 
     add = async (userName: string, eventId: string, isMine: boolean) => {
-        const createdEvent = await this.notifications.create({
+        const createdNotification = await this.notifications.create({
             userName,
             eventId,
             isMine,
         });
-        if (!createdEvent) {
-            return undefined;
-        }
-        const newNotif: INotification = createdEvent;
-        return newNotif;
+        return createdNotification._id;
     };
 
     getNotificationCount = async (userName: string, isMine: boolean) => {
@@ -39,13 +36,13 @@ export class NotificationRepository {
         skip: number,
         limit: number,
     ) => {
-        return (
+        const notifications = 
             await this.notifications
                 .find({userName, isMine})
                 .skip(skip)
                 .limit(limit)
-                .sort({creationDate: -1})
-        ).map((n) => n.toObject());
+                .sort({creationDate: -1});
+        return notifications;
     };
 
     markAsRead = async (idList: string[]) => {
@@ -56,7 +53,6 @@ export class NotificationRepository {
     };
 
     DeleteNotification = async (eventId: string) => {
-        const deleteResult = await this.notifications.deleteMany({eventId});
-        return deleteResult.acknowledged;
+        await this.notifications.deleteMany({eventId});
     };
 }

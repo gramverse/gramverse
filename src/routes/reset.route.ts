@@ -7,7 +7,7 @@ import {
 } from "express";
 import {resetService} from "../config";
 import {zodResetPasswordRequest} from "../models/reset-password/resetpassword-request";
-import {HttpError} from "../errors/http-error";
+import {HttpError, MissingFieldError, ValidationError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {ZodError} from "zod";
 
@@ -20,11 +20,7 @@ resetRouter.post(
             const {email} = req.body;
 
             if (!email) {
-                throw new HttpError(
-                    400,
-                    ErrorCode.INVALID_EMAIL,
-                    "invalid email",
-                );
+                throw new ValidationError("email");
             }
 
             await resetService.generateResetPasswordToken(email);

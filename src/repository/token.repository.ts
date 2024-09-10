@@ -1,16 +1,9 @@
 import mongoose, {Model} from "mongoose";
 import {tokenSchema} from "../models/reset-password/token-schema";
 import {IToken, Token} from "../models/reset-password/token";
+import { convertType } from "../utilities/convert-type";
 
-export interface ITokenRepository {
-    addToken: (token: Token) => Promise<Token | undefined>;
-    updateToken: (token: Token) => Promise<Token | undefined>;
-    getTokenByValue: (tokenValue: string) => Promise<Token | undefined>;
-    markTokenAsUsed: (tokenValue: string) => Promise<void>;
-    //deleteExpiredTokens: () => Promise<void>;
-}
-
-export class TokenRepository implements ITokenRepository {
+export class TokenRepository {
     private tokens: Model<IToken>;
 
     constructor(private dataHandler: typeof mongoose) {
@@ -19,28 +12,20 @@ export class TokenRepository implements ITokenRepository {
 
     addToken = async (tokenData: Token) => {
         const createdDocument = await this.tokens.create(tokenData);
-        if (!createdDocument) {
-            return undefined;
-        }
-        return createdDocument.toObject();
+        return createdDocument._id;
     };
 
     updateToken = async (tokenData: Token) => {
-        const updatedDocument = await this.tokens.updateOne(
+        await this.tokens.updateOne(
             {token: tokenData.token},
             tokenData,
         );
-        if (!updatedDocument.acknowledged) {
-            return undefined;
-        }
-        return tokenData;
     };
 
     getTokenByValue = async (tokenValue: string) => {
-        const token: Token | undefined =
-            (await this.tokens.findOne({token: tokenValue}).lean()) ||
-            undefined;
-        return token;
+        const token =
+            await this.tokens.findOne({token: tokenValue});
+        return convertType<Token, IToken>(token);
     };
 
     markTokenAsUsed = async (tokenValue: string) => {

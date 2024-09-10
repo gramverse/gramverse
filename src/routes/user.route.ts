@@ -12,7 +12,7 @@ import {
 import {Router, Request, Response, NextFunction} from "express";
 import {zodLoginRequest} from "../models/login/login-request";
 import {zodRegisterRequest} from "../models/register/register-request";
-import {HttpError} from "../errors/http-error";
+import {AuthorizationError, HttpError, LoginError, MissingFieldError, UnknownError} from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {LoginResponse} from "../models/login/login-response";
 import {AuthorizedUser} from "../models/profile/authorized-user";
@@ -34,13 +34,13 @@ userRouter.post("/signup", async (req, res, next) => {
         const registerRequest = zodRegisterRequest.parse(req.body);
         const loginResponse = await userService.signup(registerRequest);
         if (!loginResponse) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         res.status(200)
             .cookie("bearer", loginResponse.token, {
                 maxAge: loginResponse.expireTime,
             })
-            .send(loginResponse.user);
+            .send();
     } catch (err) {
         next(err);
     }
@@ -51,17 +51,13 @@ userRouter.post("/login", async (req, res, next) => {
         const loginRequest = zodLoginRequest.parse(req.body);
         const loginResponse = await userService.login(loginRequest);
         if (!loginResponse) {
-            throw new HttpError(
-                401,
-                ErrorCode.INVALID_USERNAME_OR_PASSWORD,
-                "Username or password incorrect",
-            );
+            throw new LoginError();
         }
         res.cookie("bearer", loginResponse.token, {
             maxAge: loginResponse.expireTime,
         })
             .status(201)
-            .send(loginResponse.user);
+            .send();
     } catch (err) {
         next(err);
     }
@@ -72,7 +68,7 @@ userRouter.use(authMiddleware);
 userRouter.get("/profile/:userName", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const profile = await userService.getProfile(
             req.params.userName,
@@ -103,7 +99,7 @@ userRouter.get(
 userRouter.get("/myProfile", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const profile = await userService.getMyProfile(req.user.userName);
         res.status(200).send(JSON.stringify(profile));
@@ -115,14 +111,14 @@ userRouter.get("/myProfile", async (req: Request, res, next) => {
 userRouter.post("/profile", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const profileDto = zodProfileDto.parse(req.body);
-        const updatedProfile = await userService.editProfile(
+        await userService.editProfile(
             profileDto,
             req.user,
         );
-        res.status(200).send(updatedProfile);
+        res.status(200).send();
     } catch (err) {
         next(err);
     }
@@ -130,32 +126,24 @@ userRouter.post("/profile", async (req: Request, res, next) => {
 
 userRouter.post("/follow", async (req: Request, res, next) => {
     try {
-        let success;
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {followingUserName, isFollow} = req.body;
         if (!followingUserName) {
-            throw new HttpError(
-                400,
-                ErrorCode.MISSING_FOLLOWING_USERNAME,
-                "Missing following username",
-            );
+            throw new MissingFieldError("followingUserName")
         }
         const followerUserName = req.user.userName;
         if (isFollow) {
-            success = await followService.follow(
+            await followService.follow(
                 followerUserName,
                 followingUserName,
             );
         } else {
-            success = await followService.unfollow(
+            await followService.unfollow(
                 followerUserName,
                 followingUserName,
             );
-        }
-        if (!success) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         res.status(200).send();
     } catch (err) {
@@ -168,11 +156,7 @@ userRouter.get(
     async (req: Request, res: Response, next: NextFunction) => {
         try {
             if (!req.user) {
-                throw new HttpError(
-                    400,
-                    ErrorCode.UNAUTHORIZED,
-                    "Not authorized",
-                );
+                throw new AuthorizationError();
             }
             const {userName, page, limit, isFollowing} =
                 zodFollowingersRequest.parse(req.query);
@@ -202,7 +186,7 @@ userRouter.get(
 userRouter.get("/closeFriends", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {page, limit} = zodGetCloseFriendsRequest.parse(req.query);
         const closeFriends = await followRepService.getCloseFriends(
@@ -219,26 +203,18 @@ userRouter.get("/closeFriends", async (req: Request, res, next) => {
 userRouter.post("/closeFriend", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {userName, isAdd} = zodCloseFriendRequest.parse(req.body);
-        let success: boolean;
         if (isAdd) {
-            success = await followService.addCloseFriend(
+            await followService.addCloseFriend(
                 req.user.userName,
                 userName,
             );
         } else {
-            success = await followService.removeCloseFriend(
+            await followService.removeCloseFriend(
                 req.user.userName,
                 userName,
-            );
-        }
-        if (!success) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "Unknown error occurred",
             );
         }
         res.status(200).send();
@@ -250,26 +226,18 @@ userRouter.post("/closeFriend", async (req: Request, res, next) => {
 userRouter.post("/acceptRequest", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {followerUserName, accepted} = zodAcceptRequest.parse(req.body);
-        let success: boolean;
         if (accepted) {
-            success = await followService.acceptRequest(
+            await followService.acceptRequest(
                 followerUserName,
                 req.user.userName,
             );
         } else {
-            success = await followService.declineRequest(
+            await followService.declineRequest(
                 followerUserName,
                 req.user.userName,
-            );
-        }
-        if (!success) {
-            throw new HttpError(
-                500,
-                ErrorCode.UNKNOWN_ERROR,
-                "An error occurred",
             );
         }
         res.status(200).send();
@@ -281,27 +249,23 @@ userRouter.post("/acceptRequest", async (req: Request, res, next) => {
 userRouter.post("/block", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {followerUserName, followingUserName, isBlock} =
             zodBlockRequest.parse({
                 ...req.body,
                 followerUserName: req.user.userName,
             });
-        let success: boolean;
         if (isBlock) {
-            success = await followService.block(
+            await followService.block(
                 followerUserName,
                 followingUserName,
             );
         } else {
-            success = await followService.unBlock(
+            await followService.unBlock(
                 followerUserName,
                 followingUserName,
             );
-        }
-        if (!success) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
         }
         res.status(200).send();
     } catch (err) {
@@ -312,7 +276,7 @@ userRouter.post("/block", async (req: Request, res, next) => {
 userRouter.get("/blackList", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {page, limit} = zodGetBlackListRequest.parse(req.query);
         const blockList = await followService.getBlackList(
@@ -329,7 +293,7 @@ userRouter.get("/blackList", async (req: Request, res, next) => {
 userRouter.post("/signOut", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         res.clearCookie("bearer").status(200).send();
     } catch (err) {
@@ -340,24 +304,17 @@ userRouter.post("/signOut", async (req: Request, res, next) => {
 userRouter.post("/removeFollow", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const {followerUserName} = req.body;
         if (!followerUserName) {
-            throw new HttpError(
-                400,
-                ErrorCode.MISSING_FOLLOWER_USERNAME,
-                "Missing follower username",
-            );
+            throw new MissingFieldError("followerUserName");
         }
         const followingUserName = req.user.userName;
-        const success = await followService.removeFollow(
+        await followService.removeFollow(
             followerUserName,
             followingUserName,
         );
-        if (!success) {
-            throw new HttpError(500, ErrorCode.UNKNOWN_ERROR, "Unknown error");
-        }
         res.status(200).send();
     } catch (err) {
         next(err);
@@ -367,7 +324,7 @@ userRouter.post("/removeFollow", async (req: Request, res, next) => {
 userRouter.get("/access/:userName", async (req: Request, res, next) => {
     try {
         if (!req.user) {
-            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+            throw new AuthorizationError();
         }
         const hasAccess = await userService.checkMentionAccess(
             req.user.userName,

@@ -3,6 +3,7 @@ import {postSchema} from "../models/post/post-schema";
 import {IPost, Post, PostDto} from "../models/post/post";
 import {PostRequest} from "../models/post/post-request";
 import {EditPostRequest} from "../models/post/edit-post-request";
+import { convertType, convertTypeForArray } from "../utilities/convert-type";
 
 export class PostRepository {
     private posts: Model<IPost>;
@@ -12,11 +13,7 @@ export class PostRepository {
 
     add = async (postRequest: PostRequest) => {
         const createdPost = await this.posts.create(postRequest);
-        if (!createdPost) {
-            return undefined;
-        }
-        const newPost: Post = createdPost;
-        return newPost;
+        return createdPost._id;
     };
 
     getPostsByUserName = async (
@@ -27,21 +24,19 @@ export class PostRepository {
     ): Promise<Post[]> => {
         let posts: Post[] = [];
         if (!forCloseFriends) {
-            posts = (
+            posts = 
                 await this.posts
                     .find({userName, forCloseFriends: false})
                     .skip(skip)
                     .limit(limit)
                     .sort({creationDate: -1})
-            ).map((p) => p.toObject());
         } else {
-            posts = (
+            posts = 
                 await this.posts
                     .find({userName})
                     .skip(skip)
                     .limit(limit)
                     .sort({creationDate: -1})
-            ).map((p) => p.toObject());
         }
         return posts;
     };
@@ -60,19 +55,15 @@ export class PostRepository {
     };
 
     update = async (editPostRequest: EditPostRequest) => {
-        const result = await this.posts.updateOne(
+        await this.posts.updateOne(
             {_id: editPostRequest._id},
             editPostRequest,
         );
-        return result.acknowledged;
     };
 
     getPostById = async (_id: string): Promise<Post | undefined> => {
         const post = await this.posts.findById(_id);
-        if (!post) {
-            return;
-        }
-        return post.toObject();
+        return convertType<Post, IPost>(post);
     };
 
     getExplorePosts = async (
@@ -91,7 +82,6 @@ export class PostRepository {
             .skip(skip)
             .limit(limit)
             .sort({creationDate: -1})
-            .lean();
         return posts;
     };
 
@@ -106,6 +96,7 @@ export class PostRepository {
             ],
         });
     };
+
     getPostUserName = async (postId: string) => {
         const userName = await this.posts.findById(postId);
         return userName;

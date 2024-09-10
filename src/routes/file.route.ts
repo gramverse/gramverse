@@ -9,7 +9,7 @@ import {
     NextFunction,
 } from "express";
 import multer from "multer";
-import {HttpError} from "../errors/http-error";
+import {AuthorizationError, HttpError} from "../errors/http-error";
 import {AuthorizedUser} from "../models/profile/authorized-user";
 import {ErrorCode} from "../errors/error-codes";
 import {zodProfileDto} from "../models/profile/edit-profile-dto";
@@ -43,11 +43,7 @@ fileRouter.post(
     async (req: Request, res, next) => {
         try {
             if (!req.user) {
-                throw new HttpError(
-                    401,
-                    ErrorCode.UNAUTHORIZED,
-                    "Not authorized",
-                );
+                throw new AuthorizationError();
             }
             const fields = JSON.parse(req.body["profileFields"]);
             let profileDto: EditProfileDto;
@@ -64,11 +60,11 @@ fileRouter.post(
                     userName: req.user.userName,
                 });
             }
-            const updatedProfile = await userService.editProfile(
+            await userService.editProfile(
                 profileDto,
                 req.user,
             );
-            res.status(200).send(updatedProfile);
+            res.status(200).send();
         } catch (err) {
             next(err);
         }
@@ -81,11 +77,7 @@ fileRouter.post(
     async (req: Request, res, next) => {
         try {
             if (!req.user) {
-                throw new HttpError(
-                    401,
-                    ErrorCode.UNAUTHORIZED,
-                    "Not authorized",
-                );
+                throw new AuthorizationError();
             }
             const files = req.files as Express.Multer.File[];
             const photoUrls: string[] = [];
@@ -103,12 +95,8 @@ fileRouter.post(
                 photoUrls,
                 userName: req.user.userName,
             });
-            const newPost = await postService.addPost(postRequest);
-
-            if (!newPost) {
-                res.status(500).send();
-            }
-            res.status(200).send(newPost);
+            await postService.addPost(postRequest);
+            res.status(200).send();
         } catch (err) {
             next(err);
         }
@@ -121,11 +109,7 @@ fileRouter.post(
     async (req: Request, res, next) => {
         try {
             if (!req.user) {
-                throw new HttpError(
-                    401,
-                    ErrorCode.UNAUTHORIZED,
-                    "Not authorized",
-                );
+                throw new AuthorizationError();
             }
             const files = req.files as Express.Multer.File[];
 
@@ -139,15 +123,11 @@ fileRouter.post(
                     postRequest.photoUrls.push(`/api/files/${f.filename}`);
                 });
             }
-            const edittedPost = await postService.editPost(
+            await postService.editPost(
                 postRequest,
                 req.user.userName,
             );
-
-            if (!edittedPost) {
-                res.status(500).send();
-            }
-            res.status(200).send(edittedPost);
+            res.status(200).send();
         } catch (err) {
             next(err);
         }
