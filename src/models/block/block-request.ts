@@ -5,4 +5,4 @@ export const zodBlockRequest = z.object({
     followingUserName: z.string().nonempty(),
     isBlock: z.boolean().default(true),
 });
-  
+   
