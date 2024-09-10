@@ -287,17 +287,9 @@
  *         description: Number of items per page
  *     responses:
  *       200:
- *         description: Successfully returned the list of saved posts.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Post'
+ *         description: Posts retrieved successfully.
  *       401:
- *         description: Unauthorized access (user is not logged in)
- *       400:
- *         description: Invalid request
+ *         description: Not authorized.
  *       500:
- *         description: Internal server error
+ *         description: Internal server error.
  */
