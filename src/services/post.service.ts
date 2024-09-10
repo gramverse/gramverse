@@ -746,14 +746,11 @@ export class PostService {
             postDtos.push(explorePostDto);
         }
         return {postDtos, totalCount};
-    };
-    getMyBookMarks = async (userName: string, page: number, limit: number) => {
-        const skip = (page - 1) * limit;
-        const postIds = await this.bookmarksRepository.getBookmarks(
-            userName,
-            skip,
-            limit,
-        );
+    }
+        getMyBookMarks = async(userName: string, page: number, limit: number)=>{
+        const skip = (page-1) * limit;
+        const totalCount = await this.bookmarkRepository.getCountBookmarks(userName)
+        const postIds = await this.bookmarksRepository.getBookmarks(userName,skip,limit)
         for (const postId of postIds) {
             const hasAccess =
                 await this.notificationService.checkPostAccessForNotification(
@@ -763,7 +760,7 @@ export class PostService {
 
             if (hasAccess) {
                 const post = await this.postRepService.getPostById(postId);
-                return post?.photoUrls[0], post?._id;
+                return post?.photoUrls[0],post?._id,totalCount               
             }
         }
     };

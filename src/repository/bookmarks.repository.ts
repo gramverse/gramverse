@@ -68,5 +68,9 @@ export class BookmarksRepository {
             .sort({creationDate: -1})
             .lean();
         return postIds;
-    };
+    }
+    getCountBookmarks = async (userName: string) => {
+        return await this.bookmarks.countDocuments({userName});
+   }
+
 }
