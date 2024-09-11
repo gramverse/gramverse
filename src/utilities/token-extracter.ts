@@ -10,5 +10,8 @@ export const tokenExtracter = async (token: string) => {
     }
     const payload = jwt.verify(token, jwtSecret) as JwtPayload;
     const tokenData = payload["data"] as MultiUserToken;
+    if (!tokenData.currentUser) {
+        return;
+    }
     return tokenData;
 }
