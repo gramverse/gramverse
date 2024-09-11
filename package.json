@@ -22,7 +22,7 @@
     "main": "index.js",
     "scripts": {
         "test": "jest --testMatch **/*.test.ts",
-        "start": "ts-node src/main.ts",
+        "start": "set NODE_ENV=Dev&&ts-node src/main.ts",
         "dev": "nodemon src/main.ts",
         "build": "tsc"
     },
