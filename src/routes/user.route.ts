@@ -321,4 +321,4 @@ userRouter.get("/access/:userName", async (req: Request, res, next) => {
 userRouter.post("/updateAll", async (req, res, next) => {
     const result = await followService.updateAllUsers();
     res.status(200).send(result);
-})
+});

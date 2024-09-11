@@ -150,7 +150,15 @@ export class UserService implements IUserService {
         if (!user) {
             throw new UnknownError();
         }
-        const {email, firstName, lastName, profileImage, isPrivate, bio, followerCount} = user;
+        const {
+            email,
+            firstName,
+            lastName,
+            profileImage,
+            isPrivate,
+            bio,
+            followerCount,
+        } = user;
         const followingCount = await this.followRepService.getFollowingCount(
             user.userName,
         );
@@ -178,7 +186,15 @@ export class UserService implements IUserService {
         if (!user) {
             throw new NotFoundError("user");
         }
-        const {email, firstName, lastName, profileImage, isPrivate, bio, followerCount} = user;
+        const {
+            email,
+            firstName,
+            lastName,
+            profileImage,
+            isPrivate,
+            bio,
+            followerCount,
+        } = user;
         const {followRequestState, isBlocked, isCloseFriend} =
             (await this.followRepService.getFollow(myUserName, userName)) || {
                 followRequestState: FollowRequestState.NONE,

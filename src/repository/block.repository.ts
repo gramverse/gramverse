@@ -29,11 +29,12 @@ export class BlockRepository {
     };
 
     getBlocks = async (followerUserName: string) => {
-        const blocks = await this.blocks.find({
-            followerUserName,
-            isBlocked: true,
-        })
-        .lean();
+        const blocks = await this.blocks
+            .find({
+                followerUserName,
+                isBlocked: true,
+            })
+            .lean();
         return blocks;
     };
 

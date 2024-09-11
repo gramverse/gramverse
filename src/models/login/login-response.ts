@@ -19,4 +19,4 @@ export type User = {
     followerCount: number;
 };
 
-export type UserToValidate = Omit<User, "passwordHash">&{password: string};
+export type UserToValidate = Omit<User, "passwordHash"> & {password: string};
