@@ -24,6 +24,7 @@ import {authMiddleware} from "../middlewares/auth-middleware";
 import {zodGetCommentsRequest} from "../models/comment/get-comments-request";
 import {zodGetPostsRequest} from "../models/post/get-posts-request";
 import {zodMyBookMarkRequest} from "../models/bookmark/mybookmark-request";
+import {zodMyMentionRequest} from "../models/mention/mymention-request";
 declare module "express" {
     interface Request {
         user?: AuthorizedUser;
@@ -235,4 +236,21 @@ postRouter.get("/myBookMarks", async (req: Request, res, next) => {
 postRouter.post("/updateAll", async (req, res, next) => {
     const result = await postService.updateAllPosts();
     res.status(200).send(result);
-})
+});
+
+postRouter.get("/meMentiones", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
+        }
+        const {page, limit} = zodMyMentionRequest.parse(req.query);
+        const posts = await postService.getMyMentions(
+            req.user.userName,
+            page,
+            limit,
+        );
+        res.status(200).send(posts);
+    } catch (err) {
+        next(err);
+    }
+});

@@ -44,6 +44,8 @@ import {PostRepService} from "./post.rep.service";
 import {UserRepService} from "./user.rep.service";
 import {CommentService} from "./comment.service";
 import {CommentRepService} from "./comment.rep.service";
+import {MentionsRepository} from "../repository/mentions.repository";
+import {MentionDto} from "../models/mention/mention-request";
 
 export class PostService {
     constructor(
@@ -55,6 +57,7 @@ export class PostService {
         private tagRepository: TagRepository,
         private likesRepository: LikesRepository,
         private bookmarkRepository: BookmarkRepository,
+        private mentionRepository: MentionsRepository,
     ) {}
 
     extractHashtags = (text: string) => {
@@ -96,9 +99,30 @@ export class PostService {
             (m) => !oldMentions.includes(m),
         );
         for (const mention of mentionsToBeAdded) {
+            const existingMention = await this.mentionRepository.getMention(
+                mention,
+                postId,
+            );
+            if (existingMention) {
+                this.mentionRepository.undeleteMention(mention, postId);
+            } else {
+                const mentionDto: MentionDto = {
+                    userName: mention,
+                    postId: postId,
+                    isDeleted: false,
+                };
+                this.mentionRepository.add(mentionDto);
+            }
             this.notificationService.addMention(myUserName, mention, postId);
         }
         for (const mention of mentionsToBeRemoved) {
+            const existingMention = await this.mentionRepository.getMention(
+                mention,
+                postId,
+            );
+            if (existingMention) {
+                this.mentionRepository.deleteMention(mention, postId);
+            }
             this.notificationService.deleteNotification(myUserName, mention);
         }
     };
@@ -491,7 +515,7 @@ export class PostService {
     updateLikesCount = async (postId: string) => {
         const likesCount = await this.likesRepository.getCountByPostId(postId);
         await this.postRepService.updateLikesCount(postId, likesCount);
-    }
+    };
 
     updateAllPosts = async () => {
         const allPosts = await this.postRepService.getAllPosts();
@@ -501,5 +525,39 @@ export class PostService {
             counter++;
         }
         return `Number of updated posts: ${counter}`;
-    }
+    };
+    getMyMentions = async (userName: string, page: number, limit: number) => {
+        const skip = (page - 1) * limit;
+        const totalCount =
+            await this.mentionRepository.getCountMentions(userName);
+        const postIds = await this.mentionRepository.getMentions(
+            userName,
+            skip,
+            limit,
+        );
+
+        const posts = [];
+
+        for (const postId of postIds) {
+            const hasAccess =
+                await this.notificationService.checkPostAccessForNotification(
+                    userName,
+                    postId,
+                );
+            if (hasAccess) {
+                const post = await this.postRepService.getPostById(postId);
+                if (post) {
+                    posts.push({
+                        photoUrl: post.photoUrls[0],
+                        postId: post._id,
+                        userName: post.userName,
+                    });
+                }
+            }
+        }
+        return {
+            posts,
+            totalCount,
+        };
+    };
 }

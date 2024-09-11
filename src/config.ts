@@ -24,6 +24,7 @@ import {PostRepService} from "./services/post.rep.service";
 import {CommentService} from "./services/comment.service";
 import {CommentRepService} from "./services/comment.rep.service";
 import {LikesRepository as LikeRepository} from "./repository/like.repository";
+import {MentionsRepository} from "./repository/mentions.repository";
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ const emailService = new EmailService();
 const blockRepository = new BlockRepository(mongoose);
 const notificationRepository = new NotificationRepository(mongoose);
 const eventRepository = new EventRepository(mongoose);
+const mentionRepository = new MentionsRepository(mongoose);
 
 export const userRepService = new UserRepService(userRepository);
 export const followRepService = new FollowRepService(
@@ -84,6 +86,7 @@ export const postService = new PostService(
     tagRepository,
     likeRepository,
     bookmarkRepository,
+    mentionRepository,
 );
 export const userService = new UserService(
     postRepService,
