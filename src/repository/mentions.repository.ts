@@ -35,12 +35,14 @@ export class MentionsRepository {
         return convertType<Mention, IMentiont>(mention);
     };
     getMentions = async (userName: string, skip: number, limit: number) => {
-        const postIds = await this.mentions
-            .distinct("postId", {userName})
-            .skip(skip)
-            .limit(limit)
-            .sort({creationDate: -1})
-            .lean();
+        const postIds = (
+            await this.mentions
+                .find({userName})
+                .skip(skip)
+                .limit(limit)
+                .sort({creationDate: -1})
+                .lean()
+        ).map((m) => m.postId);
         return postIds;
     };
     getCountMentions = async (userName: string) => {
