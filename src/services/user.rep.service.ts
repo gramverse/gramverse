@@ -33,5 +33,5 @@ export class UserRepService {
 
     getAllUsers = async () => {
         return await this.userRepository.getAllUsers();
-    }
+    };
 }

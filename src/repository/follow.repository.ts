@@ -104,29 +104,32 @@ export class FollowRepository {
     };
 
     getAllFollowers = async (followingUserName: string) => {
-        const followers = await this.follows.find({
-            followingUserName,
-            followRequestState: FollowRequestState.ACCEPTED,
-        })
-        .lean();
+        const followers = await this.follows
+            .find({
+                followingUserName,
+                followRequestState: FollowRequestState.ACCEPTED,
+            })
+            .lean();
         return followers;
     };
 
     getAllFollowings = async (followerUserName: string) => {
-        const followings = await this.follows.find({
-            followerUserName,
-            followRequestState: FollowRequestState.ACCEPTED,
-        })
-        .lean();
+        const followings = await this.follows
+            .find({
+                followerUserName,
+                followRequestState: FollowRequestState.ACCEPTED,
+            })
+            .lean();
         return followings;
     };
 
     getAllCloseFriends = async (followingUserName: string) => {
-        const closeFriends = await this.follows.find({
-            followingUserName,
-            isCloseFriend: true,
-        })
-        .lean();
+        const closeFriends = await this.follows
+            .find({
+                followingUserName,
+                isCloseFriend: true,
+            })
+            .lean();
         return closeFriends;
     };
 

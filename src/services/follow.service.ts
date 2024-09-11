@@ -122,7 +122,10 @@ export class FollowService {
             followerUserName,
             followingUserName,
         );
-        if (!existingFollow || existingFollow.followRequestState != FollowRequestState.ACCEPTED) {
+        if (
+            !existingFollow ||
+            existingFollow.followRequestState != FollowRequestState.ACCEPTED
+        ) {
             return;
         }
         await this.followRepService.update(
@@ -368,7 +371,10 @@ export class FollowService {
             followerUserName,
             followingUserName,
         );
-        if (!existingFollow || existingFollow.followRequestState != FollowRequestState.ACCEPTED) {
+        if (
+            !existingFollow ||
+            existingFollow.followRequestState != FollowRequestState.ACCEPTED
+        ) {
             return;
         }
         await this.followRepService.update(
@@ -380,9 +386,10 @@ export class FollowService {
     };
 
     updateFollowerCount = async (userName: string) => {
-        const followerCount = await this.followRepService.getFollowerCount(userName);
+        const followerCount =
+            await this.followRepService.getFollowerCount(userName);
         await this.userRepService.updateUser(userName, {followerCount});
-    }
+    };
 
     updateAllUsers = async () => {
         const allUsers = await this.userRepService.getAllUsers();
@@ -392,5 +399,5 @@ export class FollowService {
             counter++;
         }
         return `Number of changes: ${counter}`;
-    }
+    };
 }

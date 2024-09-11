@@ -102,9 +102,9 @@ export class PostRepository {
 
     updateLikesCount = async (_id: string, likesCount: number) => {
         await this.posts.updateOne({_id}, {likesCount});
-    }
+    };
 
     getAllPosts = async () => {
         return await this.posts.find();
-    }
+    };
 }

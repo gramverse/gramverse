@@ -113,9 +113,9 @@ export class PostRepService {
 
     updateLikesCount = async (postId: string, likesCount: number) => {
         await this.postRepository.updateLikesCount(postId, likesCount);
-    }
+    };
 
     getAllPosts = async () => {
         return await this.postRepository.getAllPosts();
-    }
+    };
 }
