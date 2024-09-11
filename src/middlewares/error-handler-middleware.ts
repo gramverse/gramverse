@@ -14,7 +14,7 @@ export const errorHandler: ErrorRequestHandler = (
         res.status(400).send({message: err.errors});
         return;
     } else if (err instanceof HttpError) {
-        if (err.errorCode == 401) {
+        if (err.statusCode == 401) {
             res.clearCookie("bearer");
         }
         res.status(err.statusCode).send(err);

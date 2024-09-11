@@ -9,7 +9,7 @@ import {
     UnknownError,
     ValidationError,
 } from "../errors/http-error";
-import {AuthorizedUser} from "../models/profile/authorized-user";
+import {AuthorizedUser, MultiUserToken} from "../models/profile/authorized-user";
 import {LoginRequest} from "../models/login/login-request";
 import {
     LoginResponse,
@@ -33,13 +33,15 @@ import {NotificationService} from "./notification.service";
 import {UserRepService} from "./user.rep.service";
 import {PostRepService} from "./post.rep.service";
 import {FollowRepService} from "./follow.rep.service";
+import { jwtTokenGenerator } from "../utilities/jwt-token-generator";
+import { maxExpirationTimeCalculator } from "../utilities/max-expiration-time-calculator";
 
 export interface IUserService {
-    signup: (
-        registerRequest: RegisterRequest,
-    ) => Promise<LoginResponse | undefined>;
+    // signup: (
+    //     registerRequest: RegisterRequest,
+    // ) => Promise<LoginResponse | undefined>;
     validateInfo: (user: Partial<UserToValidate>, isForSignup: boolean) => void;
-    login: (loginRequest: LoginRequest) => Promise<LoginResponse | undefined>;
+    // login: (loginRequest: LoginRequest) => Promise<LoginResponse | undefined>;
     // ... reset password functions
     // editProfile: (profile: Profile) => Promise<Profile>;
 }
@@ -52,7 +54,7 @@ export class UserService implements IUserService {
         private notificationService: NotificationService,
     ) {}
 
-    login = async (loginRequest: LoginRequest) => {
+    login = async (loginRequest: LoginRequest, oldToken: MultiUserToken|undefined) => {
         const user = await this.userRepService.getUser(loginRequest.userName);
 
         if (!user) {
@@ -65,26 +67,30 @@ export class UserService implements IUserService {
         if (!passwordMatch) {
             throw new LoginError();
         }
-        const tokenPayload: AuthorizedUser = {
+        if (oldToken && oldToken.loggedInUsers.find(u => u.userName == loginRequest.userName)) {
+            return;
+        }
+        let expirationTime: Date;
+        if (loginRequest.rememberMe) {
+            expirationTime = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+        } else {
+            expirationTime = new Date(Date.now() + 3 * 24 * 3600 * 1000);
+        }
+        const newUser: AuthorizedUser = {
             _id: user._id,
             userName: user.userName,
             email: user.email,
+            creationTime: new Date(),
+            expirationTime,
         };
-        let token: string;
-        let expireTime: number;
-        if (loginRequest.rememberMe) {
-            token = await jwt.sign({data: tokenPayload}, jwtSecret, {
-                expiresIn: "168h",
-            });
-            expireTime = 7 * 24 * 3600 * 1000;
-        } else {
-            token = await jwt.sign({data: tokenPayload}, jwtSecret, {
-                expiresIn: "72h",
-            });
-            expireTime = 3 * 24 * 3600 * 1000;
-        }
+        const newToken: MultiUserToken = {
+            currentUser: newUser,
+            loggedInUsers: [...oldToken?.loggedInUsers||[], newUser],
+        };
+        const token = await jwtTokenGenerator(newToken);
 
-        const loginResponse: LoginResponse = {user, token, expireTime};
+        const maxAge = await maxExpirationTimeCalculator(newToken.loggedInUsers);
+        const loginResponse: LoginResponse = {user, token, expireTime: maxAge};
         return loginResponse;
     };
 
@@ -107,7 +113,7 @@ export class UserService implements IUserService {
         }
     };
 
-    signup = async (registerRequest: RegisterRequest) => {
+    signup = async (registerRequest: RegisterRequest, oldToken: MultiUserToken|undefined) => {
         this.validateInfo(registerRequest, true);
         const emailExists = await this.userRepService.checkEmailExistance(
             registerRequest.email,
@@ -141,7 +147,7 @@ export class UserService implements IUserService {
             password: registerRequest.password,
             rememberMe: false,
         };
-        const loginResponse = await this.login(loginRequest);
+        const loginResponse = await this.login(loginRequest, oldToken);
         return loginResponse;
     };
 
