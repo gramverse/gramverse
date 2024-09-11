@@ -9,4 +9,5 @@ export const usersSchemaObject = {
     passwordHash: {type: String, required: true},
     isPrivate: {type: Boolean, required: true, default: false},
     bio: String,
+    followerCount: {type: Number, default: 0},
 };

@@ -110,4 +110,12 @@ export class PostRepService {
             throw new ForbiddenError("User is private");
         }
     };
+
+    updateLikesCount = async (postId: string, likesCount: number) => {
+        await this.postRepository.updateLikesCount(postId, likesCount);
+    }
+
+    getAllPosts = async () => {
+        return await this.postRepository.getAllPosts();
+    }
 }

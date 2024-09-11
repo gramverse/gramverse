@@ -40,7 +40,8 @@ export class NotificationRepository {
             .find({userName, isMine})
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1});
+            .sort({creationDate: -1})
+            .lean();
         return notifications;
     };
 

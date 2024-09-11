@@ -246,9 +246,6 @@ export class PostService {
         const commentsCount = await this.commentRepService.getCountByPostId(
             post._id,
         );
-        const likesCount = await this.likesRepository.getCountByPostId(
-            post._id,
-        );
         const bookmarksCount = await this.bookmarkRepository.getCountByPostId(
             post._id,
         );
@@ -264,7 +261,6 @@ export class PostService {
             ...post,
             tags,
             commentsCount,
-            likesCount,
             bookmarksCount,
             isLiked,
             isBookmarked,
@@ -302,6 +298,7 @@ export class PostService {
                 likeRequest.userName,
                 likeRequest.postId,
             );
+            await this.updateLikesCount(likeRequest.postId);
             return;
         }
         const likeDto: LikeDto = {
@@ -310,6 +307,7 @@ export class PostService {
             isDeleted: false,
         };
         await this.likesRepository.add(likeDto);
+        await this.updateLikesCount(likeRequest.postId);
         this.notificationService.addLike(
             likeRequest.userName,
             likeRequest.postId,
@@ -341,7 +339,7 @@ export class PostService {
             likeRequest.userName,
             likeRequest.postId,
         );
-
+        await this.updateLikesCount(likeRequest.postId);
         this.notificationService.deleteNotification(
             likeRequest.userName,
             likeRequest.postId,
@@ -489,4 +487,19 @@ export class PostService {
             totalCount,
         };
     };
+
+    updateLikesCount = async (postId: string) => {
+        const likesCount = await this.likesRepository.getCountByPostId(postId);
+        await this.postRepService.updateLikesCount(postId, likesCount);
+    }
+
+    updateAllPosts = async () => {
+        const allPosts = await this.postRepService.getAllPosts();
+        let counter = 0;
+        for (const post of allPosts) {
+            await this.updateLikesCount(post._id);
+            counter++;
+        }
+        return `Number of updated posts: ${counter}`;
+    }
 }

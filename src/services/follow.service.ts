@@ -35,6 +35,7 @@ export class FollowService {
         }
         if (user.isPrivate) {
             await this.sendFollowRequest(followerUserName, followingUserName);
+            return;
         }
         const existingFollow = await this.followRepService.getFollow(
             followerUserName,
@@ -51,11 +52,14 @@ export class FollowService {
                 followingUserName,
                 {followRequestState: FollowRequestState.ACCEPTED},
             );
+            await this.updateFollowerCount(followingUserName);
+            return;
         }
         await this.followRepService.createFollow({
             followerUserName,
             followingUserName,
         });
+        await this.updateFollowerCount(followingUserName);
         this.notificationService.addFollow(
             followerUserName,
             followingUserName,
@@ -88,6 +92,7 @@ export class FollowService {
                 followerUserName,
                 followingUserName,
             );
+            return;
         }
 
         await this.followRepService.createFollow({
@@ -125,6 +130,7 @@ export class FollowService {
             followingUserName,
             {followRequestState: FollowRequestState.NONE, isCloseFriend: false},
         );
+        await this.updateFollowerCount(followingUserName);
         this.notificationService.deleteNotification(
             followerUserName,
             followingUserName,
@@ -154,6 +160,7 @@ export class FollowService {
             followingUserName,
             {followRequestState: FollowRequestState.ACCEPTED},
         );
+        await this.updateFollowerCount(followingUserName);
         this.notificationService.addFollow(
             followerUserName,
             followingUserName,
@@ -293,6 +300,7 @@ export class FollowService {
                 followerUserName,
                 followingUserName,
             );
+            await this.updateFollowerCount(followingUserName);
         }
         await this.followRepService.createFollow({
             followerUserName,
@@ -369,5 +377,21 @@ export class FollowService {
             followingUserName,
             {followRequestState: FollowRequestState.NONE, isCloseFriend: false},
         );
+        await this.updateFollowerCount(followingUserName);
     };
+
+    updateFollowerCount = async (userName: string) => {
+        const followerCount = await this.followRepService.getFollowerCount(userName);
+        await this.userRepService.updateUser(userName, {followerCount});
+    }
+
+    updateAllUsers = async () => {
+        const allUsers = await this.userRepService.getAllUsers();
+        let counter = 0;
+        for (const user of allUsers) {
+            await this.updateFollowerCount(user.userName);
+            counter++;
+        }
+        return `Number of changes: ${counter}`;
+    }
 }

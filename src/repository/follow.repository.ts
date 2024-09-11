@@ -63,7 +63,8 @@ export class FollowRepository {
             })
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1});
+            .sort({creationDate: -1})
+            .lean();
         return followers;
     };
 
@@ -80,7 +81,8 @@ export class FollowRepository {
             })
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1});
+            .sort({creationDate: -1})
+            .lean();
         return followings;
     };
 
@@ -93,7 +95,8 @@ export class FollowRepository {
             .find({followerUserName, isDeleted: false, isCloseFriend: true})
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1});
+            .sort({creationDate: -1})
+            .lean();
         return closeFriends;
     };
 
@@ -109,7 +112,8 @@ export class FollowRepository {
             followingUserName,
             isDeleted: false,
             followRequestState: FollowRequestState.ACCEPTED,
-        });
+        })
+        .lean();
         return followers;
     };
 
@@ -117,7 +121,8 @@ export class FollowRepository {
         const followings = await this.follows.find({
             followerUserName,
             followRequestState: FollowRequestState.ACCEPTED,
-        });
+        })
+        .lean();
         return followings;
     };
 
@@ -125,7 +130,8 @@ export class FollowRepository {
         const closeFriends = await this.follows.find({
             followingUserName,
             isCloseFriend: true,
-        });
+        })
+        .lean();
         return closeFriends;
     };
 

@@ -28,13 +28,15 @@ export class PostRepository {
                 .find({userName, forCloseFriends: false})
                 .skip(skip)
                 .limit(limit)
-                .sort({creationDate: -1});
+                .sort({creationDate: -1})
+                .lean();
         } else {
             posts = await this.posts
                 .find({userName})
                 .skip(skip)
                 .limit(limit)
-                .sort({creationDate: -1});
+                .sort({creationDate: -1})
+                .lean();
         }
         return posts;
     };
@@ -76,7 +78,8 @@ export class PostRepository {
             })
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1});
+            .sort({creationDate: -1})
+            .lean();
         return posts;
     };
 
@@ -96,4 +99,12 @@ export class PostRepository {
         const userName = await this.posts.findById(postId);
         return userName;
     };
+
+    updateLikesCount = async (_id: string, likesCount: number) => {
+        await this.posts.updateOne({_id}, {likesCount});
+    }
+
+    getAllPosts = async () => {
+        return await this.posts.find();
+    }
 }

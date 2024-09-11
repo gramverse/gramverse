@@ -231,3 +231,8 @@ postRouter.get("/myBookMarks", async (req: Request, res, next) => {
         next(err);
     }
 });
+
+postRouter.post("/updateAll", async (req, res, next) => {
+    const result = await postService.updateAllPosts();
+    res.status(200).send(result);
+})

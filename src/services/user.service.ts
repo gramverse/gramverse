@@ -150,10 +150,7 @@ export class UserService implements IUserService {
         if (!user) {
             throw new UnknownError();
         }
-        const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
-        const followerCount = await this.followRepService.getFollowerCount(
-            user.userName,
-        );
+        const {email, firstName, lastName, profileImage, isPrivate, bio, followerCount} = user;
         const followingCount = await this.followRepService.getFollowingCount(
             user.userName,
         );
@@ -181,7 +178,7 @@ export class UserService implements IUserService {
         if (!user) {
             throw new NotFoundError("user");
         }
-        const {email, firstName, lastName, profileImage, isPrivate, bio} = user;
+        const {email, firstName, lastName, profileImage, isPrivate, bio, followerCount} = user;
         const {followRequestState, isBlocked, isCloseFriend} =
             (await this.followRepService.getFollow(myUserName, userName)) || {
                 followRequestState: FollowRequestState.NONE,
@@ -193,9 +190,6 @@ export class UserService implements IUserService {
                 isBlocked: false,
                 followRequestState: FollowRequestState.NONE,
             };
-        const followerCount = await this.followRepService.getFollowerCount(
-            user.userName,
-        );
         const followingCount = await this.followRepService.getFollowingCount(
             user.userName,
         );
@@ -250,7 +244,7 @@ export class UserService implements IUserService {
             ...profileDto,
             passwordHash,
         };
-        await this.userRepService.updateUser(user._id, userToBeUpdated);
+        await this.userRepService.updateUser(user.userName, userToBeUpdated);
     };
 
     checkMentionAccess = async (myUserName: string, userName: string) => {
