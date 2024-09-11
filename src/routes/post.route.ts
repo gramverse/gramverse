@@ -238,7 +238,7 @@ postRouter.post("/updateAll", async (req, res, next) => {
     res.status(200).send(result);
 });
 
-postRouter.get("/myMentions", async (req: Request, res, next) => {
+postRouter.get("/meMentiones", async (req: Request, res, next) => {
     try {
         if (!req.user) {
             throw new HttpError(401, ErrorCode.UNAUTHORIZED, "Not authorized");
