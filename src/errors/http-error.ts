@@ -168,3 +168,9 @@ export class ForbiddenError extends HttpError {
         super(403, errorCode, message);
     }
 }
+
+export class SwitchAccountError extends HttpError {
+    constructor(public message: string = "You have not added this user") {
+        super(402, ErrorCode.SWITCH_ACCOUNT_ERROR, message);
+    }
+}

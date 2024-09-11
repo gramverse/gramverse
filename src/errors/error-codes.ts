@@ -31,6 +31,7 @@ export enum ErrorCode {
     // Authorization/authentication errors:
     UNAUTHORIZED,
     INVALID_USERNAME_OR_PASSWORD,
+    SWITCH_ACCOUNT_ERROR,
 
     // forbidden errors:
     USER_IS_NOT_FOLLOWED,

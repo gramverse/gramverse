@@ -17,11 +17,12 @@ import {
     HttpError,
     LoginError,
     MissingFieldError,
+    SwitchAccountError,
     UnknownError,
 } from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
 import {LoginResponse} from "../models/login/login-response";
-import {AuthorizedUser} from "../models/profile/authorized-user";
+import {AuthorizedUser, MultiUserToken} from "../models/profile/authorized-user";
 import {zodProfileDto} from "../models/profile/edit-profile-dto";
 import {zodFollowRequest} from "../models/follow/follow-request";
 import {zodFollowingersRequest} from "../models/follow/get-followingers-request";
@@ -32,15 +33,20 @@ import {zodCloseFriendRequest} from "../models/follow/close-friend-request";
 import {zodAcceptRequest} from "../models/follow/accept-request";
 import {zodGetBlackListRequest} from "../models/block/get-blackList-request";
 import {zodBlockRequest} from "../models/block/block-request";
+import { tokenExtracter } from "../utilities/token-extracter";
+import { jwtTokenGenerator } from "../utilities/jwt-token-generator";
+import { maxExpirationTimeCalculator } from "../utilities/max-expiration-time-calculator";
 
 export const userRouter = Router();
 
 userRouter.post("/signup", async (req, res, next) => {
     try {
         const registerRequest = zodRegisterRequest.parse(req.body);
-        const loginResponse = await userService.signup(registerRequest);
+        const currentTokenData = await tokenExtracter(req.cookies["bearer"]);
+        const loginResponse = await userService.signup(registerRequest, currentTokenData);
         if (!loginResponse) {
-            throw new AuthorizationError();
+            res.send();
+            return;
         }
         res.status(200)
             .cookie("bearer", loginResponse.token, {
@@ -55,9 +61,11 @@ userRouter.post("/signup", async (req, res, next) => {
 userRouter.post("/login", async (req, res, next) => {
     try {
         const loginRequest = zodLoginRequest.parse(req.body);
-        const loginResponse = await userService.login(loginRequest);
+        const currentTokenData = await tokenExtracter(req.cookies["bearer"]);
+        const loginResponse = await userService.login(loginRequest, currentTokenData);
         if (!loginResponse) {
-            throw new LoginError();
+            res.send();
+            return;
         }
         res.cookie("bearer", loginResponse.token, {
             maxAge: loginResponse.expireTime,
@@ -277,10 +285,20 @@ userRouter.get("/blackList", async (req: Request, res, next) => {
 
 userRouter.post("/signOut", async (req: Request, res, next) => {
     try {
-        if (!req.user) {
+        const currentTokenData = await tokenExtracter(req.cookies["bearer"]);
+        if (!currentTokenData || currentTokenData.loggedInUsers.length < 2) {
             throw new AuthorizationError();
         }
-        res.clearCookie("bearer").status(200).send();
+        const newUsers = await currentTokenData.loggedInUsers.filter(u => u.userName != req.user?.userName);
+        const newToken: MultiUserToken = {
+            currentUser: newUsers[0],
+            loggedInUsers: newUsers,
+        };
+        const signedToken = await jwtTokenGenerator(newToken);
+        const maxAge = await maxExpirationTimeCalculator(newUsers);
+        res.status(200)
+        .cookie("bearer", signedToken, {maxAge})
+        .send({userName: newToken.currentUser.userName});
     } catch (err) {
         next(err);
     }
@@ -322,3 +340,33 @@ userRouter.post("/updateAll", async (req, res, next) => {
     const result = await followService.updateAllUsers();
     res.status(200).send(result);
 });
+
+userRouter.get("/accounts", async (req, res, next) => {
+    try {
+        const currentTokenData = await tokenExtracter(req.cookies["bearer"]);
+        const accountList = currentTokenData?.loggedInUsers.map(u => u.userName);
+        res.status(200).send({accounts: accountList});
+    } catch (err) {
+        next(err);
+    }
+});
+
+userRouter.post("/switchAccount", async (req, res, next) => {
+    try {
+        const currentTokenData = await tokenExtracter(req.cookies["bearer"]);
+        const {userName} = req.body;
+        const requestedUser = currentTokenData?.loggedInUsers.find(u => u.userName == userName);
+        if (!requestedUser || !currentTokenData) {
+            throw new SwitchAccountError();
+        }
+        const newToken = {...currentTokenData};
+        newToken.currentUser = requestedUser;
+        const signedToken = await jwtTokenGenerator(newToken);
+        const maxAge = await maxExpirationTimeCalculator(newToken.loggedInUsers);
+        res.status(200)
+        .cookie("bearer", signedToken, {maxAge})
+        .send({userName: newToken.currentUser.userName});
+    } catch (err) {
+        next(err);
+    }
+})

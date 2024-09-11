@@ -2,12 +2,12 @@ import {Document} from "mongoose";
 
 export const usersSchemaObject = {
     userName: {type: String, required: true},
-    firstName: String,
-    lastName: String,
-    profileImage: String,
+    firstName: {type: String, default: ""},
+    lastName: {type: String, default: ""},
+    profileImage: {type: String, default: ""},
     email: {type: String, required: true},
     passwordHash: {type: String, required: true},
     isPrivate: {type: Boolean, required: true, default: false},
-    bio: String,
+    bio: {type: String, default: ""},
     followerCount: {type: Number, default: 0},
 };

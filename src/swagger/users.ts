@@ -389,3 +389,46 @@
  *       500:
  *         description: Internal server error.
  */
+
+/**
+ * @swagger
+ * /api/users/accounts:
+ *   get:
+ *     summary: Get list of logged in users for this user
+ *     tags:
+ *       - users
+ *     responses:
+ *       200:
+ *         description: List of account usernames
+ *       401:
+ *         description: Not authorized.
+ *       500:
+ *         description: Internal server error.
+ */
+
+/**
+ * @swagger
+ * /api/users/switchAccount:
+ *   post:
+ *     summary: Switch to requested username
+ *     tags:
+ *       - users
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Account switched successfully.
+ *       401:
+ *         description: Unauthorized, token is missing or invalid
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Internal server error
+ */
