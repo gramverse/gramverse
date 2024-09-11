@@ -61,7 +61,7 @@ export class PostService {
     ) {}
 
     extractHashtags = (text: string) => {
-        const regex = /#[\w]+/g;
+        const regex = /#([\u0600-\u06FF\w]+)/g;
 
         const matches = text.match(regex);
 
