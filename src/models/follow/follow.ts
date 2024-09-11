@@ -9,7 +9,6 @@ export interface Follow {
     followRequestState: FollowRequestState;
     isCloseFriend: boolean;
     isBlocked: boolean;
-    isDeleted: boolean;
     created_time: Date;
     updated_time: Date;
 }

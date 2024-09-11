@@ -122,7 +122,7 @@ export class FollowService {
             followerUserName,
             followingUserName,
         );
-        if (!existingFollow || existingFollow.isDeleted) {
+        if (!existingFollow || existingFollow.followRequestState != FollowRequestState.ACCEPTED) {
             return;
         }
         await this.followRepService.update(
@@ -308,7 +308,6 @@ export class FollowService {
             isBlocked: true,
             followRequestState: FollowRequestState.NONE,
             isCloseFriend: false,
-            isDeleted: true,
         });
     };
 
@@ -369,7 +368,7 @@ export class FollowService {
             followerUserName,
             followingUserName,
         );
-        if (!existingFollow || existingFollow.isDeleted) {
+        if (!existingFollow || existingFollow.followRequestState != FollowRequestState.ACCEPTED) {
             return;
         }
         await this.followRepService.update(

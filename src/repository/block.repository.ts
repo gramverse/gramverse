@@ -14,7 +14,6 @@ export class BlockRepository {
         await this.blocks.updateOne(
             {followerUserName, followingUserName},
             {
-                isDeleted: true,
                 followRequestState: FollowRequestState.NONE,
                 isCloseFriend: false,
                 isBlocked: true,

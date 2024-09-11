@@ -274,7 +274,7 @@ export class PostService {
         if (!post) {
             throw new NotFoundError("post");
         }
-        await this.getPostDto(userName, post);
+        return await this.getPostDto(userName, post);
     };
 
     likePost = async (likeRequest: LikeRequest) => {
