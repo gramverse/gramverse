@@ -7,7 +7,6 @@ export const followSchema = new mongoose.Schema(
         followRequestState: {type: String, default: "accepted"},
         isCloseFriend: {type: Boolean, default: false},
         isBlocked: {type: Boolean, default: false},
-        isDeleted: {type: Boolean, default: false},
     },
     {
         timestamps: {createdAt: "created_time", updatedAt: "updated_time"},

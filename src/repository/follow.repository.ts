@@ -18,7 +18,6 @@ export class FollowRepository {
     getFollowerCount = async (userName: string): Promise<number> => {
         return await this.follows.countDocuments({
             followingUserName: userName,
-            isDeleted: false,
             followRequestState: FollowRequestState.ACCEPTED,
         });
     };
@@ -26,7 +25,6 @@ export class FollowRepository {
     getFollowingCount = async (userName: string): Promise<number> => {
         return await this.follows.countDocuments({
             followerUserName: userName,
-            isDeleted: false,
             followRequestState: FollowRequestState.ACCEPTED,
         });
     };
@@ -58,7 +56,6 @@ export class FollowRepository {
         const followers = await this.follows
             .find({
                 followingUserName,
-                isDeleted: false,
                 followRequestState: FollowRequestState.ACCEPTED,
             })
             .skip(skip)
@@ -76,7 +73,6 @@ export class FollowRepository {
         const followings = await this.follows
             .find({
                 followerUserName,
-                isDeleted: false,
                 followRequestState: FollowRequestState.ACCEPTED,
             })
             .skip(skip)
@@ -92,7 +88,7 @@ export class FollowRepository {
         limit: number,
     ) => {
         const closeFriends = await this.follows
-            .find({followerUserName, isDeleted: false, isCloseFriend: true})
+            .find({followerUserName, isCloseFriend: true})
             .skip(skip)
             .limit(limit)
             .sort({creationDate: -1})
@@ -110,7 +106,6 @@ export class FollowRepository {
     getAllFollowers = async (followingUserName: string) => {
         const followers = await this.follows.find({
             followingUserName,
-            isDeleted: false,
             followRequestState: FollowRequestState.ACCEPTED,
         })
         .lean();
