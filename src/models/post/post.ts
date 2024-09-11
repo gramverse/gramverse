@@ -1,14 +1,6 @@
 import z from "zod";
 
-export interface IPost extends Document {
-    _id: string;
-    userName: string;
-    photoUrls: string[];
-    caption: string;
-    mentions: string[];
-    forCloseFriends: boolean;
-    creationDate: Date;
-}
+export interface IPost extends Post, Document {}
 
 export interface Post {
     _id: string;
@@ -17,6 +9,7 @@ export interface Post {
     caption: string;
     mentions: string[];
     forCloseFriends: boolean;
+    likesCount: number;
     creationDate: Date;
 }
 

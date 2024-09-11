@@ -16,7 +16,7 @@ export class TagRepository {
     };
 
     findPostTags = async (postId: string): Promise<Tag[]> => {
-        const tags = await this.tags.find({postId});
+        const tags = await this.tags.find({postId}).lean();
         return tags;
     };
 

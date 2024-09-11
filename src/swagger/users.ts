@@ -373,3 +373,19 @@
  *       500:
  *         description: Internal server error.
  */
+
+/**
+ * @swagger
+ * /api/users/updateAll:
+ *   post:
+ *     summary: Update all users
+ *     tags:
+ *       - users
+ *     responses:
+ *       200:
+ *         description: Number of updated users
+ *       401:
+ *         description: Not authorized.
+ *       500:
+ *         description: Internal server error.
+ */

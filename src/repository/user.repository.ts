@@ -36,7 +36,11 @@ export class UserRepository {
         return !!user;
     };
 
-    update = async (_id: string, user: Partial<User>) => {
-        await this.users.updateOne({_id}, user);
+    update = async (userName: string, user: Partial<User>) => {
+        await this.users.updateOne({userName}, user);
     };
+
+    getAllUsers = async () => {
+        return await this.users.find();
+    }
 }

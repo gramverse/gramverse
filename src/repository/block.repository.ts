@@ -33,7 +33,8 @@ export class BlockRepository {
         const blocks = await this.blocks.find({
             followerUserName,
             isBlocked: true,
-        });
+        })
+        .lean();
         return blocks;
     };
 
@@ -46,7 +47,8 @@ export class BlockRepository {
             .find({followerUserName, isBlocked: true})
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1});
+            .sort({creationDate: -1})
+            .lean();
         return blockList;
     };
 

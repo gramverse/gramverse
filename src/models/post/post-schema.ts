@@ -7,6 +7,7 @@ export const postSchema = new mongoose.Schema(
         caption: {type: String, default: ""},
         mentions: {type: [String], required: true},
         forCloseFriends: {type: Boolean, default: false},
+        likesCount: {type: Number, default: 0},
     },
     {
         timestamps: {createdAt: "creationDate", updatedAt: "updateDate"},

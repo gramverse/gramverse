@@ -27,7 +27,11 @@ export class UserRepService {
         return await this.userRepository.checkUserNameExistance(userName);
     };
 
-    updateUser = async (_id: string, user: Partial<User>) => {
-        await this.userRepository.update(_id, user);
+    updateUser = async (userName: string, user: Partial<User>) => {
+        await this.userRepository.update(userName, user);
     };
+
+    getAllUsers = async () => {
+        return await this.userRepository.getAllUsers();
+    }
 }
