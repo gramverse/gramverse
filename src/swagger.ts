@@ -32,3 +32,4 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 export {swaggerUi, swaggerDocs};
+

@@ -27,4 +27,120 @@ export class TagRepository {
     undeleteTag = async (_id: string) => {
         await this.tags.updateOne({_id}, {isDeleted: false});
     };
+    suggestTag = async (tag: string, skip: number, limit: number) => {
+        const results = await this.tags.aggregate([
+            {
+                $match: {
+                    tag: { $regex: tag, $options: 'i' }, 
+                    isDeleted: false 
+                }
+            },
+            {
+                $group: {
+                    _id: "$tag", 
+                    postCount: { $sum: 1 } 
+                }
+            },
+            {
+                $sort: { postCount: -1 } 
+            },
+            {
+                $skip: skip 
+            },
+            {
+                $limit: limit 
+            }
+        ]);
+    
+        return results;
+    };
+    searchTag = async (tag: string, skip: number, limit: number) => {
+        const results = await this.tags.aggregate([
+            {
+                $match: {
+                    tag: tag, 
+                    isDeleted: false 
+                }
+            },
+            {
+                $lookup: {
+                    from: "posts", 
+                    localField: "postId", 
+                    foreignField: "_id", 
+                    as: "postDetails" 
+                }
+            },
+            {
+                $unwind: "$postDetails"
+            },
+            {
+                $lookup: {
+                    from: "likes", 
+                    localField: "postId", 
+                    foreignField: "postId",
+                    as: "likeDetails"
+                }
+            },
+            {
+                $addFields: {
+                    likeCount: {
+                        $size: {
+                            $filter: {
+                                input: "$likeDetails",
+                                as: "like",
+                                cond: { $eq: ["$$like.isDeleted", false] } 
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $sort: { likeCount: -1 }
+            },
+            {
+                $skip: skip 
+            },
+            {
+                $limit: limit 
+            },
+            {
+                $project: {
+                    _id: 0, 
+                    postId: "$postDetails._id",
+                    userName: "$postDetails.userName",
+                    photoUrl: { $arrayElemAt: ["$postDetails.photoUrls", 0] },
+                }
+            }
+        ]);
+    
+        return results;
+    };
+    tagCount = async (tag: string) => {
+        const totalPosts = await this.tags.distinct("postId", {
+            tag: tag,
+            isDeleted: false 
+        });
+    
+        return totalPosts.length;
+    };
+    countSuggestedTags = async (tag: string) => {
+        const count = await this.tags.aggregate([
+            {
+                $match: {
+                    tag: { $regex: tag, $options: 'i' }, 
+                    isDeleted: false 
+                }
+            },
+            {
+                $group: {
+                    _id: "$tag", 
+                }
+            },
+            {
+                $count: "totalCount"
+            }
+        ]);  
+        return count.length > 0 ? count[0].totalCount : 0;
+    };
+    
 }
