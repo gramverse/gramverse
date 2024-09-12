@@ -96,7 +96,7 @@ export class UserService implements IUserService {
 
     validateInfo = (user: Partial<UserToValidate>, hasNewPassword: boolean) => {
         const userNamePattern = /^(?!.{33})[a-zA-Z0-9_.]{6,}$/;
-        if (!user.userName || !userNamePattern.test(user.userName)) {
+        if (user.userName && !userNamePattern.test(user.userName)) {
             throw new ValidationError("userName");
         }
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -23,7 +23,7 @@
  *                 description: object
  *     responses:
  *       200:
- *         description: Profile updated successfully.
+ *         description: Post created successfully.
  *       401:
  *         description: Not authorized.
  *       500:
@@ -55,7 +55,7 @@
  *                 description: object
  *     responses:
  *       200:
- *         description: Profile updated successfully.
+ *         description: Post updated successfully.
  *       401:
  *         description: Not authorized.
  *       500:
@@ -64,7 +64,7 @@
 
 /**
  * @swagger
- * /api/files/profile:
+ * /api/files/myProfile:
  *   post:
  *     summary: Edit the profile of the currently logged-in user.
  *     tags:

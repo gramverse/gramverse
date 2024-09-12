@@ -60,7 +60,7 @@ export class PostRepository {
 
     getPostById = async (_id: string): Promise<Post | undefined> => {
         const post = await this.posts.findById(_id);
-        return convertType<Post, IPost>(post);
+        return post?.toObject();
     };
 
     getExplorePosts = async (
