@@ -218,7 +218,9 @@ export class NotificationService {
         if (!eventId) {
             return;
         }
-        await this.createNotification(post.userName, eventId, true);
+        if (userName != post.userName) {
+            await this.createNotification(post.userName, eventId, true);
+        }
 
         const followers = await this.followRepService.getAllFollowers(userName);
 
@@ -251,7 +253,9 @@ export class NotificationService {
         if (!eventId) {
             return;
         }
-        await this.createNotification(post.userName, eventId, true);
+        if (userName != post.userName) {
+            await this.createNotification(post.userName, eventId, true);
+        }
 
         const followers = await this.followRepService.getAllFollowers(userName);
 
@@ -272,6 +276,10 @@ export class NotificationService {
         mention: string,
         postId: string,
     ) => {
+        const post = await this.postRepService.getPostById(postId);
+        if (!post) {
+            return;
+        }
         const eventId = await this.eventService.addEvent(
             myUserName,
             postId,
@@ -280,7 +288,9 @@ export class NotificationService {
         if (!eventId) {
             return;
         }
-        await this.createNotification(mention, eventId, true);
+        if (mention != post.userName) {
+            await this.createNotification(mention, eventId, true);
+        }
     };
 
     addFollow = async (
