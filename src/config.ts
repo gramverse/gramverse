@@ -104,4 +104,4 @@ export const searchService = new SearchService(
     tagRepository,
 )
 
-export const jwtSecret = process.env.JWT_SECRET || "FDaI22";
+export const jwtSecret = process.env.JWT_SECRET || "33rr55";

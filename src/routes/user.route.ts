@@ -36,6 +36,7 @@ import {zodBlockRequest} from "../models/block/block-request";
 import { tokenExtracter } from "../utilities/token-extracter";
 import { jwtTokenGenerator } from "../utilities/jwt-token-generator";
 import { maxExpirationTimeCalculator } from "../utilities/max-expiration-time-calculator";
+import { AccountDto } from "../models/profile/account-dto";
 
 export const userRouter = Router();
 
@@ -344,7 +345,16 @@ userRouter.post("/updateAll", async (req, res, next) => {
 userRouter.get("/accounts", async (req, res, next) => {
     try {
         const currentTokenData = await tokenExtracter(req.cookies["bearer"]);
-        const accountList = currentTokenData?.loggedInUsers.map(u => u.userName);
+        const userNameList = currentTokenData!.loggedInUsers.map(u => u.userName);
+        const accountList: AccountDto[] = [];
+        for (const userName of userNameList) {
+            const user = await userRepService.getUser(userName);
+            if (!user) {
+                throw new UnknownError();
+            }
+            const account: AccountDto = {userName, profileImage: user.profileImage};
+            accountList.push(account);
+        }
         res.status(200).send({accounts: accountList});
     } catch (err) {
         next(err);
