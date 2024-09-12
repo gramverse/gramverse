@@ -59,7 +59,7 @@ export class TagRepository {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: tag, 
+                    tag: { $regex: tag, $options: 'i' }, 
                     isDeleted: false 
                 }
             },
@@ -72,7 +72,10 @@ export class TagRepository {
                 }
             },
             {
-                $unwind: "$postDetails"
+                $unwind: {
+                    path: "$postDetails",
+                    preserveNullAndEmptyArrays: true 
+                }
             },
             {
                 $lookup: {
@@ -113,9 +116,9 @@ export class TagRepository {
                 }
             }
         ]);
-
         return results;
     };
+    
     tagCount = async (tag: string) => {
         const totalPosts = await this.tags.distinct("postId", {
             tag: tag,
