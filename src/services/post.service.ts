@@ -123,7 +123,7 @@ export class PostService {
             if (existingMention) {
                 this.mentionRepository.deleteMention(mention, postId);
             }
-            this.notificationService.deleteNotification(myUserName, mention);
+            this.notificationService.deleteNotification(myUserName, postId);
         }
     };
 
