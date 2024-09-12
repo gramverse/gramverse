@@ -501,6 +501,7 @@ export class PostService {
                     posts.push({
                         photoUrl: post.photoUrls[0],
                         postId: post._id,
+                        userName: post.userName
                     });
                 }
             }
