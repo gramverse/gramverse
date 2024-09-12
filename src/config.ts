@@ -25,6 +25,7 @@ import {CommentService} from "./services/comment.service";
 import {CommentRepService} from "./services/comment.rep.service";
 import {LikesRepository as LikeRepository} from "./repository/like.repository";
 import {MentionsRepository} from "./repository/mentions.repository";
+import {SearchService} from "./services/search.service"
 
 dotenv.config();
 
@@ -99,5 +100,8 @@ export const resetService = new ResetService(
     userRepService,
     emailService,
 );
+export const searchService = new SearchService(
+    tagRepository,
+)
 
 export const jwtSecret = process.env.JWT_SECRET || "FDaI22";

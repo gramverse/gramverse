@@ -11,7 +11,7 @@ import {errorHandler} from "./middlewares/error-handler-middleware";
 import {notificationRouter} from "./routes/notification.route";
 import {HttpError} from "./errors/http-error";
 import {ErrorCode} from "./errors/error-codes";
-
+import { searchRouter } from "./routes/search.route";
 export const buildApp = () => {
     const app = express();
 
@@ -25,6 +25,7 @@ export const buildApp = () => {
     app.use("/api/reset", resetRouter);
     app.use("/api/notifications", notificationRouter);
     app.use("/api/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+    app.use("/api/search", searchRouter);
 
     app.use((req, res, next) => {
         throw new HttpError(404, ErrorCode.PAGE_NOT_FOUND, "Page not found");
