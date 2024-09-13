@@ -12,6 +12,7 @@ import {UserRepService} from "./user.rep.service";
 import {NotificationService} from "./notification.service";
 import {Followinger} from "../models/follow/followinger";
 import {BlockRepository} from "../repository/block.repository";
+import { User } from "../models/login/login-response";
 
 export class FollowService {
     constructor(
@@ -396,6 +397,11 @@ export class FollowService {
         let counter = 0;
         for (const user of allUsers) {
             await this.updateFollowerCount(user.userName);
+            const updatedUser: User = {... user};
+            updatedUser.normalizedUserName = updatedUser.userName.toUpperCase();
+            updatedUser.normalizedEmail = updatedUser.email.toUpperCase();
+            await this.userRepService.updateUser(updatedUser.userName, updatedUser);
+            console.log(updatedUser.normalizedUserName);
             counter++;
         }
         return `Number of changes: ${counter}`;
