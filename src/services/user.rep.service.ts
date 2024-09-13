@@ -34,4 +34,10 @@ export class UserRepService {
     getAllUsers = async () => {
         return await this.userRepository.getAllUsers();
     };
+    searchAccounts = async (tag: string,limit: number, page: number ) => {
+        const skip = (page - 1) * limit
+        const totalCount = await this.userRepository.accountCount(tag)
+        const posts = await this.userRepository.searchAccount(tag,skip,limit)
+        return{posts,totalCount}
+    }
 }

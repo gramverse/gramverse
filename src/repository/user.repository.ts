@@ -43,4 +43,71 @@ export class UserRepository {
     getAllUsers = async () => {
         return await this.users.find().lean();
     };
+    searchAccount = async (userName: string, skip: number, limit: number) => {
+        const results = await this.users.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { userName: { $regex: userName, $options: 'i' } },
+                        { 
+                            $expr: {
+                                $regexMatch: {
+                                    input: { $concat: ["$firstName", " ", "$lastName"] },
+                                    regex: userName,
+                                    options: "i"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    accountId: "$_id",
+                    userName: 1,
+                    firstName: 1,
+                    lastName: 1,
+                    fullName: { $concat: ["$firstName", " ", "$lastName"] },
+                    profileImage: 1,
+                    followerCount: 1
+                }
+            },
+            {
+                $skip: skip 
+            },
+            {
+                $limit: limit 
+            }
+        ]);
+        
+        return results;
+    };
+    accountCount = async (searchTerm: string) => {
+        const count = await this.users.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { userName: { $regex: searchTerm, $options: 'i' } },
+                        { 
+                            $expr: {
+                                $regexMatch: {
+                                    input: { $concat: ["$firstName", " ", "$lastName"] },
+                                    regex: searchTerm,
+                                    options: "i"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $count: "totalCount"
+            }
+        ]);
+    
+        return count.length > 0 ? count[0].totalCount : 0;
+    };
+    
+    
 }
