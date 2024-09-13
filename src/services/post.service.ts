@@ -521,11 +521,22 @@ export class PostService {
     updateAllPosts = async () => {
         const allPosts = await this.postRepService.getAllPosts();
         let counter = 0;
+        let tagCounter = 0;
         for (const post of allPosts) {
             await this.updateLikesCount(post._id);
+            const tags = this.extractHashtags(post.caption);
+            for (const tag of tags) {
+                const newTag: TagRequest = {
+                    tag,
+                    postId: post._id,
+                    isDeleted: false,
+                };
+                await this.tagRepository.add(newTag);
+                tagCounter++;
+            }
             counter++;
         }
-        return `Number of updated posts: ${counter}`;
+        return `Number of updated posts: ${counter}\nNumber of inserted tags: ${tagCounter}`;
     };
     getMyMentions = async (userName: string, page: number, limit: number) => {
         const skip = (page - 1) * limit;
