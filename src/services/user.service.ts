@@ -134,7 +134,9 @@ export class UserService implements IUserService {
         const passwordHash = await bcrypt.hash(registerRequest.password, 10);
         const newUser: Partial<User> = {
             userName: registerRequest.userName,
+            normalizedUserName: registerRequest.userName.toUpperCase(),
             email: registerRequest.email,
+            normalizedEmail: registerRequest.email.toUpperCase(),
             passwordHash,
             isPrivate: false,
         };

@@ -17,22 +17,22 @@ export class UserRepository {
     };
 
     getUserByUserName = async (userName: string) => {
-        const user = (await this.users.findOne({userName})) || undefined;
+        const user = (await this.users.findOne({normalizedUserName: userName.toUpperCase()})) || undefined;
         return convertType<User, IUser>(user);
     };
 
     getUserByEmail = async (email: string) => {
-        const user = (await this.users.findOne({email})) || undefined;
+        const user = (await this.users.findOne({normalizedEmail: email.toUpperCase()})) || undefined;
         return convertType<User, IUser>(user);
     };
 
     checkUserNameExistance = async (userName: string) => {
-        const user = await this.users.findOne({userName});
+        const user = await this.users.findOne({normalizedUserName: userName.toUpperCase()});
         return !!user;
     };
 
     checkEmailExistance = async (email: string) => {
-        const user = await this.users.findOne({email});
+        const user = await this.users.findOne({normalizedEmail: email.toUpperCase()});
         return !!user;
     };
 
@@ -41,6 +41,6 @@ export class UserRepository {
     };
 
     getAllUsers = async () => {
-        return await this.users.find();
+        return await this.users.find().lean();
     };
 }
