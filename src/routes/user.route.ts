@@ -18,6 +18,7 @@ import {
     LoginError,
     MissingFieldError,
     SwitchAccountError,
+    TooManyAccountsError,
     UnknownError,
 } from "../errors/http-error";
 import {ErrorCode} from "../errors/error-codes";
@@ -44,6 +45,9 @@ userRouter.post("/signup", async (req, res, next) => {
     try {
         const registerRequest = zodRegisterRequest.parse(req.body);
         const currentTokenData = await tokenExtracter(req.cookies["bearer"]);
+        if (currentTokenData && currentTokenData.loggedInUsers.length > 2) {
+            throw new TooManyAccountsError();
+        }
         const loginResponse = await userService.signup(registerRequest, currentTokenData);
         if (!loginResponse) {
             res.send();
@@ -63,6 +67,9 @@ userRouter.post("/login", async (req, res, next) => {
     try {
         const loginRequest = zodLoginRequest.parse(req.body);
         const currentTokenData = await tokenExtracter(req.cookies["bearer"]);
+        if (currentTokenData && currentTokenData.loggedInUsers.length > 2) {
+            throw new TooManyAccountsError();
+        }
         const loginResponse = await userService.login(loginRequest, currentTokenData);
         if (!loginResponse) {
             res.send();
