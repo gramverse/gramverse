@@ -397,10 +397,11 @@ export class FollowService {
         let counter = 0;
         for (const user of allUsers) {
             await this.updateFollowerCount(user.userName);
-            const updatedUser: User = {... user};
-            updatedUser.normalizedUserName = updatedUser.userName.toUpperCase();
-            updatedUser.normalizedEmail = updatedUser.email.toUpperCase();
-            await this.userRepService.updateUser(updatedUser.userName, updatedUser);
+            const updatedUser: Partial<User> = {};
+            updatedUser.normalizedUserName = user.userName.toUpperCase();
+            updatedUser.normalizedEmail = user.email.toUpperCase();
+
+            await this.userRepService.updateUser(user.userName, updatedUser);
             console.log(updatedUser.normalizedUserName);
             counter++;
         }
