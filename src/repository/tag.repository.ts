@@ -55,17 +55,18 @@ export class TagRepository {
 
         return results;
     };
+    
     searchTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: { $regex: tag, $options: 'i' }, 
+                    tag: { $regex: `^${tag}$`, $options: 'i' }, 
                     isDeleted: false 
                 }
             },
             {
                 $addFields: {
-                    postIdObj: { $convert: { input: "$postId", to: "objectId", onError: "$postId", onNull: "$postId" } }
+                    postIdObj: { $toObjectId: "$postId" } // تبدیل postId به ObjectId
                 }
             },
             {
@@ -77,10 +78,7 @@ export class TagRepository {
                 }
             },
             {
-                $unwind: {
-                    path: "$postDetails",
-                    preserveNullAndEmptyArrays: true 
-                }
+                $unwind: "$postDetails" // باز کردن پست‌ها
             },
             {
                 $lookup: {
@@ -124,13 +122,13 @@ export class TagRepository {
                     _id: 0, 
                     postId: "$postDetails._id",
                     userName: "$postDetails.userName",
-                    postImage: { $ifNull: [{ $arrayElemAt: ["$postDetails.photoUrls", 0] }, "no-image.jpg"] }, // جایگزینی برای null
+                    postImage: { $ifNull: [{ $arrayElemAt: ["$postDetails.photoUrls", 0] }, "no-image.jpg"] } // جایگزینی برای null
                 }
             }
         ]);
+    
         return results;
     };
-    
     
     tagCount = async (tag: string) => {
         const totalPosts = await this.tags.distinct("postId", {
