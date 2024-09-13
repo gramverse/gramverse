@@ -71,7 +71,7 @@ export class TagRepository {
             {
                 $lookup: {
                     from: "posts", 
-                    localField: "postIdObj", 
+                    localField: "postIdObj",  
                     foreignField: "_id", 
                     as: "postDetails" 
                 }
@@ -104,6 +104,13 @@ export class TagRepository {
                 }
             },
             {
+                $group: {
+                    _id: "$postIdObj",
+                    postDetails: { $first: "$postDetails" },
+                    likeCount: { $first: "$likeCount" }
+                }
+            },
+            {
                 $sort: { likeCount: -1 }
             },
             {
@@ -123,6 +130,7 @@ export class TagRepository {
         ]);
         return results;
     };
+    
     
     tagCount = async (tag: string) => {
         const totalPosts = await this.tags.distinct("postId", {
