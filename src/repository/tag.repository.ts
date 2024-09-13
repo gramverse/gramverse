@@ -112,7 +112,7 @@ export class TagRepository {
                     _id: 0, 
                     postId: "$postDetails._id",
                     userName: "$postDetails.userName",
-                    photoUrl: { $arrayElemAt: ["$postDetails.photoUrls", 0] },
+                    postImage: { $arrayElemAt: ["$postDetails.photoUrls", 0] },
                 }
             }
         ]);
