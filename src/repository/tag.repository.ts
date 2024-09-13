@@ -64,9 +64,14 @@ export class TagRepository {
                 }
             },
             {
+                $addFields: {
+                    postIdObj: { $convert: { input: "$postId", to: "objectId", onError: "$postId", onNull: "$postId" } }
+                }
+            },
+            {
                 $lookup: {
                     from: "posts", 
-                    localField: "postId", 
+                    localField: "postIdObj", 
                     foreignField: "_id", 
                     as: "postDetails" 
                 }
@@ -80,7 +85,7 @@ export class TagRepository {
             {
                 $lookup: {
                     from: "likes", 
-                    localField: "postId", 
+                    localField: "postIdObj",  
                     foreignField: "postId",
                     as: "likeDetails"
                 }
@@ -112,7 +117,7 @@ export class TagRepository {
                     _id: 0, 
                     postId: "$postDetails._id",
                     userName: "$postDetails.userName",
-                    postImage: { $arrayElemAt: ["$postDetails.photoUrls", 0] },
+                    postImage: { $ifNull: [{ $arrayElemAt: ["$postDetails.photoUrls", 0] }, "no-image.jpg"] }, // جایگزینی برای null
                 }
             }
         ]);
