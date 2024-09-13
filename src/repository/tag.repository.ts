@@ -60,13 +60,13 @@ export class TagRepository {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: { $regex: `^${tag}$`, $options: 'i' }, 
+                    tag: { $regex: tag, $options: 'i' }, 
                     isDeleted: false 
                 }
             },
             {
                 $addFields: {
-                    postIdObj: { $toObjectId: "$postId" } // تبدیل postId به ObjectId
+                    postIdObj: { $toObjectId: "$postId" } 
                 }
             },
             {
@@ -78,7 +78,7 @@ export class TagRepository {
                 }
             },
             {
-                $unwind: "$postDetails" // باز کردن پست‌ها
+                $unwind: "$postDetails"
             },
             {
                 $lookup: {
@@ -122,7 +122,7 @@ export class TagRepository {
                     _id: 0, 
                     postId: "$postDetails._id",
                     userName: "$postDetails.userName",
-                    postImage: { $ifNull: [{ $arrayElemAt: ["$postDetails.photoUrls", 0] }, "no-image.jpg"] } // جایگزینی برای null
+                    postImage: { $ifNull: [{ $arrayElemAt: ["$postDetails.photoUrls", 0] }, "no-image.jpg"] } 
                 }
             }
         ]);
@@ -130,6 +130,79 @@ export class TagRepository {
         return results;
     };
     
+    searchSpecTag = async (tag: string, skip: number, limit: number) => {
+        const results = await this.tags.aggregate([
+            {
+                $match: {
+                    tag: { $regex: `^${tag}$`, $options: 'i' }, 
+                    isDeleted: false 
+                }
+            },
+            {
+                $addFields: {
+                    postIdObj: { $toObjectId: "$postId" } 
+                }
+            },
+            {
+                $lookup: {
+                    from: "posts", 
+                    localField: "postIdObj",  
+                    foreignField: "_id", 
+                    as: "postDetails" 
+                }
+            },
+            {
+                $unwind: "$postDetails"
+            },
+            {
+                $lookup: {
+                    from: "likes", 
+                    localField: "postIdObj",  
+                    foreignField: "postId",
+                    as: "likeDetails"
+                }
+            },
+            {
+                $addFields: {
+                    likeCount: {
+                        $size: {
+                            $filter: {
+                                input: "$likeDetails",
+                                as: "like",
+                                cond: { $eq: ["$$like.isDeleted", false] } 
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$postIdObj",
+                    postDetails: { $first: "$postDetails" },
+                    likeCount: { $first: "$likeCount" }
+                }
+            },
+            {
+                $sort: { likeCount: -1 }
+            },
+            {
+                $skip: skip 
+            },
+            {
+                $limit: limit 
+            },
+            {
+                $project: {
+                    _id: 0, 
+                    postId: "$postDetails._id",
+                    userName: "$postDetails.userName",
+                    postImage: { $ifNull: [{ $arrayElemAt: ["$postDetails.photoUrls", 0] }, "no-image.jpg"] } 
+                }
+            }
+        ]);
+    
+        return results;
+    };
     tagCount = async (tag: string) => {
         const totalPosts = await this.tags.distinct("postId", {
             tag: tag,

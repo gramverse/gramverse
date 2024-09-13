@@ -19,6 +19,18 @@ searchRouter.get("/tag", async (req: Request, res, next) => {
         next(err);
     }
 });
+searchRouter.get("/specTag", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new AuthorizationError();
+        }
+        const {tag,page, limit} = zodSearchRequest.parse(req.query);
+        const notifications = await searchService.searchSpecTags(tag,limit,page)
+        res.status(200).send(notifications);
+    } catch (err) {
+        next(err);
+    }
+});
 
 searchRouter.get("/Suggesttag", async (req: Request, res, next) => {
     try {
