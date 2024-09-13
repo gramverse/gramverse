@@ -338,8 +338,13 @@ userRouter.get("/access/:userName", async (req: Request, res, next) => {
 });
 
 userRouter.post("/updateAll", async (req, res, next) => {
-    const result = await followService.updateAllUsers();
-    res.status(200).send(result);
+    try {
+        const result = await followService.updateAllUsers();
+        res.    status(200).send(result);
+    } catch (err) {
+        console.log(err);
+        next(err);
+    }
 });
 
 userRouter.get("/accounts", async (req, res, next) => {
