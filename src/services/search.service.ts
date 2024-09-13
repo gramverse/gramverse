@@ -3,7 +3,7 @@ import { UserRepService } from "./user.rep.service";
 
 export class SearchService {
     constructor(
-        private tagRepository: TagRepository
+        private tagRepository: TagRepository, UserRepService: UserRepService
     ) {}
     searchTags = async (tag: string,limit: number, page: number ) => {
         const skip = (page - 1) * limit

@@ -102,6 +102,7 @@ export const resetService = new ResetService(
 );
 export const searchService = new SearchService(
     tagRepository,
+    userRepService
 )
 
 export const jwtSecret = process.env.JWT_SECRET || "33rr55";

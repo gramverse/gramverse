@@ -2,7 +2,8 @@ import {authMiddleware} from "../middlewares/auth-middleware";
 import {Router, Request, Response, NextFunction} from "express";
 import {AuthorizationError, HttpError} from "../errors/http-error";
 import { zodSearchRequest } from "../models/search/search-request";
-import { searchService } from "../config";
+import { searchService, userRepService } from "../config";
+import { zodSearchAccountRequest } from "../models/search/search-account-request";
 
 export const searchRouter = Router();
 searchRouter.use(authMiddleware);
@@ -39,6 +40,19 @@ searchRouter.get("/Suggesttag", async (req: Request, res, next) => {
         }
         const {tag,page, limit} = zodSearchRequest.parse(req.query);
         const notifications = await searchService.SuggestTags(tag,limit,page)
+        res.status(200).send(notifications);
+    } catch (err) {
+        next(err);
+    }
+});
+
+searchRouter.get("/accounts", async (req: Request, res, next) => {
+    try {
+        if (!req.user) {
+            throw new AuthorizationError();
+        }
+        const {userName,page, limit} = zodSearchAccountRequest.parse(req.query);
+        const notifications = await userRepService.searchAccounts(userName,limit,page)
         res.status(200).send(notifications);
     } catch (err) {
         next(err);
