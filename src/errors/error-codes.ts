@@ -48,4 +48,7 @@ export enum ErrorCode {
 
     // Unknown error:
     UNKNOWN_ERROR,
+
+    // New errors:
+    TOO_MANY_ACCOUNTS,
 }

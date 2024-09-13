@@ -174,3 +174,9 @@ export class SwitchAccountError extends HttpError {
         super(402, ErrorCode.SWITCH_ACCOUNT_ERROR, message);
     }
 }
+
+export class TooManyAccountsError extends HttpError {
+    constructor(public message: string = "Maximum allowed accounts: 3") {
+        super(400, ErrorCode.TOO_MANY_ACCOUNTS, message);
+    }
+}

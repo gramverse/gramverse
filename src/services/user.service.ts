@@ -67,7 +67,7 @@ export class UserService implements IUserService {
         if (!passwordMatch) {
             throw new LoginError();
         }
-        if (oldToken && oldToken.loggedInUsers.find(u => u.userName == loginRequest.userName)) {
+        if (oldToken && oldToken.loggedInUsers.find(u => u.userName.toUpperCase() == loginRequest.userName.toUpperCase())) {
             return;
         }
         let expirationTime: Date;
