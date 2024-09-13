@@ -291,6 +291,9 @@ userRouter.post("/signOut", async (req: Request, res, next) => {
             throw new AuthorizationError();
         }
         const newUsers = await currentTokenData.loggedInUsers.filter(u => u.userName != req.user?.userName);
+        if (newUsers.length< 1) {
+            throw new AuthorizationError();
+        }
         const newToken: MultiUserToken = {
             currentUser: newUsers[0],
             loggedInUsers: newUsers,
