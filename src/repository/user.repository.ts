@@ -74,6 +74,9 @@ export class UserRepository {
                 }
             },
             {
+                $sort: { likeCount: -1 }
+            },
+            {
                 $skip: skip 
             },
             {
