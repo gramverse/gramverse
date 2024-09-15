@@ -436,7 +436,16 @@ export class NotificationService {
                 || event.type == EventType.MENTION
             ) {
                 if (!(await this.postRepService.getPostById(event.targetId))) {
-                    // await this.eventService.deleteEvent(event._id);
+                    await this.eventService.deleteEvent(event._id);
+                    counter++;
+                    result += `${event.type}: ${event.performerUserName} on ${event.targetId}\n`;
+                }
+            } else if (event.type == EventType.COMMENT) {
+                const comment = await this.commentRepService.getById(event.targetId);
+                if (!comment
+                    || !(await this.postRepService.getPostById(comment.postId))
+                ) {
+                    await this.eventService.deleteEvent(event._id);
                     counter++;
                     result += `${event.type}: ${event.performerUserName} on ${event.targetId}\n`;
                 }
