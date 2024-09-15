@@ -28,4 +28,8 @@ export class EventService {
     getEventById = async (eventId: string) => {
         return await this.eventRepository.getEventById(eventId);
     };
+
+    getAllEvents = async () => {
+        return await this.eventRepository.getAllEvents();
+    }
 }

@@ -426,4 +426,22 @@ export class NotificationService {
             eventId.toString(),
         );
     };
+
+    updateAll = async () => {
+        const allEvents = await this.eventService.getAllEvents();
+        let counter = 0;
+        let result = "";
+        for (const event of allEvents) {
+            if (event.type == EventType.LIKE
+                || event.type == EventType.MENTION
+            ) {
+                if (!(await this.postRepService.getPostById(event.targetId))) {
+                    // await this.eventService.deleteEvent(event._id);
+                    counter++;
+                    result += `${event.type}: ${event.performerUserName} on ${event.targetId}\n`;
+                }
+            }
+        }
+        return result+`Number of deleted events: ${counter}`;
+    }
 }

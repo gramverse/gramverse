@@ -30,3 +30,19 @@
  *         description: Internal server error.
  */
 
+/**
+ * @swagger
+ * /api/notifications/updateAll:
+ *   post:
+ *     summary: Update all events
+ *     tags:
+ *       - temp
+ *     responses:
+ *       200:
+ *         description: Number of updated events
+ *       401:
+ *         description: Not authorized.
+ *       500:
+ *         description: Internal server error.
+ */
+

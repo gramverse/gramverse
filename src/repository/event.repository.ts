@@ -32,4 +32,8 @@ export class EventRepository {
         const event = await this.events.findOne({performerUserName, targetId});
         return convertType<Event, IEvent>(event);
     };
+
+    getAllEvents = async () => {
+        return await this.events.find();
+    }
 }
