@@ -58,3 +58,8 @@ notificationRouter.get("/unreadCount", async (req: Request, res, next) => {
         next(err);
     }
 });
+
+notificationRouter.post("/updateAll", async (req, res, next) => {
+    const result = await notificationService.updateAll();
+    res.send(result);
+})
