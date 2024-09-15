@@ -125,16 +125,25 @@ export class FollowService {
         );
         if (
             !existingFollow ||
-            existingFollow.followRequestState != FollowRequestState.ACCEPTED
+            (existingFollow.followRequestState != FollowRequestState.ACCEPTED
+                && existingFollow.followRequestState != FollowRequestState.PENDING)
         ) {
             return;
         }
+        if (existingFollow.followRequestState == FollowRequestState.PENDING) {
+            await this.followRepService.update(
+                followerUserName,
+                followingUserName,
+                {followRequestState: FollowRequestState.NONE},
+            );
+        } else {
         await this.followRepService.update(
             followerUserName,
             followingUserName,
-            {followRequestState: FollowRequestState.NONE, isCloseFriend: false},
-        );
-        await this.updateFollowerCount(followingUserName);
+                {followRequestState: FollowRequestState.NONE, isCloseFriend: false},
+            );  
+            await this.updateFollowerCount(followingUserName);
+        }
         this.notificationService.deleteNotification(
             followerUserName,
             followingUserName,
