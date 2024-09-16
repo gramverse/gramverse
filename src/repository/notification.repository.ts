@@ -55,4 +55,8 @@ export class NotificationRepository {
     DeleteNotification = async (eventId: string) => {
         await this.notifications.deleteMany({eventId});
     };
+
+    getAllNotifications = async () => {
+        return await this.notifications.find();
+    }
 }

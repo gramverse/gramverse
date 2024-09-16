@@ -63,3 +63,9 @@ notificationRouter.post("/updateAll", async (req, res, next) => {
     const result = await notificationService.updateAll();
     res.send(result);
 })
+
+
+notificationRouter.post("/deleteNotifs", async (req, res, next) => {
+    const result = await notificationService.deleteEventlessNotifications();
+    res.send(result);
+})
