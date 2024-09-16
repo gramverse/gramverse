@@ -5,9 +5,9 @@ stages:
 build-job:
     stage: build
     script:
-        - cd ~/projects/collegegram-back-end
+        - cd ~/gramverse/collegegram-back-end
         - git pull
-        - cd /home/ubuntu/projects
+        - cd ~/gramverse
         - sudo docker-compose build
     only:
         - main
@@ -15,7 +15,7 @@ build-job:
 deploy-job:
     stage: deploy
     script:
-        - cd /home/ubuntu/projects
+        - cd ~/gramverse
         - sudo docker-compose up -d
     only:
         - main
