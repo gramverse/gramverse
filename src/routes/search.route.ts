@@ -60,6 +60,7 @@ searchRouter.get("/accounts", async (req: Request, res, next) => {
             req.query,
         );
         const notifications = await userRepService.searchAccounts(
+            myUserName,
             userName,
             limit,
             page,
