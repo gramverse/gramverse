@@ -436,7 +436,7 @@ export class NotificationService {
                 || event.type == EventType.MENTION
             ) {
                 if (!(await this.postRepService.getPostById(event.targetId))) {
-                    await this.eventService.deleteEvent(event._id);
+                    // await this.eventService.deleteEvent(event._id);
                     counter++;
                     result += `${event.type}: ${event.performerUserName} on ${event.targetId}\n`;
                 }
@@ -445,12 +445,38 @@ export class NotificationService {
                 if (!comment
                     || !(await this.postRepService.getPostById(comment.postId))
                 ) {
-                    await this.eventService.deleteEvent(event._id);
+                    // await this.eventService.deleteEvent(event._id);
                     counter++;
                     result += `${event.type}: ${event.performerUserName} on ${event.targetId}\n`;
+                }
+            } else if (event.type == EventType.FOLLOW) {
+                const follow = await this.followRepService.getFollow(event.performerUserName, event.targetId);
+                if (!follow || follow.followRequestState != FollowRequestState.ACCEPTED) {
+                    // await this.eventService.deleteEvent(event._id);
+                    counter++;
+                    result += `${event.type}: ${event.performerUserName} to ${event.targetId}\n`;
+                }
+            } else {
+                const follow = await this.followRepService.getFollow(event.performerUserName, event.targetId);
+                if (!follow || follow.followRequestState != FollowRequestState.PENDING) {
+                    // await this.eventService.deleteEvent(event._id);
+                    counter++;
+                    result += `${event.type}: ${event.performerUserName} to ${event.targetId}\n`;
                 }
             }
         }
         return result+`Number of deleted events: ${counter}`;
+    }
+
+    deleteEventlessNotifications = async () => {
+        const allNotifications = await this.notificationRepository.getAllNotifications();
+        let counter = 0;
+        for (const n of allNotifications) {
+            if (!(await this.eventService.getEventById(n.eventId))) {
+                // await this.notificationRepository.DeleteNotification(n._id);
+                counter++;
+            }
+        }
+        return `Number of deleted notifications: ${counter}`;
     }
 }
