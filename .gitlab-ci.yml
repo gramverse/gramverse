@@ -19,3 +19,4 @@ deploy-job:
         - sudo docker-compose up -d
     only:
         - main
+
