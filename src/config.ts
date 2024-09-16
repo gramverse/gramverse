@@ -25,7 +25,7 @@ import {CommentService} from "./services/comment.service";
 import {CommentRepService} from "./services/comment.rep.service";
 import {LikesRepository as LikeRepository} from "./repository/like.repository";
 import {MentionsRepository} from "./repository/mentions.repository";
-import {SearchService} from "./services/search.service"
+import {SearchService} from "./services/search.service";
 
 dotenv.config();
 
@@ -44,7 +44,10 @@ const notificationRepository = new NotificationRepository(mongoose);
 const eventRepository = new EventRepository(mongoose);
 const mentionRepository = new MentionsRepository(mongoose);
 
-export const userRepService = new UserRepService(userRepository);
+export const userRepService = new UserRepService(
+    userRepository,
+    followRepository,
+);
 export const followRepService = new FollowRepService(
     followRepository,
     userRepService,
@@ -100,9 +103,6 @@ export const resetService = new ResetService(
     userRepService,
     emailService,
 );
-export const searchService = new SearchService(
-    tagRepository,
-    userRepService
-)
+export const searchService = new SearchService(tagRepository, userRepService);
 
 export const jwtSecret = process.env.JWT_SECRET || "33rr55";

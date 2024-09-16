@@ -1,8 +1,12 @@
 import {User} from "../models/login/login-response";
+import {FollowRepository} from "../repository/follow.repository";
 import {UserRepository} from "../repository/user.repository";
 
 export class UserRepService {
-    constructor(private userRepository: UserRepository) {}
+    constructor(
+        private userRepository: UserRepository,
+        private followRepository: FollowRepository,
+    ) {}
 
     createUser = async (user: Partial<User>) => {
         return await this.userRepository.add(user);
@@ -34,10 +38,37 @@ export class UserRepService {
     getAllUsers = async () => {
         return await this.userRepository.getAllUsers();
     };
-    searchAccounts = async (tag: string,limit: number, page: number ) => {
-        const skip = (page - 1) * limit
-        const totalCount = await this.userRepository.accountCount(tag)
-        const posts = await this.userRepository.searchAccount(tag,skip,limit)
-        return{posts,totalCount}
-    }
+    searchAccounts = async (
+        myUserName: string,
+        tag: string,
+        limit: number,
+        page: number,
+    ) => {
+        const skip = (page - 1) * limit;
+        const totalCount = await this.userRepository.accountCount(tag);
+        const posts = await this.userRepository.searchAccount(tag, skip, limit);
+        let followState;
+        const users = await Promise.all(
+            posts.map(async (post) => {
+                const existingFollow = await this.followRepository.followExists(
+                    myUserName,
+                    post.userName,
+                );
+                if (!existingFollow) {
+                    followState = "NONE";
+                } else {
+                    const follow = await this.followRepository.getFollow(
+                        myUserName,
+                        post.userName,
+                    );
+                    followState = follow?.followRequestState;
+                }
+                return {
+                    ...post,
+                    followState,
+                };
+            }),
+        );
+        return {users, totalCount};
+    };
 }
