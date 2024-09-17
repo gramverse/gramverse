@@ -60,7 +60,7 @@ export class FollowRepository {
             })
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1})
+            .sort({updated_time: -1})
             .lean();
         return followers;
     };
@@ -77,7 +77,7 @@ export class FollowRepository {
             })
             .skip(skip)
             .limit(limit)
-            .sort({creationDate: -1})
+            .sort({updated_time: -1})
             .lean();
         return followings;
     };
