@@ -1,3 +1,4 @@
+import { EventType } from "../models/notification/event-type";
 import {EventRepository} from "../repository/event.repository";
 
 export class EventService {
@@ -19,9 +20,9 @@ export class EventService {
         await this.eventRepository.deleteEvent(eventId);
     };
 
-    getEventId = async (performerUserName: string, targetId: string) => {
+    getEventId = async (performerUserName: string, targetId: string, type: EventType) => {
         return (
-            await this.eventRepository.getEvent(performerUserName, targetId)
+            await this.eventRepository.getEvent(performerUserName, targetId, type)
         )?._id;
     };
 

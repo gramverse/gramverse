@@ -13,6 +13,7 @@ import {NotificationService} from "./notification.service";
 import {Followinger} from "../models/follow/followinger";
 import {BlockRepository} from "../repository/block.repository";
 import { User } from "../models/login/login-response";
+import { EventType } from "../models/notification/event-type";
 
 export class FollowService {
     constructor(
@@ -136,18 +137,24 @@ export class FollowService {
                 followingUserName,
                 {followRequestState: FollowRequestState.NONE},
             );
-        } else {
-        await this.followRepService.update(
-            followerUserName,
-            followingUserName,
+            this.notificationService.deleteNotification(
+                followerUserName,
+                followingUserName,
+                EventType.FOLLOW,
+            );
+            } else {
+            await this.followRepService.update(
+                followerUserName,
+                followingUserName,
                 {followRequestState: FollowRequestState.NONE, isCloseFriend: false},
             );  
             await this.updateFollowerCount(followingUserName);
+            this.notificationService.deleteNotification(
+                followerUserName,
+                followingUserName,
+                EventType.FOLLOW_REQUEST,
+            );
         }
-        this.notificationService.deleteNotification(
-            followerUserName,
-            followingUserName,
-        );
     };
 
     acceptRequest = async (
@@ -207,6 +214,7 @@ export class FollowService {
         this.notificationService.deleteNotification(
             followerUserName,
             followingUserName,
+            EventType.FOLLOW_REQUEST,
         );
     };
 

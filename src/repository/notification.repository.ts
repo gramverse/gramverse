@@ -52,9 +52,17 @@ export class NotificationRepository {
         );
     };
 
-    DeleteNotification = async (eventId: string) => {
+    deleteNotificationByEventId = async (eventId: string) => {
         await this.notifications.deleteMany({eventId});
     };
+
+    deleteNotification = async (eventId: string, userName: string) => {
+        await this.notifications.deleteOne({userName, eventId});
+    }
+
+    deleteNotificationById = async (_id: string) => {
+        await this.notifications.deleteOne({_id});
+    }
 
     getAllNotifications = async () => {
         return await this.notifications.find();
