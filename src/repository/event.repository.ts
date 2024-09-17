@@ -3,6 +3,7 @@ import {Event, IEvent} from "../models/notification/event";
 import {eventSchema} from "../models/notification/event-schema";
 import {AddEventRequest} from "../models/notification/add-event-request";
 import {convertType} from "../utilities/convert-type";
+import { EventType } from "../models/notification/event-type";
 
 export class EventRepository {
     private events: Model<IEvent>;
@@ -28,8 +29,8 @@ export class EventRepository {
         await this.events.deleteOne({_id: eventId});
     };
 
-    getEvent = async (performerUserName: string, targetId: string) => {
-        const event = await this.events.findOne({performerUserName, targetId});
+    getEvent = async (performerUserName: string, targetId: string, type: EventType) => {
+        const event = await this.events.findOne({performerUserName, targetId, type});
         return convertType<Event, IEvent>(event);
     };
 

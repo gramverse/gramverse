@@ -413,10 +413,12 @@ export class NotificationService {
     deleteNotification = async (
         performerUserName: string,
         targetId: string,
+        type: EventType,
     ) => {
         const eventId = await this.eventService.getEventId(
             performerUserName,
             targetId,
+            type,
         );
         if (!eventId) {
             return;

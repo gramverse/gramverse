@@ -46,6 +46,7 @@ import {CommentService} from "./comment.service";
 import {CommentRepService} from "./comment.rep.service";
 import {MentionsRepository} from "../repository/mentions.repository";
 import {MentionDto} from "../models/mention/mention-request";
+import { EventType } from "../models/notification/event-type";
 
 export class PostService {
     constructor(
@@ -123,7 +124,7 @@ export class PostService {
             if (existingMention) {
                 this.mentionRepository.deleteMention(mention, postId);
             }
-            this.notificationService.deleteNotification(myUserName, postId);
+            this.notificationService.deleteNotification(myUserName, postId, EventType.MENTION);
         }
     };
 
@@ -356,6 +357,7 @@ export class PostService {
             this.notificationService.deleteNotification(
                 likeRequest.userName,
                 likeRequest.postId,
+                EventType.LIKE,
             );
             return;
         }
@@ -367,6 +369,7 @@ export class PostService {
         this.notificationService.deleteNotification(
             likeRequest.userName,
             likeRequest.postId,
+            EventType.LIKE,
         );
     };
 
