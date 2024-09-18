@@ -273,23 +273,25 @@ export class NotificationService {
 
     addMention = async (
         myUserName: string,
-        mention: string,
+        mentions: string[],
         postId: string,
     ) => {
         const post = await this.postRepService.getPostById(postId);
         if (!post) {
             return;
         }
-        const eventId = await this.eventService.addEvent(
-            myUserName,
-            postId,
-            EventType.MENTION,
-        );
+        let eventId = await this.eventService.getEventId(myUserName, postId, EventType.MENTION);
         if (!eventId) {
-            return;
+            eventId = await this.eventService.addEvent(
+                myUserName,
+                postId,
+                EventType.MENTION,
+            );
         }
-        if (mention != post.userName) {
-            await this.createNotification(mention, eventId, true);
+        for (const mention of mentions) {
+            if (mention != post.userName) {
+                await this.createNotification(mention, eventId, true);
+            }
         }
     };
 
@@ -424,10 +426,16 @@ export class NotificationService {
             return;
         }
         await this.eventService.deleteEvent(eventId);
-        await this.notificationRepository.DeleteNotification(
+        await this.notificationRepository.deleteNotificationByEventId(
             eventId.toString(),
         );
     };
+
+    deleteMentionNotifications = async (eventId: string, mentions: string[]) => {
+        for (const mention of mentions) {
+            this.notificationRepository.deleteNotification(eventId, mention);
+        }
+    }
 
     updateAll = async () => {
         const allEvents = await this.eventService.getAllEvents();
@@ -475,7 +483,7 @@ export class NotificationService {
         let counter = 0;
         for (const n of allNotifications) {
             if (!(await this.eventService.getEventById(n.eventId))) {
-                await this.notificationRepository.DeleteNotification(n._id);
+                await this.notificationRepository.deleteNotificationById(n._id);
                 counter++;
             }
         }

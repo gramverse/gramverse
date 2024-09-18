@@ -137,19 +137,24 @@ export class FollowService {
                 followingUserName,
                 {followRequestState: FollowRequestState.NONE},
             );
-        } else {
-        await this.followRepService.update(
-            followerUserName,
-            followingUserName,
+            this.notificationService.deleteNotification(
+                followerUserName,
+                followingUserName,
+                EventType.FOLLOW_REQUEST,
+            );
+            } else {
+            await this.followRepService.update(
+                followerUserName,
+                followingUserName,
                 {followRequestState: FollowRequestState.NONE, isCloseFriend: false},
             );  
             await this.updateFollowerCount(followingUserName);
+            this.notificationService.deleteNotification(
+                followerUserName,
+                followingUserName,
+                EventType.FOLLOW,
+            );
         }
-        this.notificationService.deleteNotification(
-            followerUserName,
-            followingUserName,
-            EventType.FOLLOW,
-        );
     };
 
     acceptRequest = async (

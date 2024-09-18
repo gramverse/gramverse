@@ -114,8 +114,8 @@ export class PostService {
                 };
                 this.mentionRepository.add(mentionDto);
             }
-            this.notificationService.addMention(myUserName, mention, postId);
         }
+        this.notificationService.addMention(myUserName, mentionsToBeAdded, postId);
         for (const mention of mentionsToBeRemoved) {
             const existingMention = await this.mentionRepository.getMention(
                 mention,
