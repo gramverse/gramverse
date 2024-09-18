@@ -46,15 +46,35 @@ export class UserRepService {
     ) => {
         const skip = (page - 1) * limit;
         const totalCount = await this.userRepository.accountCount(tag);
-        const posts = await this.userRepository.searchAccount(
+        const posts: {
+            userName: string;
+            firstName: string;
+            lastName: string;
+            profileImage: string;
+            followerCount: number;
+        }[] = await this.userRepository.searchAccount(
             tag,
             myUserName,
             skip,
             limit,
         );
+
+        const uniqueUsers: typeof posts = [];
+        const seenUsernames = new Set<string>();
+        posts.forEach((post) => {
+            const fullName = post.firstName + " " + post.lastName;
+            if (
+                !seenUsernames.has(post.userName) &&
+                !seenUsernames.has(fullName)
+            ) {
+                seenUsernames.add(post.userName);
+                seenUsernames.add(fullName);
+                uniqueUsers.push(post);
+            }
+        });
         let followState;
         const users = await Promise.all(
-            posts.map(async (post) => {
+            uniqueUsers.map(async (post) => {
                 const existingFollow = await this.followRepository.followExists(
                     myUserName,
                     post.userName,
