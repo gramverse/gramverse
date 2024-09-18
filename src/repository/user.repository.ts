@@ -17,22 +17,32 @@ export class UserRepository {
     };
 
     getUserByUserName = async (userName: string) => {
-        const user = (await this.users.findOne({normalizedUserName: userName.toUpperCase()})) || undefined;
+        const user =
+            (await this.users.findOne({
+                normalizedUserName: userName.toUpperCase(),
+            })) || undefined;
         return convertType<User, IUser>(user);
     };
 
     getUserByEmail = async (email: string) => {
-        const user = (await this.users.findOne({normalizedEmail: email.toUpperCase()})) || undefined;
+        const user =
+            (await this.users.findOne({
+                normalizedEmail: email.toUpperCase(),
+            })) || undefined;
         return convertType<User, IUser>(user);
     };
 
     checkUserNameExistance = async (userName: string) => {
-        const user = await this.users.findOne({normalizedUserName: userName.toUpperCase()});
+        const user = await this.users.findOne({
+            normalizedUserName: userName.toUpperCase(),
+        });
         return !!user;
     };
 
     checkEmailExistance = async (email: string) => {
-        const user = await this.users.findOne({normalizedEmail: email.toUpperCase()});
+        const user = await this.users.findOne({
+            normalizedEmail: email.toUpperCase(),
+        });
         return !!user;
     };
 
@@ -43,74 +53,96 @@ export class UserRepository {
     getAllUsers = async () => {
         return await this.users.find().lean();
     };
-    searchAccount = async (userName: string, skip: number, limit: number) => {
+    searchAccount = async (
+        userName: string,
+        myUserName: string,
+        skip: number,
+        limit: number,
+    ) => {
         const results = await this.users.aggregate([
             {
                 $match: {
-                    $or: [
-                        { userName: { $regex: userName, $options: 'i' } },
-                        { 
-                            $expr: {
-                                $regexMatch: {
-                                    input: { $concat: ["$firstName", " ", "$lastName"] },
-                                    regex: userName,
-                                    options: "i"
-                                }
-                            }
-                        }
-                    ]
-                }
+                    $and: [
+                        {userName: {$ne: myUserName}},
+                        {
+                            $or: [
+                                {userName: {$regex: userName, $options: "i"}},
+                                {
+                                    $expr: {
+                                        $regexMatch: {
+                                            input: {
+                                                $concat: [
+                                                    "$firstName",
+                                                    " ",
+                                                    "$lastName",
+                                                ],
+                                            },
+                                            regex: userName,
+                                            options: "i",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
             },
             {
-                $project: {
-                    _id: 0,
-                    accountId: "$_id",
-                    userName: 1,
-                    firstName: 1,
-                    lastName: 1,
-                    fullName: { $concat: ["$firstName", " ", "$lastName"] },
-                    profileImage: 1,
-                    followerCount: 1
-                }
+                $group: {
+                    _id: "$_id",
+                    userName: {$first: "$userName"},
+                    firstName: {$first: "$firstName"},
+                    lastName: {$first: "$lastName"},
+                    fullName: {
+                        $first: {$concat: ["$firstName", " ", "$lastName"]},
+                    },
+                    profileImage: {$first: "$profileImage"},
+                    followerCount: {$first: "$followerCount"},
+                },
             },
             {
-                $sort: { followerCount: -1 }
+                $sort: {followerCount: -1},
             },
             {
-                $skip: skip 
+                $skip: skip,
             },
             {
-                $limit: limit 
-            }
+                $limit: limit,
+            },
         ]);
-        
+
         return results;
     };
+
     accountCount = async (searchTerm: string) => {
         const count = await this.users.aggregate([
             {
                 $match: {
                     $or: [
-                        { userName: { $regex: searchTerm, $options: 'i' } },
-                        { 
+                        {userName: {$regex: searchTerm, $options: "i"}},
+                        {
                             $expr: {
                                 $regexMatch: {
-                                    input: { $concat: ["$firstName", " ", "$lastName"] },
+                                    input: {
+                                        $concat: [
+                                            "$firstName",
+                                            " ",
+                                            "$lastName",
+                                        ],
+                                    },
                                     regex: searchTerm,
-                                    options: "i"
-                                }
-                            }
-                        }
-                    ]
-                }
+                                    options: "i",
+                                },
+                            },
+                        },
+                    ],
+                },
             },
             {
-                $count: "totalCount"
-            }
+                $count: "totalCount",
+            },
         ]);
-    
+
         return count.length > 0 ? count[0].totalCount : 0;
     };
-    
-    
 }

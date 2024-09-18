@@ -46,7 +46,12 @@ export class UserRepService {
     ) => {
         const skip = (page - 1) * limit;
         const totalCount = await this.userRepository.accountCount(tag);
-        const posts = await this.userRepository.searchAccount(tag, skip, limit);
+        const posts = await this.userRepository.searchAccount(
+            tag,
+            myUserName,
+            skip,
+            limit,
+        );
         let followState;
         const users = await Promise.all(
             posts.map(async (post) => {
@@ -55,7 +60,7 @@ export class UserRepService {
                     post.userName,
                 );
                 if (!existingFollow) {
-                    followState = "NONE";
+                    followState = "none";
                 } else {
                     const follow = await this.followRepository.getFollow(
                         myUserName,
