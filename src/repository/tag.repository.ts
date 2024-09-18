@@ -203,7 +203,7 @@ export class TagRepository {
     
         return results;
     };
-    tagCount = async (tag: string) => {
+    specTagCount = async (tag: string) => {
         const totalPosts = await this.tags.countDocuments({
             tag: tag,
             isDeleted: false
@@ -231,4 +231,13 @@ export class TagRepository {
         ]);  
         return count.length > 0 ? count[0].totalCount : 0;
     };
+    tagCount = async (tag: string) => {
+        const totalPosts = await this.tags.countDocuments({
+            tag: { $regex: tag, $options: "i" },
+            isDeleted: false
+        });
+    
+        return totalPosts;
+    };
+    
 }

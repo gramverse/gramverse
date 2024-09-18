@@ -7,13 +7,13 @@ export class SearchService {
     ) {}
     searchTags = async (tag: string,limit: number, page: number ) => {
         const skip = (page - 1) * limit
-        const totalCount = await this.tagRepository.countSuggestedTags(tag)
+        const totalCount = await this.tagRepository.tagCount(tag)
         const posts = await this.tagRepository.searchTag(tag,skip,limit)
         return{posts,totalCount}
     }
     searchSpecTags = async (tag: string,limit: number, page: number ) => {
         const skip = (page - 1) * limit
-        const totalCount = await this.tagRepository.tagCount(tag)
+        const totalCount = await this.tagRepository.specTagCount(tag)
         const posts = await this.tagRepository.searchSpecTag(tag,skip,limit)
         return{posts,totalCount}
     }
