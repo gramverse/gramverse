@@ -60,7 +60,7 @@ export class UserRepService {
         );
 
         const uniqueUsers: typeof posts = [];
-        const seenUsernames = new Set<string>();
+        const seenUsernames = new Set<String>();
         posts.forEach((post) => {
             const fullName = post.firstName + " " + post.lastName;
             if (
