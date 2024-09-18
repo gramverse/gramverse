@@ -204,13 +204,14 @@ export class TagRepository {
         return results;
     };
     tagCount = async (tag: string) => {
-        const totalPosts = await this.tags.distinct("postId", {
+        const totalPosts = await this.tags.countDocuments({
             tag: tag,
-            isDeleted: false 
+            isDeleted: false
         });
-
-        return totalPosts.length;
+    
+        return totalPosts;
     };
+    
     countSuggestedTags = async (tag: string) => {
         const count = await this.tags.aggregate([
             {
