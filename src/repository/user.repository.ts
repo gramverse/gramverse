@@ -89,7 +89,7 @@ export class UserRepository {
             },
             {
                 $project: {
-                    _id: 0, // Prevents _id from being used to differentiate duplicates
+                    _id: 0,
                     accountId: "$_id",
                     userName: 1,
                     firstName: 1,
@@ -101,7 +101,10 @@ export class UserRepository {
             },
             {
                 $group: {
-                    _id: "$_id",
+                    _id: {
+                        userName: "$userName",
+                        fullName: "$fullName",
+                    },
                     userName: {$first: "$userName"},
                     firstName: {$first: "$firstName"},
                     lastName: {$first: "$lastName"},
