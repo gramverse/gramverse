@@ -101,10 +101,7 @@ export class UserRepository {
             },
             {
                 $group: {
-                    _id: {
-                        userName: "$userName",
-                        fullName: "$fullName",
-                    },
+                    _id: "$userName",
                     userName: {$first: "$userName"},
                     firstName: {$first: "$firstName"},
                     lastName: {$first: "$lastName"},
