@@ -32,61 +32,61 @@ export class TagRepository {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: { $regex: tag, $options: 'i' }, 
-                    isDeleted: false 
-                }
+                    tag: {$regex: tag, $options: "i"},
+                    isDeleted: false,
+                },
             },
             {
                 $group: {
-                    _id: "$tag", 
-                    postCount: { $sum: 1 } 
-                }
+                    _id: "$tag",
+                    postCount: {$sum: 1},
+                },
             },
             {
-                $sort: { postCount: -1 } 
+                $sort: {postCount: -1},
             },
             {
-                $skip: skip 
+                $skip: skip,
             },
             {
-                $limit: limit 
-            }
+                $limit: limit,
+            },
         ]);
 
         return results;
     };
-    
+
     searchTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: { $regex: tag, $options: 'i' }, 
-                    isDeleted: false 
-                }
+                    tag: {$regex: tag, $options: "i"},
+                    isDeleted: false,
+                },
             },
             {
                 $addFields: {
-                    postIdObj: { $toObjectId: "$postId" } 
-                }
+                    postIdObj: {$toObjectId: "$postId"},
+                },
             },
             {
                 $lookup: {
-                    from: "posts", 
-                    localField: "postIdObj",  
-                    foreignField: "_id", 
-                    as: "postDetails" 
-                }
+                    from: "posts",
+                    localField: "postIdObj",
+                    foreignField: "_id",
+                    as: "postDetails",
+                },
             },
             {
-                $unwind: "$postDetails"
+                $unwind: "$postDetails",
             },
             {
                 $lookup: {
-                    from: "likes", 
-                    localField: "postIdObj",  
+                    from: "likes",
+                    localField: "postIdObj",
                     foreignField: "postId",
-                    as: "likeDetails"
-                }
+                    as: "likeDetails",
+                },
             },
             {
                 $addFields: {
@@ -95,72 +95,77 @@ export class TagRepository {
                             $filter: {
                                 input: "$likeDetails",
                                 as: "like",
-                                cond: { $eq: ["$$like.isDeleted", false] } 
-                            }
-                        }
-                    }
-                }
+                                cond: {$eq: ["$$like.isDeleted", false]},
+                            },
+                        },
+                    },
+                },
             },
             {
                 $group: {
                     _id: "$postIdObj",
-                    postDetails: { $first: "$postDetails" },
-                    likeCount: { $first: "$likeCount" }
-                }
+                    postDetails: {$first: "$postDetails"},
+                    likeCount: {$first: "$likeCount"},
+                },
             },
             {
-                $sort: { likeCount: -1 }
+                $sort: {likeCount: -1},
             },
             {
-                $skip: skip 
+                $skip: skip,
             },
             {
-                $limit: limit 
+                $limit: limit,
             },
             {
                 $project: {
-                    _id: 0, 
+                    _id: 0,
                     postId: "$postDetails._id",
                     userName: "$postDetails.userName",
-                    postImage: { $ifNull: [{ $arrayElemAt: ["$postDetails.photoUrls", 0] }, "no-image.jpg"] } 
-                }
-            }
+                    postImage: {
+                        $ifNull: [
+                            {$arrayElemAt: ["$postDetails.photoUrls", 0]},
+                            "no-image.jpg",
+                        ],
+                    },
+                },
+            },
         ]);
-    
+
         return results;
     };
-    
+
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: { $regex: `^${tag}$`, $options: 'i' }, 
-                    isDeleted: false 
-                }
+                    tag: {$regex: `^${tag}$`, $options: "i"},
+                    isDeleted: false,
+                },
             },
             {
                 $addFields: {
-                    postIdObj: { $toObjectId: "$postId" } 
-                }
+                    postIdObj: {$toObjectId: "$postId"},
+                },
             },
             {
                 $lookup: {
-                    from: "posts", 
-                    localField: "postIdObj",  
-                    foreignField: "_id", 
-                    as: "postDetails" 
-                }
+                    from: "posts",
+                    localField: "postIdObj",
+                    foreignField: "_id",
+                    as: "postDetails",
+                },
             },
             {
-                $unwind: "$postDetails"
+                $unwind: "$postDetails",
             },
             {
                 $lookup: {
-                    from: "likes", 
-                    localField: "postIdObj",  
+                    from: "likes",
+                    localField: "postIdObj",
                     foreignField: "postId",
-                    as: "likeDetails"
-                }
+                    as: "likeDetails",
+                },
             },
             {
                 $addFields: {
@@ -169,75 +174,79 @@ export class TagRepository {
                             $filter: {
                                 input: "$likeDetails",
                                 as: "like",
-                                cond: { $eq: ["$$like.isDeleted", false] } 
-                            }
-                        }
-                    }
-                }
+                                cond: {$eq: ["$$like.isDeleted", false]},
+                            },
+                        },
+                    },
+                },
             },
             {
                 $group: {
                     _id: "$postIdObj",
-                    postDetails: { $first: "$postDetails" },
-                    likeCount: { $first: "$likeCount" }
-                }
+                    postDetails: {$first: "$postDetails"},
+                    likeCount: {$first: "$likeCount"},
+                },
             },
             {
-                $sort: { likeCount: -1 }
+                $sort: {likeCount: -1},
             },
             {
-                $skip: skip 
+                $skip: skip,
             },
             {
-                $limit: limit 
+                $limit: limit,
             },
             {
                 $project: {
-                    _id: 0, 
+                    _id: 0,
                     postId: "$postDetails._id",
                     userName: "$postDetails.userName",
-                    postImage: { $ifNull: [{ $arrayElemAt: ["$postDetails.photoUrls", 0] }, "no-image.jpg"] } 
-                }
-            }
+                    postImage: {
+                        $ifNull: [
+                            {$arrayElemAt: ["$postDetails.photoUrls", 0]},
+                            "no-image.jpg",
+                        ],
+                    },
+                },
+            },
         ]);
-    
+
         return results;
     };
     specTagCount = async (tag: string) => {
         const totalPosts = await this.tags.countDocuments({
             tag: tag,
-            isDeleted: false
+            isDeleted: false,
         });
-    
+
         return totalPosts;
     };
-    
+
     countSuggestedTags = async (tag: string) => {
         const count = await this.tags.aggregate([
             {
                 $match: {
-                    tag: { $regex: tag, $options: 'i' }, 
-                    isDeleted: false 
-                }
+                    tag: {$regex: tag, $options: "i"},
+                    isDeleted: false,
+                },
             },
             {
                 $group: {
-                    _id: "$tag", 
-                }
+                    _id: "$tag",
+                },
             },
             {
-                $count: "totalCount"
-            }
-        ]);  
+                $count: "totalCount",
+            },
+        ]);
         return count.length > 0 ? count[0].totalCount : 0;
     };
     tagCount = async (tag: string) => {
         const totalPosts = await this.tags.countDocuments({
-            tag: { $regex: tag, $options: "i" },
-            isDeleted: false
+            tag: {$regex: tag, $options: "i"},
+            isDeleted: false,
         });
-    
+
         return totalPosts;
     };
-    
 }
