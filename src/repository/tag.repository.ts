@@ -197,22 +197,22 @@ export class TagRepository {
                 $limit: limit,
             },
             {
+                $group: {
+                    _id: null,
+                    posts: {$addToSet: "$postDetails"},
+                },
+            },
+            {
                 $project: {
                     _id: 0,
-                    postId: "$postDetails._id",
-                    userName: "$postDetails.userName",
-                    postImage: {
-                        $ifNull: [
-                            {$arrayElemAt: ["$postDetails.photoUrls", 0]},
-                            "no-image.jpg",
-                        ],
-                    },
+                    posts: 1,
                 },
             },
         ]);
-
+    
         return results;
     };
+    
     specTagCount = async (tag: string) => {
         const totalPosts = await this.tags.countDocuments({
             tag: tag,
