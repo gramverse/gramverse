@@ -125,20 +125,14 @@ export class TagRepository {
             {
                 $project: {
                     _id: 0,
-                    postId: "$postDetails._id",
-                    userName: "$postDetails.userName",
-                    postImage: {
-                        $ifNull: [
-                            {$arrayElemAt: ["$postDetails.photoUrls", 0]},
-                            "no-image.jpg",
-                        ],
-                    },
-                }
+                    posts: 1,
+                },
             },
         ]);
     
         return results;
     };
+    
 
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
@@ -210,20 +204,14 @@ export class TagRepository {
             {
                 $project: {
                     _id: 0,
-                    postId: "$postDetails._id",
-                    userName: "$postDetails.userName",
-                    postImage: {
-                        $ifNull: [
-                            {$arrayElemAt: ["$postDetails.photoUrls", 0]},
-                            "no-image.jpg",
-                        ],
-                    },
-                }
+                    posts: 1,
+                },
             },
         ]);
     
         return results;
     };
+    
     
     specTagCount = async (tag: string) => {
         const totalPosts = await this.tags.countDocuments({
