@@ -55,7 +55,6 @@ export class TagRepository {
 
         return results;
     };
-
     searchTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
@@ -118,6 +117,12 @@ export class TagRepository {
                 $limit: limit,
             },
             {
+                $group: {
+                    _id: null,
+                    posts: {$addToSet: "$postDetails"},
+                },
+            },
+            {
                 $project: {
                     _id: 0,
                     postId: "$postDetails._id",
@@ -128,10 +133,10 @@ export class TagRepository {
                             "no-image.jpg",
                         ],
                     },
-                },
+                }
             },
         ]);
-
+    
         return results;
     };
 
@@ -205,8 +210,15 @@ export class TagRepository {
             {
                 $project: {
                     _id: 0,
-                    posts: 1,
-                },
+                    postId: "$postDetails._id",
+                    userName: "$postDetails.userName",
+                    postImage: {
+                        $ifNull: [
+                            {$arrayElemAt: ["$postDetails.photoUrls", 0]},
+                            "no-image.jpg",
+                        ],
+                    },
+                }
             },
         ]);
     
