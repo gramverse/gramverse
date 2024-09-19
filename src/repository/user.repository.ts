@@ -88,18 +88,6 @@ export class UserRepository {
                 },
             },
             {
-                $project: {
-                    _id: 0,
-                    accountId: "$_id",
-                    userName: 1,
-                    firstName: 1,
-                    lastName: 1,
-                    fullName: {$concat: ["$firstName", " ", "$lastName"]},
-                    profileImage: 1,
-                    followerCount: 1,
-                },
-            },
-            {
                 $group: {
                     _id: "$userName",
                     userName: {$first: "$userName"},
