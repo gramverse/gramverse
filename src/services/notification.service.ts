@@ -23,6 +23,7 @@ import {FollowRepService} from "./follow.rep.service";
 import {unknown} from "zod";
 import {CommentService} from "./comment.service";
 import {CommentRepService} from "./comment.rep.service";
+import { User } from "../models/login/login-response";
 
 export class NotificationService {
     constructor(
@@ -171,10 +172,27 @@ export class NotificationService {
             creationDate,
         } = event;
         const {seen, isMine} = notification;
+        let profileUserName: string;
+        if (notification.userName == followingUserName) {
+            profileUserName = performerUserName;
+        } else {
+            profileUserName = followingUserName;
+        }
+        const user = await this.userRepService.getUser(profileUserName);
+        if (!user) {
+            throw new UnknownError();
+        }
+        const {profileImage} = user;
+        const follow = await this.followRepService.getFollow(notification.userName, profileUserName);
+        const {followRequestState} = follow||{
+            followRequestState: FollowRequestState.NONE
+        };
         const dto: FollowNotification = {
             type,
             performerUserName,
             followingUserName,
+            profileImage,
+            followRequestState,
             creationDate,
             isMine,
             seen,
@@ -190,10 +208,22 @@ export class NotificationService {
             creationDate,
         } = event;
         const {seen, isMine} = notification;
+        let profileUserName: string;
+        if (notification.userName == followingUserName) {
+            profileUserName = performerUserName;
+        } else {
+            profileUserName = followingUserName;
+        }
+        const user = await this.userRepService.getUser(profileUserName);
+        if (!user) {
+            throw new UnknownError();
+        }
+        const {profileImage} = user;
         const dto: FollowRequestNotification = {
             type,
             performerUserName,
             followingUserName,
+            profileImage,
             creationDate,
             isMine,
             seen,
@@ -309,11 +339,18 @@ export class NotificationService {
             return;
         }
         await this.createNotification(
-            isAccept ? followerUserName : followingUserName,
+            followingUserName,
             eventId,
             true,
         );
 
+        if (isAccept) {
+            await this.createNotification(
+                followerUserName,
+                eventId,
+                true,
+            );
+        }
         const followers =
             await this.followRepService.getAllFollowers(followerUserName);
 

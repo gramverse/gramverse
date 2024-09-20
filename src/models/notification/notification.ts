@@ -31,10 +31,13 @@ export interface BaseNotification {
 
 export interface FollowNotification extends BaseNotification {
     followingUserName: string;
+    profileImage: string;
+    followRequestState: FollowRequestState;
 }
 
 export interface FollowRequestNotification extends BaseNotification {
     followingUserName: string;
+    profileImage: string;
 }
 
 export interface CommentNotification extends BaseNotification {
