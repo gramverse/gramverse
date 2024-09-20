@@ -133,7 +133,6 @@ export class TagRepository {
         return results;
     };
     
-
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
@@ -212,9 +211,7 @@ export class TagRepository {
     
         return results;
     };
-    
-    
-    
+        
     specTagCount = async (tag: string) => {
         const totalPosts = await this.tags.countDocuments({
             tag: tag,
