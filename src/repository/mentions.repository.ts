@@ -10,7 +10,7 @@ export class MentionsRepository {
         this.mentions = datahandler.model<IMentiont>("mentions", mentionSchema);
     }
 
-    add = async (mentionDto: MentionDto) => {
+    add = async (mentionDto: Partial<Mention>) => {
         const createdMention = await this.mentions.create(mentionDto);
         return createdMention._id;
     };

@@ -11,6 +11,7 @@ export interface Post {
     forCloseFriends: boolean;
     likesCount: number;
     creationDate: Date;
+    updateDate: Date;
 }
 
 export const zodPostDto = z.object({

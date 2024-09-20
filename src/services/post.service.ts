@@ -524,22 +524,16 @@ export class PostService {
     updateAllPosts = async () => {
         const allPosts = await this.postRepService.getAllPosts();
         let counter = 0;
-        let tagCounter = 0;
+        let mentionCounter = 0;
         for (const post of allPosts) {
             await this.updateLikesCount(post._id);
-            const tags = this.extractHashtags(post.caption);
-            for (const tag of tags) {
-                const newTag: TagRequest = {
-                    tag,
-                    postId: post._id,
-                    isDeleted: false,
-                };
-                await this.tagRepository.add(newTag);
-                tagCounter++;
+            for (const mention of post.mentions) {
+                await this.mentionRepository.add({postId: post._id, userName: mention, isDeleted: false, creationDate: post.updateDate});
+                mentionCounter++;
             }
             counter++;
         }
-        return `Number of updated posts: ${counter}\nNumber of inserted tags: ${tagCounter}`;
+        return `Number of updated posts: ${counter}\nNumber of inserted mentions: ${mentionCounter}`;
     };
     getMyMentions = async (userName: string, page: number, limit: number) => {
         const skip = (page - 1) * limit;
