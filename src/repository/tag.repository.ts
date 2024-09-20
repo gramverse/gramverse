@@ -55,6 +55,7 @@ export class TagRepository {
 
         return results;
     };
+    
     searchTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
@@ -65,7 +66,7 @@ export class TagRepository {
             },
             {
                 $addFields: {
-                    postIdObj: {$toObjectId: "$postId"},
+                    postIdObj: { $toObjectId: "$postId" },
                 },
             },
             {
@@ -94,7 +95,7 @@ export class TagRepository {
                             $filter: {
                                 input: "$likeDetails",
                                 as: "like",
-                                cond: {$eq: ["$$like.isDeleted", false]},
+                                cond: { $eq: ["$$like.isDeleted", false] },
                             },
                         },
                     },
@@ -103,12 +104,12 @@ export class TagRepository {
             {
                 $group: {
                     _id: "$postIdObj",
-                    postDetails: {$first: "$postDetails"},
-                    likeCount: {$first: "$likeCount"},
+                    postDetails: { $first: "$postDetails" },
+                    likeCount: { $first: "$likeCount" },
                 },
             },
             {
-                $sort: {likeCount: -1},
+                $sort: { likeCount: -1, _id: 1 },
             },
             {
                 $skip: skip,
@@ -117,22 +118,23 @@ export class TagRepository {
                 $limit: limit,
             },
             {
-                $group: {
-                    _id: null,
-                    posts: {$addToSet: "$postDetails"},
-                },
-            },
-            {
                 $project: {
                     _id: 0,
-                    posts: 1,
+                    postId: "$postDetails._id",
+                    userName: "$postDetails.userName",
+                    postImage: {
+                        $ifNull: [
+                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },
+                            "no-image.jpg",
+                        ],
+                    },
                 },
             },
         ]);
     
         return results;
     };
-    
+
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
