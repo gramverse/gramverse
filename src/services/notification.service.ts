@@ -339,11 +339,18 @@ export class NotificationService {
             return;
         }
         await this.createNotification(
-            isAccept ? followerUserName : followingUserName,
+            followingUserName,
             eventId,
             true,
         );
 
+        if (isAccept) {
+            await this.createNotification(
+                followerUserName,
+                eventId,
+                true,
+            );
+        }
         const followers =
             await this.followRepService.getAllFollowers(followerUserName);
 
