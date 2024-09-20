@@ -186,7 +186,7 @@ export class TagRepository {
                 },
             },
             {
-                $sort: { likeCount: -1 },
+                $sort: { likeCount: -1, "postDetails.createdAt": -1 },
             },
             {
                 $skip: skip,
@@ -211,6 +211,7 @@ export class TagRepository {
     
         return results;
     };
+    
         
     specTagCount = async (tag: string) => {
         const totalPosts = await this.tags.countDocuments({
