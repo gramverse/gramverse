@@ -46,7 +46,7 @@ export class BookmarkRepository {
 
     getBookmarks = async (userName: string, skip: number, limit: number) => {
         const bookmarks = await this.bookmarks
-            .find({userName})
+            .find({userName,isDeleted: false})
             .sort({creationDate: -1})
             .skip(skip)
             .limit(limit)
