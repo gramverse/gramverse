@@ -186,7 +186,7 @@ export class TagRepository {
                 },
             },
             {
-                $sort: { likeCount: -1, "postDetails.createdAt": -1 },
+                $sort: { likeCount: -1, _id: 1 },
             },
             {
                 $skip: skip,
