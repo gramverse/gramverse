@@ -101,7 +101,7 @@ export class UserRepository {
                 },
             },
             {
-                $sort: {followerCount: -1},
+                $sort: {followerCount: -1, _id: 1},
             },
             {
                 $skip: skip,
