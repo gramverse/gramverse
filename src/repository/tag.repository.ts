@@ -66,7 +66,7 @@ export class TagRepository {
             },
             {
                 $addFields: {
-                    postIdObj: { $toObjectId: "$postId" },  
+                    postIdObj: { $toObjectId: "$postId" },
                 },
             },
             {
@@ -78,57 +78,35 @@ export class TagRepository {
                 },
             },
             {
-                $unwind: "$postDetails", 
+                $unwind: "$postDetails",
             },
             {
-                $lookup: {
-                    from: "likes",
-                    localField: "postIdObj",
-                    foreignField: "postId",
-                    as: "likeDetails",
-                },
+                $sort: { likesCount: -1, "postDetails._id": 1 },
             },
             {
-                $addFields: {
-                    likeCount: {
-                        $size: {
-                            $filter: {
-                                input: "$likeDetails",  
-                                as: "like",
-                                cond: { $eq: ["$$like.isDeleted", false] },
-                            },
-                        },
-                    },
-                },
+                $skip: skip,
             },
             {
-                $sort: { likeCount: -1, "postDetails._id": 1 }, 
+                $limit: limit,
             },
             {
-                $skip: skip, 
-            },
-            {
-                $limit: limit,  
-            },
-            {
-                $project: { 
+                $project: {
                     _id: 0,
-                    postId: "$postDetails._id",  
-                    userName: "$postDetails.userName",  
+                    postId: "$postDetails._id",
+                    userName: "$postDetails.userName",
                     postImage: {
                         $ifNull: [
-                            { $arrayElemAt: ["$postDetails.photoUrls", 0] }, 
-                            "no-image.jpg",  
+                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },
+                            "no-image.jpg",
                         ],
                     },
-                    likeCount: 1, 
+                    likeCount: "$likesCount",
                 },
             },
         ]);
     
         return results;
     };
-    
     
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
@@ -140,7 +118,7 @@ export class TagRepository {
             },
             {
                 $addFields: {
-                    postIdObj: { $toObjectId: "$postId" },  
+                    postIdObj: { $toObjectId: "$postId" },
                 },
             },
             {
@@ -152,50 +130,29 @@ export class TagRepository {
                 },
             },
             {
-                $unwind: "$postDetails", 
+                $unwind: "$postDetails",
             },
             {
-                $lookup: {
-                    from: "likes",
-                    localField: "postIdObj",
-                    foreignField: "postId",
-                    as: "likeDetails",
-                },
+                $sort: { likesCount: -1, "postDetails._id": 1 },
             },
             {
-                $addFields: {
-                    likeCount: {
-                        $size: {
-                            $filter: {
-                                input: "$likeDetails",  
-                                as: "like",
-                                cond: { $eq: ["$$like.isDeleted", false] },
-                            },
-                        },
-                    },
-                },
+                $skip: skip,
             },
             {
-                $sort: { likeCount: -1, "postDetails._id": 1 }, 
+                $limit: limit,
             },
             {
-                $skip: skip, 
-            },
-            {
-                $limit: limit,  
-            },
-            {
-                $project: { 
+                $project: {
                     _id: 0,
-                    postId: "$postDetails._id",  
-                    userName: "$postDetails.userName",  
+                    postId: "$postDetails._id",
+                    userName: "$postDetails.userName",
                     postImage: {
                         $ifNull: [
-                            { $arrayElemAt: ["$postDetails.photoUrls", 0] }, 
-                            "no-image.jpg",  
+                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },
+                            "no-image.jpg",
                         ],
                     },
-                    likeCount: 1, 
+                    likeCount: "$likesCount",
                 },
             },
         ]);
