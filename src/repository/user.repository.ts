@@ -47,7 +47,7 @@ export class UserRepository {
     };
 
     update = async (userName: string, user: Partial<User>) => {
-        await this.users.updateOne({userName}, user);
+        await this.users.updateOne({userName}, {$set: { user}});
     };
 
     getAllUsers = async () => {
