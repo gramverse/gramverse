@@ -184,8 +184,9 @@ export class NotificationService {
         }
         const {profileImage} = user;
         const follow = await this.followRepService.getFollow(notification.userName, profileUserName);
-        const {followRequestState} = follow||{
-            followRequestState: FollowRequestState.NONE
+        const {followRequestState, isBlocked} = follow||{
+            followRequestState: FollowRequestState.NONE,
+            isBlocked: false,
         };
         const dto: FollowNotification = {
             type,
@@ -193,6 +194,7 @@ export class NotificationService {
             followingUserName,
             profileImage,
             followRequestState,
+            isBlocked,
             creationDate,
             isMine,
             seen,
