@@ -54,11 +54,8 @@ export class UserRepService {
         }[] = await this.userRepository.searchAccount(
             tag,
             myUserName,
-            skip,
-            limit,
         );
 
-        const totalCount = await this.userRepository.accountCount(tag);
         const uniqueUsers: typeof posts = [];
         const seenUsernames = new Set<string>();
         posts.forEach((post) => {
@@ -73,7 +70,7 @@ export class UserRepService {
             }
         });
         let followState;
-        const users = await Promise.all(
+        const tempUsers = await Promise.all(
             uniqueUsers.map(async (post) => {
                 const existingFollow = await this.followRepository.followExists(
                     myUserName,
@@ -95,6 +92,16 @@ export class UserRepService {
             }),
         );
 
+        const users =[];
+        for (const user of tempUsers) {
+            const followCheckForFollowing = await this.followRepository.getFollow(user.userName, myUserName);
+            const followCheckForFollower = await this.followRepository.getFollow(myUserName, user.userName);
+            if (!followCheckForFollower && !followCheckForFollowing) {
+                users.push(user);
+            }
+        }
+
+        const totalCount = tempUsers.length;
         
         return {users, totalCount};
     };
