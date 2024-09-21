@@ -56,22 +56,10 @@ export class UserRepService {
             myUserName,
         );
 
-        const uniqueUsers: typeof posts = [];
-        const seenUsernames = new Set<string>();
-        posts.forEach((post) => {
-            const fullName = post.firstName + " " + post.lastName;
-            if (
-                !seenUsernames.has(post.userName) &&
-                !seenUsernames.has(fullName)
-            ) {
-                seenUsernames.add(post.userName);
-                seenUsernames.add(fullName);
-                uniqueUsers.push(post);
-            }
-        });
+        
         let followState;
         const tempUsers = await Promise.all(
-            uniqueUsers.map(async (post) => {
+            posts.map(async (post) => {
                 const existingFollow = await this.followRepository.followExists(
                     myUserName,
                     post.userName,
