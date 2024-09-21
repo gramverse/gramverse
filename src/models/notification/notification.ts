@@ -33,6 +33,7 @@ export interface FollowNotification extends BaseNotification {
     followingUserName: string;
     profileImage: string;
     followRequestState: FollowRequestState;
+    isBlocked: boolean,
 }
 
 export interface FollowRequestNotification extends BaseNotification {
