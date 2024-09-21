@@ -111,6 +111,7 @@ export class PostRepService {
         ) {
             throw new ForbiddenError("User is private");
         }
+        return true
     };
 
     updateLikesCount = async (postId: string, likesCount: number) => {

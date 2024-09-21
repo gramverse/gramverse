@@ -56,7 +56,7 @@ export class TagRepository {
         return results;
     };
     
-    searchTag = async (tag: string, skip: number, limit: number) => {
+    searchTag = async (tag: string) => {
         const results = await this.tags.aggregate([
             {
                 $match: {
@@ -81,15 +81,6 @@ export class TagRepository {
                 $unwind: "$postDetails",
             },
             {
-                $sort: { likesCount: -1, "postDetails._id": 1 },
-            },
-            {
-                $skip: skip,
-            },
-            {
-                $limit: limit,
-            },
-            {
                 $project: {
                     _id: 0,
                     postId: "$postDetails._id",
@@ -108,7 +99,7 @@ export class TagRepository {
         return results;
     };
     
-    searchSpecTag = async (tag: string, skip: number, limit: number) => {
+    searchSpecTag = async (tag: string) => {
         const results = await this.tags.aggregate([
             {
                 $match: {
@@ -134,12 +125,6 @@ export class TagRepository {
             },
             {
                 $sort: { likesCount: -1, "postDetails._id": 1 },
-            },
-            {
-                $skip: skip,
-            },
-            {
-                $limit: limit,
             },
             {
                 $project: {

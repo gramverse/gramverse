@@ -14,7 +14,8 @@ searchRouter.get("/tag", async (req: Request, res, next) => {
             throw new AuthorizationError();
         }
         const {tag, page, limit} = zodSearchRequest.parse(req.query);
-        const notifications = await searchService.searchTags(tag, limit, page);
+        const userName = req.user.userName;
+        const notifications = await searchService.searchTags(tag, limit, page,userName);
         res.status(200).send(notifications);
     } catch (err) {
         next(err);
