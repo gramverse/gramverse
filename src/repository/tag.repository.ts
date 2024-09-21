@@ -60,7 +60,7 @@ export class TagRepository {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: {$regex: tag, $options: "i"},
+                    tag: { $regex: tag, $options: "i" },
                     isDeleted: false,
                 },
             },
@@ -102,14 +102,21 @@ export class TagRepository {
                 },
             },
             {
-                $group: {
-                    _id: "$postIdObj",
-                    postDetails: { $first: "$postDetails" },
-                    likeCount: { $first: "$likeCount" },
+                $project: {
+                    _id: 0,
+                    postId: "$postDetails._id", 
+                    userName: "$postDetails.userName",  
+                    postImage: {
+                        $ifNull: [
+                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },  
+                            "no-image.jpg",
+                        ],
+                    },
+                    likeCount: 1, 
                 },
             },
             {
-                $sort: { likeCount: -1, _id: 1 },
+                $sort: { likeCount: -1, postId: 1 },  
             },
             {
                 $skip: skip,
@@ -117,23 +124,11 @@ export class TagRepository {
             {
                 $limit: limit,
             },
-            {
-                $project: {
-                    _id: 0,
-                    postId: "$postDetails._id",
-                    userName: "$postDetails.userName",
-                    postImage: {
-                        $ifNull: [
-                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },
-                            "no-image.jpg",
-                        ],
-                    },
-                },
-            },
         ]);
     
         return results;
     };
+    
 
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
