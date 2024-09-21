@@ -56,6 +56,8 @@ export class UserRepository {
     searchAccount = async (
         userName: string,
         myUserName: string,
+        skip: number,
+        limit: number,
     ) => {
         const results = await this.users.aggregate([
             {
@@ -101,6 +103,11 @@ export class UserRepository {
             {
                 $sort: {followerCount: -1, _id: 1},
             },
+            {
+                $skip: skip,
+            },{
+                $limit: limit,
+            }
         ]);
 
         return results;

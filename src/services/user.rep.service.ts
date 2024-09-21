@@ -54,8 +54,11 @@ export class UserRepService {
         }[] = await this.userRepository.searchAccount(
             tag,
             myUserName,
+            skip,
+            limit,
         );
 
+        const totalCount = await this.userRepository.accountCount(tag);
         const uniqueUsers: typeof posts = [];
         const seenUsernames = new Set<string>();
         posts.forEach((post) => {
@@ -92,17 +95,7 @@ export class UserRepService {
             }),
         );
 
-        const filteredUsers = [];
-        for (const user of users) {
-            const followCheckForFollowing = await this.followRepository.getFollow(user.userName, myUserName);
-            const followCheckForFollower = await this.followRepository.getFollow(myUserName, user.userName);
-            if (!followCheckForFollower && !followCheckForFollowing) {
-                filteredUsers.push(user);
-            }
-        }
-
-        const totalCount = filteredUsers.length;
-        const paginatedResults = filteredUsers.slice(skip, skip + limit) 
-        return {paginatedResults, totalCount};
+        
+        return {users, totalCount};
     };
 }
