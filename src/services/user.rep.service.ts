@@ -89,7 +89,7 @@ export class UserRepService {
             }
         }
         const users = nonpaginated.slice(skip, skip + limit);
-        const totalCount = tempUsers.length;
+        const totalCount = nonpaginated.length;
         
         return {users, totalCount};
     };
