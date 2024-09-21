@@ -60,6 +60,7 @@ export const postRepService = new PostRepService(
     userRepService,
     followRepService,
     postRepository,
+    tagRepository
 );
 export const eventService = new EventService(eventRepository);
 export const notificationService = new NotificationService(

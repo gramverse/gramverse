@@ -9,12 +9,14 @@ import {FollowRepService} from "./follow.rep.service";
 import {PostRepository} from "../repository/post.repository";
 import {UserRepService} from "./user.rep.service";
 import {FollowRequestState} from "../models/follow/follow-request-state";
+import { TagRepository } from "../repository/tag.repository";
 
 export class PostRepService {
     constructor(
         private userRepService: UserRepService,
         private followRepService: FollowRepService,
         private postRepository: PostRepository,
+        private tagRepository: TagRepository
     ) {}
 
     createPost = async (postRequest: PostRequest) => {
@@ -118,4 +120,7 @@ export class PostRepService {
     getAllPosts = async () => {
         return await this.postRepository.getAllPosts();
     };
+    updateTagLikesCount = async(postId: string,likesCount: number) => {
+        await this.tagRepository.updateTagLikesCount(postId,likesCount)
+    }
 }

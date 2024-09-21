@@ -519,6 +519,7 @@ export class PostService {
     updateLikesCount = async (postId: string) => {
         const likesCount = await this.likesRepository.getCountByPostId(postId);
         await this.postRepService.updateLikesCount(postId, likesCount);
+        await this.postRepService.updateTagLikesCount(postId,likesCount)
     };
 
     updateAllPosts = async () => {

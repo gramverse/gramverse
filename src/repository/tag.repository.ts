@@ -241,4 +241,7 @@ export class TagRepository {
 
         return totalPosts;
     };
+    updateTagLikesCount = async (postId: string, likesCount: number) => {
+        await this.tags.updateOne({ postId }, { $set: { likesCount } });
+    };
 }

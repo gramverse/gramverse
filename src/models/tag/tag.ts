@@ -3,6 +3,7 @@ export interface ITag extends Document {
     tag: string;
     postId: string;
     isDeleted: boolean;
+    likesCount: number;
 }
 
 export interface Tag {
@@ -10,4 +11,5 @@ export interface Tag {
     tag: string;
     postId: string;
     isDeleted: boolean;
+    likesCount: number;
 }
