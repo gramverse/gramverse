@@ -64,7 +64,7 @@ searchRouter.get("/accounts", async (req: Request, res, next) => {
             myUserName,
             userName,
             limit,
-            page,
+            page, 
         );
         res.status(200).send(notifications);
     } catch (err) {
