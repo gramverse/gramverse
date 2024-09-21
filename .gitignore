@@ -41,4 +41,3 @@ test/*.js
 
 uploads
 dist
-Dockerfile
