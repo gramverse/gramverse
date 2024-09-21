@@ -51,4 +51,5 @@ export enum ErrorCode {
 
     // New errors:
     TOO_MANY_ACCOUNTS,
+    CHAT_NOT_FOUND,
 }
