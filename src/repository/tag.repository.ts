@@ -130,9 +130,6 @@ export class TagRepository {
     };
     
     
-    
-    
-
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
@@ -143,7 +140,7 @@ export class TagRepository {
             },
             {
                 $addFields: {
-                    postIdObj: { $toObjectId: "$postId" },
+                    postIdObj: { $toObjectId: "$postId" },  
                 },
             },
             {
@@ -155,7 +152,7 @@ export class TagRepository {
                 },
             },
             {
-                $unwind: "$postDetails",
+                $unwind: "$postDetails", 
             },
             {
                 $lookup: {
@@ -170,7 +167,7 @@ export class TagRepository {
                     likeCount: {
                         $size: {
                             $filter: {
-                                input: "$likeDetails",
+                                input: "$likeDetails",  
                                 as: "like",
                                 cond: { $eq: ["$$like.isDeleted", false] },
                             },
@@ -179,38 +176,33 @@ export class TagRepository {
                 },
             },
             {
-                $group: {
-                    _id: "$postIdObj",
-                    postDetails: { $first: "$postDetails" },
-                    likeCount: { $first: "$likeCount" },
-                },
+                $sort: { likeCount: -1, "postDetails._id": 1 }, 
             },
             {
-                $sort: { likeCount: -1, _id: 1 },
+                $skip: skip, 
             },
             {
-                $skip: skip,
+                $limit: limit,  
             },
             {
-                $limit: limit,
-            },
-            {
-                $project: {
+                $project: { 
                     _id: 0,
-                    postId: "$postDetails._id",
-                    userName: "$postDetails.userName",
+                    postId: "$postDetails._id",  
+                    userName: "$postDetails.userName",  
                     postImage: {
                         $ifNull: [
-                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },
-                            "no-image.jpg",
+                            { $arrayElemAt: ["$postDetails.photoUrls", 0] }, 
+                            "no-image.jpg",  
                         ],
                     },
+                    likeCount: 1, 
                 },
             },
         ]);
     
         return results;
     };
+    
     
         
     specTagCount = async (tag: string) => {
