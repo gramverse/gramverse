@@ -45,7 +45,6 @@ export class UserRepService {
         page: number,
     ) => {
         const skip = (page - 1) * limit;
-        const totalCount = await this.userRepository.accountCount(tag);
         const posts: {
             userName: string;
             firstName: string;
@@ -55,8 +54,6 @@ export class UserRepService {
         }[] = await this.userRepository.searchAccount(
             tag,
             myUserName,
-            skip,
-            limit,
         );
 
         const uniqueUsers: typeof posts = [];
@@ -94,6 +91,18 @@ export class UserRepService {
                 };
             }),
         );
-        return {users, totalCount};
+
+        const filteredUsers = [];
+        for (const user of users) {
+            const followCheckForFollowing = await this.followRepository.getFollow(user.userName, myUserName);
+            const followCheckForFollower = await this.followRepository.getFollow(myUserName, user.userName);
+            if (!followCheckForFollower && !followCheckForFollowing) {
+                filteredUsers.push(user);
+            }
+        }
+
+        const totalCount = filteredUsers.length;
+        const paginatedResults = filteredUsers.slice(skip, skip + limit) 
+        return {paginatedResults, totalCount};
     };
 }
