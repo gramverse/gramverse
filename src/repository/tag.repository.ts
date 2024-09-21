@@ -60,13 +60,13 @@ export class TagRepository {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: { $regex: tag, $options: "i" },
+                    tag: { $regex: tag, $options: "i" }, 
                     isDeleted: false,
                 },
             },
             {
                 $addFields: {
-                    postIdObj: { $toObjectId: "$postId" },
+                    postIdObj: { $toObjectId: "$postId" },  
                 },
             },
             {
@@ -78,7 +78,7 @@ export class TagRepository {
                 },
             },
             {
-                $unwind: "$postDetails",
+                $unwind: "$postDetails",  
             },
             {
                 $lookup: {
@@ -93,7 +93,7 @@ export class TagRepository {
                     likeCount: {
                         $size: {
                             $filter: {
-                                input: "$likeDetails",
+                                input: "$likeDetails",  
                                 as: "like",
                                 cond: { $eq: ["$$like.isDeleted", false] },
                             },
@@ -102,32 +102,33 @@ export class TagRepository {
                 },
             },
             {
-                $project: {
-                    _id: 0,
-                    postId: "$postDetails._id", 
-                    userName: "$postDetails.userName",  
-                    postImage: {
-                        $ifNull: [
-                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },  
-                            "no-image.jpg",
-                        ],
-                    },
-                    likeCount: 1, 
-                },
-            },
-            {
-                $sort: { likeCount: -1, postId: 1 },  
+                $sort: { likeCount: -1, "postDetails._id": 1 },  
             },
             {
                 $skip: skip,
             },
             {
-                $limit: limit,
+                $limit: limit, 
+            },
+            {
+                $project: { 
+                    _id: 0,
+                    postId: "$postDetails._id",  
+                    userName: "$postDetails.userName",  
+                    postImage: {
+                        $ifNull: [
+                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },  
+                            "no-image.jpg",  
+                        ],
+                    },
+                    likeCount: 1,  
+                },
             },
         ]);
     
         return results;
     };
+    
     
 
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
