@@ -28,7 +28,7 @@ export class UnknownError extends HttpError {
     }
 }
 
-type NotFoundObjectType = "page" | "user" | "post" | "comment";
+type NotFoundObjectType = "page" | "user" | "post" | "comment"|"chat";
 export class NotFoundError extends HttpError {
     constructor(public objectType: NotFoundObjectType) {
         let tempErrorCode: ErrorCode;
@@ -44,6 +44,9 @@ export class NotFoundError extends HttpError {
                 break;
             case "comment":
                 tempErrorCode = ErrorCode.COMMENT_NOT_FOUND;
+                break;
+            case "chat":
+                tempErrorCode = ErrorCode.CHAT_NOT_FOUND;
                 break;
         }
         const tempMessage = `${objectType} not found`;
