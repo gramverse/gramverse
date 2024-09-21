@@ -92,15 +92,15 @@ export class UserRepService {
             }),
         );
 
-        const users =[];
+        const nonpaginated =[];
         for (const user of tempUsers) {
             const followCheckForFollowing = await this.followRepository.getFollow(user.userName, myUserName);
             const followCheckForFollower = await this.followRepository.getFollow(myUserName, user.userName);
             if (!followCheckForFollower && !followCheckForFollowing) {
-                users.push(user);
+                nonpaginated.push(user);
             }
         }
-
+        const users = nonpaginated.slice(skip, skip + limit);
         const totalCount = tempUsers.length;
         
         return {users, totalCount};
