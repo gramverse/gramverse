@@ -78,7 +78,7 @@ export class TagRepository {
                 },
             },
             {
-                $unwind: "$postDetails",  
+                $unwind: "$postDetails", 
             },
             {
                 $lookup: {
@@ -102,13 +102,13 @@ export class TagRepository {
                 },
             },
             {
-                $sort: { likeCount: -1, "postDetails._id": 1 },  
+                $sort: { likeCount: -1, "postDetails._id": 1 }, 
             },
             {
-                $skip: skip,
+                $skip: skip, 
             },
             {
-                $limit: limit, 
+                $limit: limit,  
             },
             {
                 $project: { 
@@ -117,17 +117,19 @@ export class TagRepository {
                     userName: "$postDetails.userName",  
                     postImage: {
                         $ifNull: [
-                            { $arrayElemAt: ["$postDetails.photoUrls", 0] },  
+                            { $arrayElemAt: ["$postDetails.photoUrls", 0] }, 
                             "no-image.jpg",  
                         ],
                     },
-                    likeCount: 1,  
+                    likeCount: 1, 
                 },
             },
         ]);
     
         return results;
     };
+    
+    
     
     
 
