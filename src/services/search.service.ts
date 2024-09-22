@@ -1,4 +1,5 @@
 import { postRepService } from "../config";
+import { Post } from "../models/search/post";
 import { TagRepository } from "../repository/tag.repository";
 import { UserRepService } from "./user.rep.service";
 
@@ -27,7 +28,7 @@ export class SearchService {
     searchTags = async (tag: string, limit: number, page: number, userName: string) => {
         const skip = (page - 1) * limit;
     
-        const posts = await this.tagRepository.searchTag(tag); 
+        const posts: Post[] = await this.tagRepository.searchTag(tag); 
     
         const accessiblePosts = await Promise.all(
             posts.map(async (post) => {
@@ -35,7 +36,7 @@ export class SearchService {
                 console.log(postId,"post");
                 console.log(userName,"userName");
                 
-                const hasAccess = await postRepService.checkPostAccess(userName, postId);
+                const hasAccess = await postRepService.checkPostAccess(userName, postId.toString());
                 console.log(hasAccess)
                 return hasAccess ? post : null;
             })
