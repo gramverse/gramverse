@@ -48,7 +48,7 @@ export class SearchService {
     
         const paginatedPosts = filteredPosts.slice(skip, skip + limit);
     
-        return { filteredPosts: paginatedPosts, totalCount };
+        return { posts: paginatedPosts, totalCount };
     };
     
 
