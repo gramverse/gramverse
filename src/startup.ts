@@ -25,7 +25,7 @@ export const buildApp = () => {
     app.use(cookieParser());
     const io = new Server(server, {
         cors: {
-            origin: "*",
+            origin: ["https://localhost:5173", "https://diverse.dev1403.rahnemacollege.ir"],
             methods: ["GET", "POST"],
             credentials: true,
         },
