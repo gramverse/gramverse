@@ -101,7 +101,7 @@ export class MessageService {
             }
             const {profileImage} = contactUser;
             const {_id, lastContent: lastMessage, lastType: lastMessageType, lastUpdated: lastMessageTime} = chat;
-            const unreadCount = await this.messageRepository.getUnreadCount(chat._id.toString(), userName);
+            const unreadCount = await this.messageRepository.getUnreadCount(userName, chat._id.toString());
             const chatDto = {
                 _id,
                 userName: contactUserName,
