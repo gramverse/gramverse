@@ -31,14 +31,14 @@ export class SearchService {
     
         const accessiblePosts = await Promise.all(
             posts.map(async (post) => {
-                const { postId } = post.parse;
+                const { postId } = post
                 const hasAccess = await postRepService.checkPostAccess(userName, postId);
                 return hasAccess ? post : null;
             })
         );
-    
+        console.log(accessiblePosts,"acc")
         const filteredPosts = accessiblePosts.filter(post => post !== null);
-        
+        console.log(filteredPosts, "filteredPosts")        
         const totalCount = filteredPosts.length;
     
         const paginatedPosts = filteredPosts.slice(skip, skip + limit);
