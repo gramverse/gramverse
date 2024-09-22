@@ -19,7 +19,7 @@ import {MessageController} from "./services/message-controller";
 import { chatRouter } from "./routes/chat.route";
 export const buildApp = () => {
     const app = express();
-    const server = http.createServer(app);
+    const server = http.createServer();
 
     app.use(cors());
     app.use(cookieParser());

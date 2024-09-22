@@ -5,7 +5,10 @@ const {app, server} = buildApp(); // Get both the app and server
 const port = process.env.PORT || 3000;
 
 // Start the server
-server.listen(port, () => {
+server.listen(3030, () => {
+    app.listen(port, () => {
+        console.log("app started");
+    });
     console.log(`Listening on port ${port}`);
     console.log(
         `Swagger UI available at http://${process.env.APP_DOMAIN}:${port}/api/api-docs`,
