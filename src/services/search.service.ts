@@ -25,38 +25,43 @@ export class SearchService {
     //     return {filteredPosts,totalCount};
     // }
 
-    searchTags = async (tag: string, limit: number, page: number, userName: string) => {
-        const skip = (page - 1) * limit;
+    // searchTags = async (tag: string, limit: number, page: number, userName: string) => {
+    //     const skip = (page - 1) * limit;
     
-        const posts: Post[] = await this.tagRepository.searchTag(tag); 
+    //     const posts: Post[] = await this.tagRepository.searchTag(tag); 
     
-        const accessiblePosts = await Promise.all(
-            posts.map(async (post) => {
-                const { postId } = post
-                console.log(postId,"post");
-                console.log(userName,"userName");
+    //     const accessiblePosts = await Promise.all(
+    //         posts.map(async (post) => {
+    //             const { postId } = post
+    //             console.log(postId,"post");
+    //             console.log(userName,"userName");
                 
-                const hasAccess = await postRepService.checkPostAccess(userName, postId.toString());
-                console.log(hasAccess)
-                return hasAccess ? post : null;
-            })
-        );
-        console.log(accessiblePosts,"acc")
-        const filteredPosts = accessiblePosts.filter(post => post !== null);
-        console.log(filteredPosts, "filteredPosts")        
-        const totalCount = filteredPosts.length;
+    //             const hasAccess = await postRepService.checkPostAccess(userName, postId.toString());
+    //             console.log(hasAccess)
+    //             return hasAccess ? post : null;
+    //         })
+    //     );
+    //     console.log(accessiblePosts,"acc")
+    //     const filteredPosts = accessiblePosts.filter(post => post !== null);
+    //     console.log(filteredPosts, "filteredPosts")        
+    //     const totalCount = filteredPosts.length;
     
-        const paginatedPosts = filteredPosts.slice(skip, skip + limit);
+    //     const paginatedPosts = filteredPosts.slice(skip, skip + limit);
     
-        return { posts: paginatedPosts, totalCount };
-    };
+    //     return { posts: paginatedPosts, totalCount };
+    // };
     
-
+    searchTags = async (tag: string,limit: number, page: number ) => {
+        const skip = (page - 1) * limit
+        const totalCount = await this.tagRepository.tagCount(tag)
+        const posts = await this.tagRepository.searchTag(tag,skip,limit)
+        return{posts,totalCount}
+    }
 
     searchSpecTags = async (tag: string,limit: number, page: number ) => {
         const skip = (page - 1) * limit
         const totalCount = await this.tagRepository.specTagCount(tag)
-        const posts = await this.tagRepository.searchSpecTag(tag)
+        const posts = await this.tagRepository.searchSpecTag(tag,skip,limit)
         return{posts,totalCount}
     }
     SuggestTags = async (tag: string,limit: number, page: number) => {
