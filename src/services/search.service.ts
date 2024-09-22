@@ -36,7 +36,7 @@ export class SearchService {
                 return hasAccess ? post : null;
             })
         );
-    
+        console.log(accessiblePosts,"acc")
         const filteredPosts = accessiblePosts.filter(post => post !== null);
         console.log(filteredPosts, "filteredPosts")        
         const totalCount = filteredPosts.length;
