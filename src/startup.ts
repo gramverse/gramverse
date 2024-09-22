@@ -25,7 +25,7 @@ export const buildApp = () => {
     app.use(cookieParser());
     const io = new Server(server, {
         cors: {
-            origin: "*:*",
+            origin: "*",
             methods: ["GET", "POST"],
             credentials: true,
         },
