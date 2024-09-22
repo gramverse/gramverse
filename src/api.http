@@ -15,7 +15,7 @@ POST http://localhost:3000/api/users/login
 Content-Type: application/json
 
 {
-  "userName": "hawmidak",
+  "userName": "21eich",
   "password": "Hamid1568",
   "rememberMe": true
 }
@@ -92,3 +92,6 @@ GET http://localhost:3000/api/users/blackList?userName=hawmidak&page=1&limit=10
 
 ###
 GET http://localhost:3000/api/posts/myBookMarks?page=1&limit=10
+
+###
+GET http://localhost:3000/api/search/tag?page=1&limit=3&tag=%D8%B1%DB%8C%D8%AD%D8%A7%D9%86%D9%87

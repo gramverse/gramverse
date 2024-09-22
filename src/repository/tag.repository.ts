@@ -95,7 +95,7 @@ export class TagRepository {
                 },
             },
         ]);
-    
+        console.log(results,"res")
         return results;
     };
     
