@@ -56,11 +56,63 @@ export class TagRepository {
         return results;
     };
     
+    // searchTag = async (tag: string, skip: number, limit: number) => {
+    //     const results = await this.tags.aggregate([
+    //         {
+    //             $match: {
+    //                 tag: { $regex: tag, $options: "i" }, 
+    //                 isDeleted: false,
+    //             },
+    //         },
+    //         {
+    //             $addFields: {
+    //                 postIdObj: { $toObjectId: "$postId" },
+    //             },
+    //         },
+    //         {
+    //             $lookup: {
+    //                 from: "posts",
+    //                 localField: "postIdObj",
+    //                 foreignField: "_id",
+    //                 as: "postDetails",
+    //             },
+    //         },
+    //         {
+    //             $unwind: "$postDetails",
+    //         },
+    //         {
+    //             $sort: { likesCount: -1, "postDetails._id": 1 },
+    //         },
+    //         {
+    //             $skip: skip,
+    //         },
+    //         {
+    //             $limit: limit,
+    //         },
+    //         {
+    //             $project: {
+    //                 _id: 0,
+    //                 postId: "$postDetails._id",
+    //                 userName: "$postDetails.userName",
+    //                 postImage: {
+    //                     $ifNull: [
+    //                         { $arrayElemAt: ["$postDetails.photoUrls", 0] },
+    //                         "no-image.jpg",
+    //                     ],
+    //                 },
+    //                 likeCount: "$likesCount",
+    //             },
+    //         },
+    //     ]);
+    
+    //     return results;
+    // };
+    
     searchTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
                 $match: {
-                    tag: { $regex: tag, $options: "i" }, 
+                    tag: {  $regex: tag, $options: "i" },
                     isDeleted: false,
                 },
             },
@@ -106,8 +158,8 @@ export class TagRepository {
         ]);
     
         return results;
-    };
-    
+    };    
+
     searchSpecTag = async (tag: string, skip: number, limit: number) => {
         const results = await this.tags.aggregate([
             {
