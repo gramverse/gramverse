@@ -38,7 +38,7 @@ export class SearchService {
         );
     
         const filteredPosts = accessiblePosts.filter(post => post !== null);
-        
+        console.log(filteredPosts, "filteredPosts")        
         const totalCount = filteredPosts.length;
     
         const paginatedPosts = filteredPosts.slice(skip, skip + limit);
