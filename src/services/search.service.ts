@@ -31,7 +31,7 @@ export class SearchService {
     
         const accessiblePosts = await Promise.all(
             posts.map(async (post) => {
-                const { postId } = post.parse;
+                const { postId } = post
                 const hasAccess = await postRepService.checkPostAccess(userName, postId);
                 return hasAccess ? post : null;
             })
