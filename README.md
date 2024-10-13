@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="public/gramverse.png" alt="App Logo" style="display: inline-block; margin-right: 20px; width: 200px;" />
-  <img src="public/rahnema-icon.png" alt="Company Logo" style="display: inline-block; width: 200px;" />
+  <img src="https://github.com/gramverse/gramverse-frontend/raw/main/public/gramverse.png" alt="App Logo" style="display: inline-block; margin-right: 20px; width: 200px;" />
+  <img src="https://github.com/gramverse/gramverse-frontend/raw/main/public/rahnema-icon.png" alt="Company Logo" style="display: inline-block; width: 200px;" />
 </p>
 
 ![Repo Size](https://img.shields.io/github/repo-size/gramverse/gramverse-backend) ![GitHub Issues](https://img.shields.io/github/issues/gramverse/gramverse-backend) ![GitHub Forks](https://img.shields.io/github/forks/gramverse/gramverse-backend?style=social) ![GitHub Stars](https://img.shields.io/github/stars/gramverse/gramverse-backend?style=social)
