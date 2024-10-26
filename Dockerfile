@@ -12,4 +12,4 @@ RUN npm cache clean --force && npm install --omit=dev
 COPY --from=build /app/dist .
 EXPOSE 3000
 EXPOSE 3030
-CMD ["node", "./src/main.js"]
+CMD ["node", "./main.js"]
