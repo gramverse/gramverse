@@ -13,9 +13,9 @@ jobs:
 
       - name: Run commands
         run: |
-          cd ~/gramverse/gramverse-backend
+          cd /home/admin/gramverse/gramverse-backend
           git pull
-          cd ~/gramverse
+          cd /home/admin/gramverse
           sudo docker-compose build
 
   deploy:
@@ -27,5 +27,5 @@ jobs:
 
       - name: Run commands
         run: |
-          cd ~/gramverse
+          cd /home/admin/gramverse
           sudo docker-compose up --d
