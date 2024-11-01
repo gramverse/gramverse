@@ -23,7 +23,7 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "test": "jest --testMatch **/*.test.ts",
+        "test": "jest --runInBand   --testMatch **/src/tests/**/*.test.ts",
         "start": "set NODE_ENV=Dev&&ts-node src/main.ts",
         "dev": "nodemon src/main.ts",
         "build": "tsc"

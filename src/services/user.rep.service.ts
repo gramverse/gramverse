@@ -94,4 +94,8 @@ export class UserRepService {
         
         return {users, totalCount};
     };
+
+    seedData = async (users: Array<Partial<User>>) => {
+        await this.userRepository.seedData(users);
+    }
 }

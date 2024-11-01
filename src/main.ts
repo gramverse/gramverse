@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import {buildApp} from "./startup";
 
-const {app, server} = buildApp(); // Get both the app and server
+export const {app, server} = buildApp(); // Get both the app and server
 const port = process.env.PORT || 3000;
 
 // Start the server
@@ -16,7 +16,12 @@ server.listen(3030, () => {
 });
 
 // MongoDB connection
-const connectionString = process.env.DB_CONNECTION_STRING;
+let connectionString: string|undefined;
+if (process.env.NODE_ENV == "test") {
+    connectionString = "mongodb://mongo:27017/GramverseTestDB";
+} else {
+    connectionString = process.env.DB_CONNECTION_STRING;
+}
 if (!connectionString) {
     throw new Error("Connection string is not set.");
 }

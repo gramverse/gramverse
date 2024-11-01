@@ -16,6 +16,10 @@ export class UserRepository {
         return createdUser._id;
     };
 
+    seedData = async (users: Array<Partial<User>>) => {
+        await this.users.create(users);
+    }
+
     getUserByUserName = async (userName: string) => {
         const user =
             (await this.users.findOne({

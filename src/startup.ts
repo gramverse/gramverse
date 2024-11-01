@@ -62,7 +62,5 @@ export const buildApp = () => {
         next();
     });
 
-    console.log(1231);
-
     return {app, server};
 };
